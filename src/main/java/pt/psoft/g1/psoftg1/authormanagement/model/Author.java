@@ -1,81 +1,99 @@
 package pt.psoft.g1.psoftg1.authormanagement.model;
 
-import jakarta.persistence.*;
-import lombok.Getter;
 import org.hibernate.StaleObjectStateException;
 import pt.psoft.g1.psoftg1.authormanagement.services.UpdateAuthorRequest;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
 import pt.psoft.g1.psoftg1.shared.model.Name;
+import pt.psoft.g1.psoftg1.shared.model.Photo;
 
-@Entity
-public class Author extends EntityWithPhoto {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "AUTHOR_NUMBER")
-    @Getter
+import java.util.Objects;
+
+public class Author extends EntityWithPhoto
+{
     private Long authorNumber;
-
-    @Version
-    private long version;
-
-    @Embedded
+    private Long version;
     private Name name;
-
-    @Embedded
     private Bio bio;
 
-    public void setName(String name) {
-        this.name = new Name(name);
-    }
-
-    public void setBio(String bio) {
-        this.bio = new Bio(bio);
-    }
-
-    public Long getVersion() {
-        return version;
-    }
-
-    public Long getId() {
-        return authorNumber;
-    }
-
-    public Author(String name, String bio, String photoURI) {
+    public Author(Name name, Bio bio, Photo photoURI)
+    {
         setName(name);
         setBio(bio);
         setPhotoInternal(photoURI);
+        this.version = 0L;
     }
 
-    protected Author() {
-        // got ORM only
+    public Author(String name, String bio, String photoURI)
+    {
+        this(new Name(name), new Bio(bio), new Photo(photoURI));
     }
 
+    protected Author() { }
 
-    public void applyPatch(final long desiredVersion, final UpdateAuthorRequest request) {
-        if (this.version != desiredVersion)
+    // Getters
+    public Long getAuthorNumber() { return authorNumber; }
+    public Long getVersion() { return version; }
+    public Name getName() { return name; }
+    public Bio getBio() { return bio; }
+
+    // Setters
+    private void setName(Name name)
+    {
+        if (name == null)
+        {
+            throw new IllegalArgumentException("Name cannot be null");
+        }
+
+        this.name = name;
+    }
+
+    private void setBio(Bio bio)
+    {
+        if (bio == null)
+        {
+            throw new IllegalArgumentException("Bio cannot be null");
+        }
+
+        this.bio = bio;
+    }
+
+    // Logica de negocio
+    public void applyPatch(final Long expectedVersion, final UpdateAuthorRequest request)
+    {
+        if (!Objects.equals(this.version, expectedVersion))
+        {
             throw new StaleObjectStateException("Object was already modified by another user", this.authorNumber);
+        }
+
         if (request.getName() != null)
-            setName(request.getName());
+        {
+            setName(new Name(request.getName()));
+        }
+
         if (request.getBio() != null)
-            setBio(request.getBio());
-        if(request.getPhotoURI() != null)
+        {
+            setBio(new Bio(request.getBio()));
+        }
+
+        if (request.getPhotoURI() != null)
+        {
             setPhotoInternal(request.getPhotoURI());
+        }
     }
 
-    public void removePhoto(long desiredVersion) {
-        if(desiredVersion != this.version) {
+    public void removePhoto(Long expectedVersion)
+    {
+        if (!Objects.equals(expectedVersion, this.version))
+        {
             throw new ConflictException("Provided version does not match latest version of this object");
         }
 
-        setPhotoInternal(null);
-    }
-    public String getName() {
-        return this.name.toString();
-    }
-
-    public String getBio() {
-        return this.bio.toString();
+        setPhotoInternal((String) null);
     }
 }
+
+
+
+
 

@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,13 +21,10 @@ import pt.psoft.g1.psoftg1.authormanagement.services.CreateAuthorRequest;
 import pt.psoft.g1.psoftg1.authormanagement.services.UpdateAuthorRequest;
 import pt.psoft.g1.psoftg1.bookmanagement.api.BookView;
 import pt.psoft.g1.psoftg1.bookmanagement.api.BookViewMapper;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
-import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.shared.api.ListResponse;
 import pt.psoft.g1.psoftg1.shared.services.ConcurrencyService;
 import pt.psoft.g1.psoftg1.shared.services.FileStorageService;
-import pt.psoft.g1.psoftg1.usermanagement.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,9 +126,9 @@ public class AuthorController {
     @Operation(summary = "Know the books of an author")
     @GetMapping("/{authorNumber}/books")
     public ListResponse<BookView> getBooksByAuthorNumber(
-           @PathVariable("authorNumber")
-             @Parameter(description = "The number of the Author to find")
-             final Long authorNumber) {
+            @PathVariable("authorNumber")
+            @Parameter(description = "The number of the Author to find")
+            final Long authorNumber) {
 
         //Checking if author exists with this id
         authorService.findByAuthorNumber(authorNumber)
@@ -158,8 +154,8 @@ public class AuthorController {
     @GetMapping("/{authorNumber}/photo")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<byte[]> getSpecificAuthorPhoto(@PathVariable("authorNumber")
-                                                             @Parameter(description = "The number of the Author to find")
-                                                             final Long authorNumber) {
+                                                         @Parameter(description = "The number of the Author to find")
+                                                         final Long authorNumber) {
 
         Author authorDetails = authorService.findByAuthorNumber(authorNumber)
                 .orElseThrow(() -> new NotFoundException(Author.class, authorNumber));

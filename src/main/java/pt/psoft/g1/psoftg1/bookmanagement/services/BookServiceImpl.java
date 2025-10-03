@@ -156,7 +156,7 @@ public class BookServiceImpl implements BookService {
 	}
 
 	@Override
-	public List<Book> findByAuthorName(String authorName) {
+	public List<Book> findByAuthorName(Long authorName) {
 		return bookRepository.findByAuthorName(authorName + "%");
 	}
 

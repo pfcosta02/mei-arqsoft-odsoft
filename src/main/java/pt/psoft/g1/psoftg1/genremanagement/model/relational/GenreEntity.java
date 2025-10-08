@@ -39,7 +39,7 @@ public class GenreEntity
 
     // Setter
     private void setGenre(String genre) {
-        this.genre = genre; // sem lógica
+        this.genre = genre;
     }
 }
 

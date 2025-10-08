@@ -1,37 +1,37 @@
 package pt.psoft.g1.psoftg1.bookmanagement.model.mongodb;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.mapping.Field;
+import pt.psoft.g1.psoftg1.bookmanagement.model.Title;
 
-public class TitleMongoDB {
+import java.io.Serializable;
 
-    private static final int TITLE_MAX_LENGTH = 128;
+@Profile("mongodb")
+@Primary
+@EqualsAndHashCode
+public class TitleMongoDB implements Serializable {
 
-    @Field
+    @Id
+    @GeneratedValue(strategy= GenerationType.AUTO)
+    private Long TitleId;
+
+    @NotBlank(message = "Title cannot be blank")
+    @Size(min = 1, max = Title.TITLE_MAX_LENGTH)
+    @Column(name = "TITLE", length = Title.TITLE_MAX_LENGTH, nullable = false)
     @Getter
-    String title;
+    private String title;
 
     protected TitleMongoDB() {}
 
     public TitleMongoDB(String title) {
         this.title = title;
     }
-
-    public void setTitle(String title){
-        if(title == null)
-            throw new IllegalArgumentException("Title cannot be null");
-        if(title.isBlank())
-            throw new IllegalArgumentException("Title cannot be blank");
-        if(title.length() > TITLE_MAX_LENGTH)
-            throw new IllegalArgumentException("Title has a maximum of " + TITLE_MAX_LENGTH + " characters");
-        this.title = title.strip();
-
-    }
-
-    public String toString() {
-        return this.title;
-    }
-
 }
 

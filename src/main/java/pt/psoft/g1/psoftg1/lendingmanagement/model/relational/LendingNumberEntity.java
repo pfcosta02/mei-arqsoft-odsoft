@@ -1,8 +1,6 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.model.relational;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,6 +18,9 @@ import org.springframework.context.annotation.Profile;
 @Primary
 public class LendingNumberEntity implements Serializable
 {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long pk;
 
     @Column(name = "LENDING_NUMBER", length = 32)
     @NotNull

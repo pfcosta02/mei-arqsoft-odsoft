@@ -28,7 +28,7 @@ import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO;
 import pt.psoft.g1.psoftg1.readermanagement.services.SearchReadersQuery;
-import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
+import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
 
 @Profile("jpa")
 @Primary
@@ -103,6 +103,7 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
     public ReaderDetails save(ReaderDetails readerDetails)
     {
         // TODO
+        return readerDetails;
     }
 
     @Override

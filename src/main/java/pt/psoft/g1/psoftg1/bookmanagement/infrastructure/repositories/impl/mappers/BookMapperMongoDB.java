@@ -7,22 +7,16 @@ import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Title;
 import pt.psoft.g1.psoftg1.bookmanagement.model.mongodb.BookMongoDB;
 import pt.psoft.g1.psoftg1.bookmanagement.model.mongodb.TitleMongoDB;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.TitleEntity;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
-import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.shared.model.Photo;
 import pt.psoft.g1.psoftg1.shared.model.mongodb.PhotoMongoDB;
-import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 
 @Mapper(componentModel = "spring")
 public interface BookMapperMongoDB {
 
     @Mapping(target = "version", source = "bookMongoDB.version")
-    Book toDomain(BookMongoDB bookMongoDB);
-
-
+    Book toModel(BookMongoDB bookMongoDB);
     BookMongoDB toMongoDB(Book book);
 
     default String map(Genre Value){

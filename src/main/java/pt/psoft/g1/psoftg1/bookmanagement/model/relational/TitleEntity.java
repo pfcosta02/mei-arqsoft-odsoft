@@ -1,8 +1,6 @@
 package pt.psoft.g1.psoftg1.bookmanagement.model.relational;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.EqualsAndHashCode;
@@ -21,6 +19,10 @@ import org.springframework.context.annotation.Profile;
 @EqualsAndHashCode
 public class TitleEntity implements Serializable
 {
+    @Id
+    @GeneratedValue(strategy= GenerationType.AUTO)
+    private Long TitleId;
+
     @NotBlank(message = "Title cannot be blank")
     @Size(min = 1, max = Title.TITLE_MAX_LENGTH)
     @Column(name = "TITLE", length = Title.TITLE_MAX_LENGTH, nullable = false)

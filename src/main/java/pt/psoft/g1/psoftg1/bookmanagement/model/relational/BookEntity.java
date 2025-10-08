@@ -15,7 +15,9 @@ import org.springframework.context.annotation.Profile;
 @Profile("jpa")
 @Primary
 @Entity
-@Table(name = "Book")
+@Table(name = "Book", uniqueConstraints = {
+        @UniqueConstraint(name = "uc_book_isbn", columnNames = {"ISBN"})
+})
 public class BookEntity extends EntityWithPhotoEntity
 {
     @Id

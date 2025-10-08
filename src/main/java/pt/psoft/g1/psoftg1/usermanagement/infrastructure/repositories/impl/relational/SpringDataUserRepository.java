@@ -78,4 +78,3 @@ public interface SpringDataUserRepository extends CrudRepository<UserEntity, Lon
     @Query("SELECT u FROM UserEntity u WHERE u.name.name = ?1")
     List<UserEntity> findByNameName(String name);
 }
-

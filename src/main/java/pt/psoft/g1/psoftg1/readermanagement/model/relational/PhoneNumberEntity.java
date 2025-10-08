@@ -1,7 +1,6 @@
 package pt.psoft.g1.psoftg1.readermanagement.model.relational;
 
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 
 import java.io.Serializable;
 
@@ -14,6 +13,10 @@ import org.springframework.context.annotation.Profile;
 @Primary
 public class PhoneNumberEntity implements Serializable
 {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long pk;
+
     private String phoneNumber;
 
     protected PhoneNumberEntity() {}

@@ -144,9 +144,17 @@
 							<artifactId>lombok-mapstruct-binding</artifactId>
 							<version>0.2.0</version>
 						</path>
+
+
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>LATEST</version>
+            </plugin>
 		</plugins>
 	</build>
 

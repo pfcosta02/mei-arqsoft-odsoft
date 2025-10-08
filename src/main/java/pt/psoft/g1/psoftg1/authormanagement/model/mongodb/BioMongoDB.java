@@ -1,17 +1,32 @@
 package pt.psoft.g1.psoftg1.authormanagement.model.mongodb;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.mapping.Field;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import pt.psoft.g1.psoftg1.authormanagement.model.Bio;
 import pt.psoft.g1.psoftg1.shared.model.StringUtilsCustom;
 
+@Profile("mongodb")
+@Primary
 public class BioMongoDB {
 
-    private static final int BIO_MAX_LENGTH = 4096;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Getter @Setter
+    private Long BioId;
 
-    @Field("bio")  // Optional: Map the field explicitly
+    @Column(nullable = false, length = Bio.BIO_MAX_LENGTH)
     @NotNull
-    @Size(min = 1, max = BIO_MAX_LENGTH)
+    @Size(min = 1, max = Bio.BIO_MAX_LENGTH)
+    @Getter
     private String bio;
 
     public BioMongoDB(String bio) {
@@ -22,18 +37,6 @@ public class BioMongoDB {
         // For ORM or deserialization
     }
 
-    public void setBio(String bio) {
-        if (bio == null)
-            throw new IllegalArgumentException("Bio cannot be null");
-        if (bio.isBlank())
-            throw new IllegalArgumentException("Bio cannot be blank");
-        if (bio.length() > BIO_MAX_LENGTH)
-            throw new IllegalArgumentException("Bio has a maximum of 4096 characters");
-        this.bio = StringUtilsCustom.sanitizeHtml(bio);
-    }
-
-    @Override
-    public String toString() {
-        return bio;
-    }
+    // Setters
+    private void setBio(String bio) { this.bio = bio; }
 }

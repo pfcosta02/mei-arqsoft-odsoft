@@ -2,12 +2,10 @@ package pt.psoft.g1.psoftg1.bookmanagement.model.relational;
 
 import java.io.Serializable;
 
+import jakarta.persistence.*;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
 import jakarta.validation.constraints.Size;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Description;
 
@@ -17,6 +15,10 @@ import pt.psoft.g1.psoftg1.bookmanagement.model.Description;
 @Embeddable
 public class DescriptionEntity implements Serializable
 {
+    @Id
+    @GeneratedValue(strategy= GenerationType.AUTO)
+    private Long DescriptionId;
+
     @Size(max = Description.DESC_MAX_LENGTH)
     @Column(length = Description.DESC_MAX_LENGTH)
     private String description;

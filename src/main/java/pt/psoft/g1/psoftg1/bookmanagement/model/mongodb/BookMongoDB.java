@@ -1,27 +1,37 @@
 package pt.psoft.g1.psoftg1.bookmanagement.model.mongodb;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
+import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
+import pt.psoft.g1.psoftg1.bookmanagement.model.relational.DescriptionEntity;
+import pt.psoft.g1.psoftg1.bookmanagement.model.relational.IsbnEntity;
+import pt.psoft.g1.psoftg1.bookmanagement.model.relational.TitleEntity;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
+import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.shared.model.mongodb.EntityWithPhotoMongoDB;
 
 import java.util.List;
 
+@Profile("mongodb")
+@Primary
 @Document(collection = "books")
 @EnableMongoAuditing
 public class BookMongoDB extends EntityWithPhotoMongoDB {
 
-    @Getter
-    @Setter
     @Id
-    private String bookId;
+    @GeneratedValue(strategy= GenerationType.AUTO)
+    private Long pk;
 
     @Getter
     @Setter
@@ -48,62 +58,27 @@ public class BookMongoDB extends EntityWithPhotoMongoDB {
     @Field("description")
     DescriptionMongoDB description;
 
-    private void setTitle(String title) {
-        this.title = new TitleMongoDB(title);
-    }
-
-    private void setIsbn(String isbn) {
-        this.isbn = new IsbnMongoDB(isbn);
-    }
-
-    private void setDescription(String description) {
-        this.description = new DescriptionMongoDB(description);
-    }
-
-    public void setGenre(GenreMongoDB genre) {
-        this.genre = genre;
-    }
-
-    public void setAuthors(List<AuthorMongoDB> authors) {
-        this.authors = authors;
-    }
-
-    public String getDescription() {
-        return this.description.toString();
-    }
-
-    public BookMongoDB(String isbn, String title, String description, GenreMongoDB genre, List<AuthorMongoDB> authors, String photoURI) {
+    public BookMongoDB(IsbnMongoDB isbn, TitleMongoDB title, DescriptionMongoDB description, GenreMongoDB genre, List<AuthorMongoDB> authors, String photoURI)
+    {
         setTitle(title);
         setIsbn(isbn);
-        if(description != null)
-            setDescription(description);
-        if(genre == null)
-            throw new IllegalArgumentException("Genre cannot be null");
-        if(authors == null)
-            throw new IllegalArgumentException("Authors cannot be null");
-        if(authors.isEmpty())
-            throw new IllegalArgumentException("Authors cannot be empty");
-
+        setDescription(description);
         setAuthors(authors);
         setGenre(genre);
         setPhotoInternal(photoURI);
     }
 
-    protected BookMongoDB() {
-        // got ORM only
-    }
+    protected BookMongoDB() {}
 
-    public void removePhoto(long desiredVersion) {
-        if(desiredVersion != this.version) {
-            throw new ConflictException("Provided version does not match latest version of this object");
-        }
+    // Setters
+    private void setTitle(TitleMongoDB title) { this.title = title; }
+    private void setIsbn(IsbnMongoDB isbn) { this.isbn = isbn; }
+    private void setDescription(DescriptionMongoDB description) { this.description = description; }
+    private void setGenre(GenreMongoDB genre) { this.genre = genre; }
+    private void setAuthors(List<AuthorMongoDB> authors) { this.authors = authors; }
 
-        setPhotoInternal(null);
-    }
-
-    public String getIsbn(){
-        return this.isbn.toString();
-    }
-
+    // Getters
+    public String getDescription(){ return this.description.toString(); }
+    public String getIsbn(){ return this.isbn.toString(); }
 }
 

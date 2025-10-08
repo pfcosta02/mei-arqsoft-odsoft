@@ -20,7 +20,7 @@ public interface AuthorMapperMongoDB {
     })
     AuthorMongoDB toMongoDB(Author author);
 
-    Author toDomain(AuthorMongoDB authorMongoDB);
+    Author toModel(AuthorMongoDB authorMongoDB);
 
     String map(Photo value);
 }

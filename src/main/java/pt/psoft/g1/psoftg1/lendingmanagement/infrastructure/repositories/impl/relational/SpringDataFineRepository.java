@@ -19,5 +19,4 @@ public interface SpringDataFineRepository extends CrudRepository<FineEntity, Lon
 
     @Query("SELECT f FROM FineEntity f")
     Iterable<FineEntity> findAll();
-
 }

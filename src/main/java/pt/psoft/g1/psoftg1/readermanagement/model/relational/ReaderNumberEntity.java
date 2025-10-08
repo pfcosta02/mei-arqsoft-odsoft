@@ -1,8 +1,6 @@
 package pt.psoft.g1.psoftg1.readermanagement.model.relational;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 
 import java.io.Serializable;
 
@@ -14,6 +12,10 @@ import org.springframework.context.annotation.Profile;
 @Profile("jpa")
 @Primary
 public class ReaderNumberEntity implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long pk;
 
     @Column(name = "READER_NUMBER")
     private String readerNumber;

@@ -2,12 +2,10 @@ package pt.psoft.g1.psoftg1.bookmanagement.model.relational;
 
 import java.io.Serializable;
 
+import jakarta.persistence.*;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.EqualsAndHashCode;
@@ -18,6 +16,10 @@ import lombok.EqualsAndHashCode;
 @Embeddable
 @EqualsAndHashCode
 public class IsbnEntity implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy= GenerationType.AUTO)
+    private Long IsbnId;
 
     @NotNull
     @Size(min = 10, max = 13)
@@ -42,7 +44,4 @@ public class IsbnEntity implements Serializable {
     {
         this.isbn = isbn;
     }
-
-
 }
-

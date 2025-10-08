@@ -1,10 +1,6 @@
 package pt.psoft.g1.psoftg1.readermanagement.model.relational;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.io.Serializable;
@@ -21,6 +17,10 @@ import org.springframework.context.annotation.PropertySource;
 @Primary
 public class BirthDateEntity implements Serializable
 {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long pk;
+
     @Getter
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.DATE)

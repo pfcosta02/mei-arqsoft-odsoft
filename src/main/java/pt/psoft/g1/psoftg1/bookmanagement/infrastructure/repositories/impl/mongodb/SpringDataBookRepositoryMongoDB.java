@@ -3,19 +3,24 @@ package pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mong
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.bookmanagement.model.mongodb.BookMongoDB;
+import pt.psoft.g1.psoftg1.bookmanagement.model.mongodb.IsbnMongoDB;
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-@Profile("mongodb")
-public interface BookRepositoryMongoDB extends MongoRepository<BookMongoDB, String> {
+
+@Repository
+public interface SpringDataBookRepositoryMongoDB extends MongoRepository<BookMongoDB, IsbnMongoDB> {
 
     @Query("{ 'isbn.isbn': ?0 }")
-    Optional<BookMongoDB> findByIsbn(String isbn);
+    Optional<BookMongoDB> findByIsbn(@Param("isbn") String isbn);
 
     @Query("{ 'genre.genre': { $regex: ?0, $options: 'i' } }") // Case-insensitive regex search
     List<BookMongoDB> findByGenre(String genre);
@@ -29,8 +34,14 @@ public interface BookRepositoryMongoDB extends MongoRepository<BookMongoDB, Stri
     @Query(value = "{ 'authors.authorNumber': ?0 }")
     List<BookMongoDB> findBooksByAuthorNumber(Long authorNumber);
 
-    // This method would need a custom implementation to count loans and return a paginated result
+    @Aggregation(pipeline = {
+            "{ $match: { 'startDate': { $gt: ?0 } } }",
+            "{ $group: { _id: '$bookId', count: { $sum: 1 } } }",
+            "{ $sort: { count: -1 } }",
+            "{ $limit: 5 }",
+            "{ $lookup: { from: 'books', localField: '_id', foreignField: '_id', as: 'book' } }",
+            "{ $unwind: '$book' }",
+            "{ $project: { book: 1, count: 1 } }"
+    })
     Page<BookCountDTO> findTop5BooksLent(LocalDate oneYearAgo, Pageable pageable);
-
-
 }

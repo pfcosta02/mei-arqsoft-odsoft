@@ -10,8 +10,6 @@ pipeline {
     MVN_CMD = "mvn"  // usa wrapper para garantir versão
 //     SONAR_HOST_URL = "http://<seu-sonar-host>:9000"
 //     SONAR_LOGIN = credentials('sonar-token-id')  // credencial armazenada no Jenkins
-    // Docker image nome (se for construir imagem Docker)
-//     IMAGE_NAME = "odsoft-app:${env.BRANCH_NAME}"
   }
 
 //   stages {
@@ -62,25 +60,6 @@ stage('Checkout') {
         bat "${MVN_CMD} package -B -DskipTests"
       }
     }
-
-//     stage('Build Docker Image') {
-//       steps {
-//         script {
-//           docker.build("${IMAGE_NAME}", ".")
-//         }
-//       }
-//     }
-
-//     stage('Push Docker Image') {
-//       steps {
-//         script {
-//           // Exemplo de push para registry (ajusta para teu registry)
-//           docker.withRegistry('https://registry.exemplo.com', 'docker-credentials-id') {
-//             docker.image("${IMAGE_NAME}").push()
-//           }
-//         }
-//       }
-//     }
 
 //     stage('Deploy to Dev') {
 //       steps {

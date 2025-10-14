@@ -16,6 +16,8 @@ import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
+import pt.psoft.g1.psoftg1.isbn.model.BookInfo;
+import pt.psoft.g1.psoftg1.isbn.services.IsbnProviderFactory;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
@@ -36,6 +38,7 @@ public class BookServiceImpl implements BookService {
 	private final AuthorRepository authorRepository;
 	private final PhotoRepository photoRepository;
 	private final ReaderRepository readerRepository;
+    private final IsbnProviderFactory isbnProviderFactory;
 
 	@Value("${suggestionsLimitPerGenre}")
 	private long suggestionsLimitPerGenre;
@@ -207,4 +210,10 @@ public class BookServiceImpl implements BookService {
 		}
 		return bookRepository.searchBooks(page, query);
 	}
+
+    @Override
+    public List<BookInfo> searchExternalBooks(String title) {
+        return isbnProviderFactory.getProvider().searchByTitle(title);
+    }
+
 }

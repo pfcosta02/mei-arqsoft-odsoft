@@ -21,6 +21,7 @@ import pt.psoft.g1.psoftg1.bookmanagement.services.SearchBooksQuery;
 import pt.psoft.g1.psoftg1.bookmanagement.services.UpdateBookRequest;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.isbn.model.BookInfo;
 import pt.psoft.g1.psoftg1.lendingmanagement.services.LendingService;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderService;
@@ -239,5 +240,12 @@ public class BookController {
         final var bookList = bookService.searchBooks(request.getPage(), request.getQuery());
         return new ListResponse<>(bookViewMapper.toBookView(bookList));
     }
+
+    @GetMapping("/external/search")
+    public ResponseEntity<List<BookInfo>> searchExternalBooks(@RequestParam String title) {
+        List<BookInfo> books = bookService.searchExternalBooks(title);
+        return ResponseEntity.ok(books);
+    }
+
 }
 

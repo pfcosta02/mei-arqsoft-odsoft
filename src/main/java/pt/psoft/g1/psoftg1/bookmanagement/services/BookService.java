@@ -2,6 +2,7 @@ package pt.psoft.g1.psoftg1.bookmanagement.services;
 
 
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
+import pt.psoft.g1.psoftg1.isbn.model.BookInfo;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 
 import java.util.List;
@@ -21,4 +22,6 @@ public interface BookService {
     Book removeBookPhoto(String isbn, long desiredVersion);
     List<Book> getBooksSuggestionsForReader(String readerNumber);
     List<Book> searchBooks(Page page, SearchBooksQuery query);
+    List<BookInfo> searchExternalBooks(String title);
+
 }

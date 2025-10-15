@@ -1,8 +1,5 @@
 package pt.psoft.g1.psoftg1.genremanagement.model.mongodb;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,14 +16,12 @@ import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 public class GenreMongoDB {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Setter
     @Getter
-    private Long pk;
+    private String genreId;
 
     @Field("genre")
     @Size(min = 1, max = Genre.GENRE_MAX_LENGTH, message = "Genre name must be between 1 and 100 characters")
-    @Column(unique = true, nullable = false, length = Genre.GENRE_MAX_LENGTH)
     @Getter
     private String genre;
 
@@ -55,8 +50,5 @@ public class GenreMongoDB {
         this.genre = genre;
     }
 
-    public String toString() {
-        return genre;
-    }
-
+    public String toString() { return genre; }
 }

@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class Author extends EntityWithPhoto
 {
-    private Long authorNumber;
+    private String authorNumber;
     private Long version;
     private Name name;
     private Bio bio;
@@ -32,7 +32,7 @@ public class Author extends EntityWithPhoto
     protected Author() { }
 
     // Getters
-    public Long getAuthorNumber() { return authorNumber; }
+    public String getAuthorNumber() { return authorNumber; }
     public Long getVersion() { return version; }
     public Name getName() { return name; }
     public Bio getBio() { return bio; }

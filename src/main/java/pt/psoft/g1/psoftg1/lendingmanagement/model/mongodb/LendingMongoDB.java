@@ -1,14 +1,14 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.model.mongodb;
 
-import jakarta.persistence.*;
+
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.annotation.Version;
-import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import pt.psoft.g1.psoftg1.bookmanagement.model.mongodb.BookMongoDB;
@@ -17,52 +17,43 @@ import pt.psoft.g1.psoftg1.readermanagement.model.mongodb.ReaderDetailsMongoDB;
 import java.time.LocalDate;
 
 @Document(collection = "lendings")
-@EnableMongoAuditing
-@Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames={"LENDING_NUMBER"})})
+// @EnableMongoAuditing
 @Profile("mongodb")
 @Primary
 public class LendingMongoDB {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+    private String lendingId;
 
     @Field("lending_number")
+    @Getter
     private LendingNumberMongoDB lendingNumber;
 
     @Field("genId")
-    @Getter
-    @Setter
+    @Getter @Setter
     private String genId;
 
     @Field("book")
     @NotNull
     @Getter
-    @ManyToOne(fetch=FetchType.EAGER, optional = false)
     private BookMongoDB book;
 
     @Field("reader_details")
     @NotNull
     @Getter
-    @ManyToOne(fetch=FetchType.EAGER, optional = false)
     private ReaderDetailsMongoDB readerDetails;
 
     @Field("start_date")
     @NotNull
-    @Column(nullable = false, updatable = false)
-    @Temporal(TemporalType.DATE)
     @Getter
     private LocalDate startDate;
 
     @Field("limit_date")
     @NotNull
-    @Column(nullable = false)
-    @Temporal(TemporalType.DATE)
     @Getter
     private LocalDate limitDate;
 
     @Field("returned_date")
-    @Temporal(TemporalType.DATE)
     @Getter
     private LocalDate returnedDate;
 
@@ -73,7 +64,6 @@ public class LendingMongoDB {
 
     @Field("commentary")
     @Size(min = 0, max = 1024)
-    @Column(length = 1024)
     @Getter
     private String commentary;
 
@@ -82,9 +72,11 @@ public class LendingMongoDB {
     private int fineValuePerDayInCents;
 
     @Field("days_untul_return")
+    @Getter @Setter
     private Integer daysUntilReturn;
 
     @Field("days_overdue")
+    @Getter @Setter
     private Integer daysOverdue;
 
     protected LendingMongoDB() {}
@@ -102,4 +94,3 @@ public class LendingMongoDB {
         this.commentary = commentary;
     }
 }
-

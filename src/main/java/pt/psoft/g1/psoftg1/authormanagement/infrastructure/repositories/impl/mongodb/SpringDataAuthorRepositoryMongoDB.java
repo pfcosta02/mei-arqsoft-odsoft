@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SpringDataAuthorRepositoryMongoDB extends MongoRepository<AuthorMongoDB, Long> {
+public interface SpringDataAuthorRepositoryMongoDB extends MongoRepository<AuthorMongoDB, String> {
 
     @Query("{ 'authorNumber': ?0 }")
-    Optional<AuthorMongoDB> findByAuthorNumber(Long authorNumber);
+    Optional<AuthorMongoDB> findByAuthorNumber(String authorNumber);
 
     @Aggregation(pipeline = {
             "{ $lookup: { from: 'books', localField: '_id', foreignField: 'authors.authorId', as: 'books' } }",
@@ -38,7 +38,7 @@ public interface SpringDataAuthorRepositoryMongoDB extends MongoRepository<Autho
             "{ $group: { _id: '$books.authors.authorNumber', coAuthor: { $first: '$books.authors' } } }",
             "{ $replaceRoot: { newRoot: '$coAuthor' } }"
     })
-    List<AuthorMongoDB> findCoAuthorsByAuthorNumber(Long authorNumber);
+    List<AuthorMongoDB> findCoAuthorsByAuthorNumber(String authorNumber);
 
 
     @Query("{ 'name.name': ?0 }")

@@ -1,74 +1,53 @@
 package pt.psoft.g1.psoftg1.readermanagement.model.mongodb;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
 import pt.psoft.g1.psoftg1.shared.model.mongodb.PhotoMongoDB;
 import pt.psoft.g1.psoftg1.usermanagement.model.mongodb.ReaderMongoDB;
 import pt.psoft.g1.psoftg1.shared.model.mongodb.EntityWithPhotoMongoDB;
 
-
 import java.util.List;
 
 @Document(collection = "reader_details")
-@EnableMongoAuditing
+// @EnableMongoAuditing
 @Profile("mongodb")
-@Primary
 public class ReaderDetailsMongoDB extends EntityWithPhotoMongoDB {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Getter
-    private String pk;
+    private String readerDetailsId;
 
-    @OneToOne
-    @Getter
-    @Setter
+    @Getter @Setter
     private ReaderMongoDB reader;
 
-    @Embedded
-    @Getter
-    @Setter
+    @Getter @Setter
     private ReaderNumberMongoDB readerNumber;
 
-    @Embedded
-    @Getter
-    @Setter
+    @Getter @Setter
     private BirthDateMongoDB birthDate;
 
-    @Embedded
-    @Getter
-    @Setter
+    @Getter @Setter
     private PhoneNumberMongoDB phoneNumber;
 
-    @Basic
-    @Getter
-    @Setter
+    @Getter @Setter
     private boolean gdprConsent;
 
-    @Basic
-    @Getter
-    @Setter
+    @Getter @Setter
     private boolean marketingConsent;
 
-    @Basic
-    @Getter
-    @Setter
+    @Getter @Setter
     private boolean thirdPartySharingConsent;
 
     @Version
-    @Getter
-    @Setter
+    @Getter @Setter
     private Long version;
 
-    @ManyToMany
-    @Getter
-    @Setter
+    @Getter @Setter
     private List<GenreMongoDB> interestList;
 
     protected ReaderDetailsMongoDB() {}

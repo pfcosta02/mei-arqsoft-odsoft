@@ -1,15 +1,10 @@
 package pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mongodb;
 
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
@@ -28,7 +23,7 @@ public class AuthorRepositoryMongoDBImpl implements AuthorRepository {
 
 
     @Override
-    public Optional<Author> findByAuthorNumber(Long authorNumber)
+    public Optional<Author> findByAuthorNumber(String authorNumber)
     {
         Optional<AuthorMongoDB> entityOpt = authoRepo.findByAuthorNumber(authorNumber);
         if (entityOpt.isPresent())
@@ -96,7 +91,7 @@ public class AuthorRepositoryMongoDBImpl implements AuthorRepository {
     }
 
     @Override
-    public List<Author> findCoAuthorsByAuthorNumber(Long authorNumber)
+    public List<Author> findCoAuthorsByAuthorNumber(String authorNumber)
     {
         List<Author> authors = new ArrayList<>();
         for (AuthorMongoDB a: authoRepo.findCoAuthorsByAuthorNumber(authorNumber))

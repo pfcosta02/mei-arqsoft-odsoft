@@ -1,16 +1,12 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.model.mongodb;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
@@ -18,13 +14,11 @@ import java.time.LocalDate;
 @Document(collection = "lendings_numbers")
 @EqualsAndHashCode
 @Profile("mongodb")
-@Primary
 public class LendingNumberMongoDB {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
 
-    @Column(name = "LENDING_NUMBER", length = 32)
+    @Id
+    private String lendingNumberId;
+
     @NotNull
     @NotBlank
     @Size(min = 6, max = 32)

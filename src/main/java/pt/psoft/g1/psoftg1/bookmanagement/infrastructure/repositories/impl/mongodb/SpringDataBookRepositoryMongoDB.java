@@ -17,10 +17,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SpringDataBookRepositoryMongoDB extends MongoRepository<BookMongoDB, IsbnMongoDB> {
+public interface SpringDataBookRepositoryMongoDB extends MongoRepository<BookMongoDB, String> {
 
     @Query("{ 'isbn.isbn': ?0 }")
-    Optional<BookMongoDB> findByIsbn(@Param("isbn") String isbn);
+    Optional<BookMongoDB> findByIsbn(String isbn);
 
     @Query("{ 'genre.genre': { $regex: ?0, $options: 'i' } }") // Case-insensitive regex search
     List<BookMongoDB> findByGenre(String genre);
@@ -32,14 +32,14 @@ public interface SpringDataBookRepositoryMongoDB extends MongoRepository<BookMon
     List<BookMongoDB> findByAuthorName(String authorName);
 
     @Query(value = "{ 'authors.authorNumber': ?0 }")
-    List<BookMongoDB> findBooksByAuthorNumber(Long authorNumber);
+    List<BookMongoDB> findBooksByAuthorNumber(String authorNumber);
 
     @Aggregation(pipeline = {
             "{ $match: { 'startDate': { $gt: ?0 } } }",
             "{ $group: { _id: '$bookId', count: { $sum: 1 } } }",
             "{ $sort: { count: -1 } }",
             "{ $limit: 5 }",
-            "{ $lookup: { from: 'books', localField: '_id', foreignField: '_id', as: 'book' } }",
+            "{ $lookup: { from: 'books', localField: '_id', foreignField: 'bookId', as: 'book' } }",
             "{ $unwind: '$book' }",
             "{ $project: { book: 1, count: 1 } }"
     })

@@ -1,32 +1,24 @@
 package pt.psoft.g1.psoftg1.authormanagement.model.mongodb;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.StaleObjectStateException;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
-import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import pt.psoft.g1.psoftg1.authormanagement.model.relational.BioEntity;
 import pt.psoft.g1.psoftg1.shared.model.mongodb.EntityWithPhotoMongoDB;
 import pt.psoft.g1.psoftg1.shared.model.mongodb.NameMongoDB;
 import pt.psoft.g1.psoftg1.shared.model.mongodb.PhotoMongoDB;
-import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;
 
 @Profile("mongodb")
 @Primary
 @Document(collection = "authors")
-@EnableMongoAuditing
+// @EnableMongoAuditing
 public class AuthorMongoDB extends EntityWithPhotoMongoDB {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Getter
     @Setter
     private String authorNumber;
@@ -40,7 +32,6 @@ public class AuthorMongoDB extends EntityWithPhotoMongoDB {
 
     @Field("bio")
     private BioMongoDB bio;
-
 
     protected AuthorMongoDB() {}
 

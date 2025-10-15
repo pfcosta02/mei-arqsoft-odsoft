@@ -1,26 +1,23 @@
 package pt.psoft.g1.psoftg1.bookmanagement.model.mongodb;
 
-import jakarta.annotation.Nullable;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.validation.constraints.Size;
+import org.springframework.context.annotation.Profile;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Description;
-import pt.psoft.g1.psoftg1.shared.model.StringUtilsCustom;
 
 import java.io.Serializable;
 
 @Profile("mongodb")
-@Primary
+@Document(collection = "descriptions")
 public class DescriptionMongoDB implements Serializable {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private Long DescriptionId;
+    private String descriptionId;
 
     @Size(max = Description.DESC_MAX_LENGTH)
-    @Column(length = Description.DESC_MAX_LENGTH)
+    @Field("description")
     private String description;
 
     public DescriptionMongoDB(String description) {
@@ -29,13 +26,7 @@ public class DescriptionMongoDB implements Serializable {
 
     protected DescriptionMongoDB() {}
 
-    private void setDescription(String description)
-    {
-        this.description = description;
-    }
+    private void setDescription(String description) { this.description = description; }
+    public String toString() { return this.description; }
 
-    public String toString() {
-        return this.description;
-    }
 }
-

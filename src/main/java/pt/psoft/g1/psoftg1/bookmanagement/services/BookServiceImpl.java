@@ -16,7 +16,6 @@ import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
-import pt.psoft.g1.psoftg1.isbn.model.BookInfo;
 import pt.psoft.g1.psoftg1.isbn.services.IsbnProviderFactory;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
@@ -212,7 +211,7 @@ public class BookServiceImpl implements BookService {
 	}
 
     @Override
-    public List<BookInfo> searchExternalBooks(String title) {
+    public Isbn searchExternalBooks(String title) {
         return isbnProviderFactory.getProvider().searchByTitle(title);
     }
 

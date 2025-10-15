@@ -12,14 +12,9 @@ import lombok.EqualsAndHashCode;
 
 @Profile("jpa")
 @Primary
-@Entity
 @Embeddable
 @EqualsAndHashCode
 public class IsbnEntity implements Serializable {
-
-    @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private Long IsbnId;
 
     @NotNull
     @Size(min = 10, max = 13)

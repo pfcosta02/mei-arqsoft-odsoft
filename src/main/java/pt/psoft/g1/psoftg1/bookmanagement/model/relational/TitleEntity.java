@@ -14,15 +14,10 @@ import org.springframework.context.annotation.Profile;
 
 @Profile("jpa")
 @Primary
-@Entity
 @Embeddable
 @EqualsAndHashCode
 public class TitleEntity implements Serializable
 {
-    @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private Long TitleId;
-
     @NotBlank(message = "Title cannot be blank")
     @Size(min = 1, max = Title.TITLE_MAX_LENGTH)
     @Column(name = "TITLE", length = Title.TITLE_MAX_LENGTH, nullable = false)

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mappers.AuthorEntityMapper;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
@@ -18,6 +19,7 @@ import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 
 @Profile("jpa")
 @Primary
+@Repository
 @RequiredArgsConstructor
 public class AuthorRepositoryRelationalImpl implements AuthorRepository
 {

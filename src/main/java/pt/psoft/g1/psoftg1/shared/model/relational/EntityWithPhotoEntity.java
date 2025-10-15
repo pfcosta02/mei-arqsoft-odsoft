@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.shared.model.relational;
 
+import jakarta.annotation.Nullable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
@@ -7,17 +8,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
 @Profile("jpa")
 @Primary
-public class EntityWithPhotoEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
-
+@Getter
+@MappedSuperclass
+public abstract class EntityWithPhotoEntity {
+    @Nullable
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "photo_id")
+    @JoinColumn(name = "photo_id",  nullable = true)
     @Getter
     @Setter
     private PhotoEntity photo;

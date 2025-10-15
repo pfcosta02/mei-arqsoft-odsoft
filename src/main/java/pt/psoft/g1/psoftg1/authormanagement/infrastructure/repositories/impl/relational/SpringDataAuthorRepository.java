@@ -11,7 +11,7 @@ import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+//@Repository
 public interface SpringDataAuthorRepository extends CrudRepository<AuthorEntity, Long> {
 
     @Query("SELECT a FROM AuthorEntity a WHERE a.authorNumber = :authorNumber")

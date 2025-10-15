@@ -7,6 +7,7 @@ import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.shared.model.relational.EntityWithPhotoEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.context.annotation.Primary;
@@ -46,7 +47,8 @@ public class BookEntity extends EntityWithPhotoEntity
 
     @Getter
     @ManyToMany
-    private List<AuthorEntity> authors;
+    @JoinTable(joinColumns = @JoinColumn(name = "BOOK_PK"))
+    private List<AuthorEntity> authors = new ArrayList<>();
 
     public BookEntity(IsbnEntity isbn, TitleEntity title, DescriptionEntity description, GenreEntity genre, List<AuthorEntity> authors, String photoURI)
     {
@@ -56,6 +58,8 @@ public class BookEntity extends EntityWithPhotoEntity
         setAuthors(authors);
         setGenre(genre);
         setPhotoInternal(photoURI);
+
+        this.version = 0L;
     }
 
     protected BookEntity() {}
@@ -70,4 +74,5 @@ public class BookEntity extends EntityWithPhotoEntity
     // Getters
     public String getDescription(){ return this.description.toString(); }
     public String getIsbn(){ return this.isbn.toString(); }
+    public Long getPk() { return pk; }
 }

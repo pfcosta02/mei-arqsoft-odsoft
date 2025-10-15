@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Profile;
 @Profile("jpa")
 @Primary
 @Entity
-@Table(name = "AUTHOR")
+@Table(name = "Author")
 public class AuthorEntity extends EntityWithPhotoEntity
 {
     @Id

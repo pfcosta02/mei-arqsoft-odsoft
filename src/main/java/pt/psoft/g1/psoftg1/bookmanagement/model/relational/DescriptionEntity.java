@@ -11,14 +11,9 @@ import pt.psoft.g1.psoftg1.bookmanagement.model.Description;
 
 @Profile("jpa")
 @Primary
-@Entity
 @Embeddable
 public class DescriptionEntity implements Serializable
 {
-    @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private Long DescriptionId;
-
     @Size(max = Description.DESC_MAX_LENGTH)
     @Column(length = Description.DESC_MAX_LENGTH)
     private String description;

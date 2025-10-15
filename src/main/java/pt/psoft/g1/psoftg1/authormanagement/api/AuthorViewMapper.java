@@ -6,7 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
-import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.api.BookShortView;
+import pt.psoft.g1.psoftg1.bookmanagement.api.BookShortView;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.shared.api.MapperInterface;
 
@@ -40,12 +40,12 @@ public abstract class AuthorViewMapper extends MapperInterface {
     public Map<String, Object> mapLinks(final Author author){
         String authorUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/authors/")
-                .path(author.getId().toString())
+                .path(author.getAuthorNumber().toString())
                 .toUriString();
 
         String booksByAuthorUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/authors/")
-                .path(author.getId().toString())
+                .path(author.getAuthorNumber().toString())
                 .path("/books")
                 .toUriString();
 
@@ -67,7 +67,7 @@ public abstract class AuthorViewMapper extends MapperInterface {
     public String mapShortBookLink(final Book book) {
         return ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/books/")
-                .path(book.getIsbn())
+                .path(book.getIsbn().toString())
                 .toUriString();
     }
 

@@ -12,14 +12,14 @@ import org.springframework.context.annotation.Profile;
 
 @Profile("jpa")
 @Primary
-@Entity
+//@Entity
 @Embeddable
 public class BioEntity
 {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Getter @Setter
-    private Long BioId;
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.AUTO)
+//    @Getter @Setter
+//    private Long BioId;
 
     @Column(nullable = false, length = Bio.BIO_MAX_LENGTH)
     @NotNull

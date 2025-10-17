@@ -1,11 +1,11 @@
-package pt.psoft.g1.psoftg1.isbn.impl;
+package pt.psoft.g1.psoftg1.bookmanagement.isbn.impl;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
-import pt.psoft.g1.psoftg1.isbn.infrasctructure.IsbnProvider;
+import pt.psoft.g1.psoftg1.bookmanagement.isbn.infrasctructure.IsbnProvider;
 
 import java.util.List;
 import java.util.Map;

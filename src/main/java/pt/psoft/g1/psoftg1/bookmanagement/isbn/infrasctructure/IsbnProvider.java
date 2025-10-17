@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1.isbn.infrasctructure;
+package pt.psoft.g1.psoftg1.bookmanagement.isbn.infrasctructure;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
 
 import java.util.List;

@@ -11,8 +11,7 @@ pipeline {
   }
 
   environment {
-    // Define variáveis comuns; ajusta se usares outro Sonar host ou credenciais
-    MVN_CMD = "mvn"  // usa wrapper para garantir versão
+    MVN_CMD = "mvn"
 //     SONAR_HOST_URL = "http://<seu-sonar-host>:9000"
 //     SONAR_LOGIN = credentials('sonar-token-id')  // credencial armazenada no Jenkins
   }
@@ -27,42 +26,46 @@ pipeline {
 stages{
 stage('Checkout') {
   steps {
+    echo '📥 A fazer checkout do repositório...'
     git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'main'
   }
 }
 
     stage('Build & Compile') {
       steps {
-        bat "${MVN_CMD} clean compile -B"
+          echo '🚀 A iniciar o build...'
+          bat '${MVN_CMD} clean compile -B'
       }
     }
-
-    stage('Run Unit Tests') {
-      steps {
-        bat "${MVN_CMD} test -B"
-      }
-      post {
-        always {
-          junit '**/target/surefire-reports/*.xml'
-        }
-      }
-    }
-
-//     stage('Code Quality / Sonar') {
+//
+//     stage('Run Unit Tests') {
 //       steps {
-//         // Executa análise Sonar (verifica duplicações, bugs, smells)
-//         bat """
-//           ${MVN_CMD} sonar:sonar \
-//             -Dsonar.projectKey=ODSoft \
-//             -Dsonar.host.url=${SONAR_HOST_URL} \
-//             -Dsonar.login=${SONAR_LOGIN}
-//         """
+//         bat "${MVN_CMD} test -B"
+//       }
+//       post {
+//         always {
+//           junit '**/target/surefire-reports/*.xml'
+//         }
 //       }
 //     }
 
+    stage('Code Quality / SonarQube Analysis') {
+            steps {
+                script {
+
+                    withSonarQubeEnv(installationName: 'Sonarqube') {
+                     bat 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar'
+
+                }
+            }
+        }
+    }
+
     stage('Package') {
       steps {
+        echo 'Gerando artefato...'
         bat "${MVN_CMD} package -B -DskipTests"
+//         archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
       }
     }
 
@@ -80,11 +83,12 @@ stage('Checkout') {
 
   post {
     always {
-      archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
-      cleanWs()
+      echo '🏁 Pipeline terminada!'
+//       archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+//       cleanWs()
     }
     failure {
-    echo "Erro na pipeline"
+    echo "Error na pipeline!"
 //       mail to: 'teu-email@dominio.com',
 //            subject: "Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
 //            body: "Veja no Jenkins console output: ${env.BUILD_URL}"

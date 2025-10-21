@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface LendingRepository {
     Optional<Lending> findByLendingNumber(String lendingNumber);
     List<Lending> listByReaderNumberAndIsbn(String readerNumber, String isbn);

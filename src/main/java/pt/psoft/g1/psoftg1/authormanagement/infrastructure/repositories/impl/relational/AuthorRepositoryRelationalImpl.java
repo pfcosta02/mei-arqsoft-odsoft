@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import lombok.RequiredArgsConstructor;
@@ -83,7 +82,7 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     }
 
     @Override
-    public Page<AuthorLendingView> findTopAuthorByLendings (Pageable pageableRules)
+    public List<AuthorLendingView> findTopAuthorByLendings (Pageable pageableRules)
     {
         return authoRepo.findTopAuthorByLendings(pageableRules);
     }

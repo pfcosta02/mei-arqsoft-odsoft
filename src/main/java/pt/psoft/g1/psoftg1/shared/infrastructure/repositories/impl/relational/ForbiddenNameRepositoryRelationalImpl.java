@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mappers.GenreEntityMapper;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.relational.SpringDataGenreRepository;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
@@ -22,6 +23,7 @@ import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 @Profile("jpa")
 @Primary
 @RequiredArgsConstructor
+@Repository
 public class ForbiddenNameRepositoryRelationalImpl implements ForbiddenNameRepository
 {
     private final SpringDataForbiddenNameRepository forbiddenNameRepository;

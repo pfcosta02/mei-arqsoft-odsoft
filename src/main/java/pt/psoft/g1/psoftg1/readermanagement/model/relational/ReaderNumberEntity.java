@@ -7,7 +7,6 @@ import java.io.Serializable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-@Entity
 @Embeddable
 @Profile("jpa")
 @Primary

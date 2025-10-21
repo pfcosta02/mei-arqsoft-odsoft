@@ -1,9 +1,6 @@
 package pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mongodb;
 
 import com.mongodb.client.MongoClient;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Tuple;
-import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
-import pt.psoft.g1.psoftg1.bookmanagement.model.mongodb.BookMongoDB;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
@@ -22,22 +18,18 @@ import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mappers.GenreMapperMongoDB;
 import pt.psoft.g1.psoftg1.genremanagement.services.GenreLendingsDTO;
 import pt.psoft.g1.psoftg1.genremanagement.services.GenreLendingsPerMonthDTO;
-import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
-import pt.psoft.g1.psoftg1.lendingmanagement.model.mongodb.LendingMongoDB;
 
 import java.time.LocalDate;
 import java.util.*;
 
 @Profile("mongodb")
 @Qualifier("mongoDbRepo")
-@Component
+@Repository
 @RequiredArgsConstructor
 public class GenreRepositoryMongoDBImpl implements GenreRepository {
 
     private final SpringDataGenreRepositoryMongoDB genreRepo;
     private final GenreMapperMongoDB genreEntityMapper;
-    private final EntityManager entityManager;
-
 
     private MongoTemplate mongoTemplate;
     private final MongoClient mongoClient;
@@ -77,7 +69,7 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
     }
 
     @Override
-    public Page<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable)
+    public List<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable)
     {
         return genreRepo.findTop5GenreByBookCount(pageable);
     }
@@ -89,129 +81,61 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
     }
 
     @Override
-    public List<GenreLendingsPerMonthDTO> getLendingsPerMonthLastYearByGenre()
-    {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Tuple> cq = cb.createTupleQuery();
-        Root<Lending> lendingRoot = cq.from(Lending.class);
-        Join<Lending, Book> bookJoin = lendingRoot.join("book");
-        Join<Book, GenreMongoDB> genreJoin = bookJoin.join("genre");
-
-        Expression<Integer> year = cb.function("YEAR", Integer.class, lendingRoot.get("startDate"));
-        Expression<Integer> month = cb.function("MONTH", Integer.class, lendingRoot.get("startDate"));
-
-        Expression<Long> lendingCount = cb.count(lendingRoot);
-
-        cq.multiselect(genreJoin.get("genre"), year, month, lendingCount);
-        cq.groupBy(genreJoin.get("genre"), year, month);
-
-        // Predicate to filter the last 12 months
+    public List<GenreLendingsPerMonthDTO> getLendingsPerMonthLastYearByGenre() {
         LocalDate now = LocalDate.now();
         LocalDate twelveMonthsAgo = now.minusMonths(12);
-        Predicate datePredicate = cb.between(lendingRoot.get("startDate"),
-                java.sql.Date.valueOf(twelveMonthsAgo),
-                java.sql.Date.valueOf(now));
 
-        cq.where(datePredicate);
-        cq.orderBy(cb.asc(year), cb.asc(month), cb.asc(genreJoin.get("genre")));
+        List<GenreLendingsDTO> rawResults = genreRepo.getLendingsPerMonthByGenre(twelveMonthsAgo, now);
 
-        TypedQuery<Tuple> query = entityManager.createQuery(cq);
-        List<Tuple> results = query.getResultList();
-
-        // Grouping results by year and month
+        // Agrupa por ano e mês como antes
         Map<Integer, Map<Integer, List<GenreLendingsDTO>>> groupedResults = new HashMap<>();
 
-        for (Tuple result : results) {
-            String genre = result.get(0, String.class);
-            int resultYear = result.get(1, Integer.class);
-            int resultMonth = result.get(2, Integer.class);
-            long count = result.get(3, Long.class);
-            GenreLendingsDTO genreLendingsDTO = new GenreLendingsDTO(genre, count);
-
+        for (GenreLendingsDTO dto : rawResults) {
             groupedResults
-                    .computeIfAbsent(resultYear, k -> new HashMap<>())
-                    .computeIfAbsent(resultMonth, k -> new ArrayList<>())
-                    .add(genreLendingsDTO);
+                    .computeIfAbsent(dto.getYear(), k -> new HashMap<>())
+                    .computeIfAbsent(dto.getMonth(), k -> new ArrayList<>())
+                    .add(new GenreLendingsDTO(dto.getGenre(), dto.getCount()));
         }
 
         return getGenreLendingsPerMonthDtos(groupedResults);
     }
 
     @Override
-    public List<GenreLendingsDTO> getAverageLendingsInMonth(LocalDate month, pt.psoft.g1.psoftg1.shared.services.Page page)
-    {
-        int days = month.lengthOfMonth();
-        LocalDate firstOfMonth = LocalDate.of(month.getYear(), month.getMonth(), 1);
-        LocalDate lastOfMonth = LocalDate.of(month.getYear(), month.getMonth(), days);
+    public List<GenreLendingsDTO> getAverageLendingsInMonth(LocalDate month, pt.psoft.g1.psoftg1.shared.services.Page page) {
+        int daysInMonth = month.lengthOfMonth();
+        LocalDate firstOfMonth = month.withDayOfMonth(1);
+        LocalDate lastOfMonth = month.withDayOfMonth(daysInMonth);
 
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<GenreLendingsDTO> cq = cb.createQuery(GenreLendingsDTO.class);
+        List<GenreLendingsDTO> results =
+                genreRepo.getAverageLendingsInMonth(firstOfMonth, lastOfMonth, daysInMonth);
 
-        Root<LendingMongoDB> lendingRoot = cq.from(LendingMongoDB.class);
-        Join<LendingMongoDB, BookMongoDB> bookJoin = lendingRoot.join("book", JoinType.LEFT);
-        Join<BookMongoDB, GenreMongoDB> genreJoin = bookJoin.join("genre", JoinType.LEFT);
+        int fromIndex = (page.getNumber() - 1) * page.getLimit();
+        int toIndex = Math.min(fromIndex + page.getLimit(), results.size());
 
-        Expression<Long> loanCount = cb.count(lendingRoot.get("pk"));
-        Expression<Number> dailyAvgLoans = cb.quot(cb.toDouble(loanCount), cb.literal(days));
+        if (fromIndex >= results.size()) {
+            return Collections.emptyList();
+        }
 
-        cq.multiselect(genreJoin, dailyAvgLoans);
-        cq.groupBy(genreJoin.get("pk"));
-
-        Predicate startDatePredicate = cb.greaterThanOrEqualTo(lendingRoot.get("startDate"), firstOfMonth);
-        Predicate endDatePredicate = cb.lessThanOrEqualTo(lendingRoot.get("startDate"), lastOfMonth);
-
-        Predicate finalPredicate = cb.and(startDatePredicate, endDatePredicate);
-
-        cq.where(finalPredicate);
-
-        final TypedQuery<GenreLendingsDTO> q = entityManager.createQuery(cq);
-        q.setFirstResult((page.getNumber() - 1) * page.getLimit());
-        q.setMaxResults(page.getLimit());
-
-        return q.getResultList();
+        return results.subList(fromIndex, toIndex);
     }
 
     @Override
-    public List<GenreLendingsPerMonthDTO> getLendingsAverageDurationPerMonth(LocalDate startDate, LocalDate endDate)
-    {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+    public List<GenreLendingsPerMonthDTO> getLendingsAverageDurationPerMonth(LocalDate startDate, LocalDate endDate) {
+        List<GenreLendingsDTO> rawResults =
+                genreRepo.getLendingsAverageDurationPerMonth(startDate, endDate);
 
-        Root<LendingMongoDB> lendingRoot = cq.from(LendingMongoDB.class);
-        Join<LendingMongoDB, BookMongoDB> bookJoin = lendingRoot.join("book");
-        Join<BookMongoDB, GenreMongoDB> genreJoin = bookJoin.join("genre");
-
-        Expression<Integer> yearExpr = cb.function("YEAR", Integer.class, lendingRoot.get("startDate"));
-        Expression<Integer> monthExpr = cb.function("MONTH", Integer.class, lendingRoot.get("startDate"));
-        Expression<Long> lendingDurationInDays = cb.diff(lendingRoot.get("returnedDate"), lendingRoot.get("startDate"));
-        double nanoSecondsInADay = 86400.0*1E9;
-        Expression<Number> durationInDays = cb.quot(cb.toDouble(lendingDurationInDays),nanoSecondsInADay);
-        Expression<Double> averageDuration = cb.avg(cb.toDouble(durationInDays));
-
-        cq.multiselect(genreJoin.get("genre"), yearExpr, monthExpr, averageDuration);
-        cq.groupBy(genreJoin.get("genre"), yearExpr, monthExpr);
-        cq.orderBy(cb.asc(yearExpr), cb.asc(monthExpr), cb.asc(genreJoin.get("genre")));
-
-        Predicate startDatePredicate = cb.greaterThanOrEqualTo(lendingRoot.get("startDate"), startDate);
-        Predicate endDatePredicate = cb.lessThanOrEqualTo(lendingRoot.get("startDate"), endDate);
-        Predicate returnedPredicate = cb.isNotNull(lendingRoot.get("returnedDate"));
-        Predicate finalPredicate = cb.and(startDatePredicate, endDatePredicate, returnedPredicate);
-
-        cq.where(finalPredicate);
-
-        List<Tuple> results = entityManager.createQuery(cq).getResultList();
         Map<Integer, Map<Integer, List<GenreLendingsDTO>>> groupedResults = new HashMap<>();
 
-        for (Tuple result : results) {
-            String genre = result.get(0, String.class);
-            int yearValue = result.get(1, Integer.class);
-            int monthValue = result.get(2, Integer.class);
-            Double averageDurationValue = result.get(3, Double.class);
-            GenreLendingsDTO genreLendingsDTO = new GenreLendingsDTO(genre, averageDurationValue);
+        for (GenreLendingsDTO dto : rawResults) {
+            int year = dto.getYear();
+            int month = dto.getMonth();
+            double avgDuration = dto.getValue().doubleValue();
+
+            GenreLendingsDTO genreLendingsDTO = new GenreLendingsDTO(dto.getGenre(), avgDuration);
 
             groupedResults
-                    .computeIfAbsent(yearValue, k -> new HashMap<>())
-                    .computeIfAbsent(monthValue, k -> new ArrayList<>())
+                    .computeIfAbsent(year, y -> new HashMap<>())
+                    .computeIfAbsent(month, m -> new ArrayList<>())
                     .add(genreLendingsDTO);
         }
 

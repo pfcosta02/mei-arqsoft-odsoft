@@ -83,7 +83,7 @@ public class UserEntity
     @Getter
     private final Set<Role> authorities = new HashSet<>();
 
-    protected UserEntity() {}
+    public UserEntity() {}
 
     public UserEntity(String username, String password, Role role)
     {

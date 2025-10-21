@@ -30,7 +30,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-@Profile("bootstrap")
+//@Profile("bootstrap")
 @PropertySource({"classpath:config/library.properties"})
 @Order(2)
 public class Bootstrapper implements CommandLineRunner {

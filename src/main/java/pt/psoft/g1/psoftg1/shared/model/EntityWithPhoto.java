@@ -7,36 +7,36 @@ public abstract class EntityWithPhoto
 {
     protected Photo photo;
 
-    // Setter
-    protected void setPhotoInternal(Photo photoURI)
+    protected void setPhotoInternal(String photo)
     {
-        setPhotoInternal(photoURI.getPhotoFile());
+        if (photo == null)
+        {
+            setPhotoInternal((Photo) null);
+            return;
+        }
+
+        try
+        {
+            setPhotoInternal(new Photo(Path.of(photo)));
+        }
+        catch (InvalidPathException e)
+        {
+            setPhotoInternal((Photo) null);
+        }
     }
 
-    protected void setPhotoInternal(String photoURI)
-    {
-        if (photoURI == null)
-        {
-            this.photo = null;
-        }
-        else
-        {
-            try
-            {
-                //If the Path object instantiation succeeds, it means that we have a valid Path
-                this.photo = new Photo(Path.of(photoURI));
-            }
-            catch (InvalidPathException e)
-            {
-                //For some reason it failed, let's set to null to avoid invalid references to photos
-                this.photo = null;
-            }
-        }
+    protected void setPhotoInternal(Photo photo) {
+        this.photo = photo; // already null-safe
     }
 
     // Getter
     public Photo getPhoto()
     {
         return photo;
+    }
+
+    public void setPhoto(String photo)
+    {
+        setPhotoInternal(photo);
     }
 }

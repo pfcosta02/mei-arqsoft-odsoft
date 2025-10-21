@@ -10,6 +10,10 @@ import java.nio.file.InvalidPathException;
 import java.util.List;
 
 public class ReaderDetails extends EntityWithPhoto {
+
+    // TODO: Substituir por ID e nao é suposto ser public
+    public Long pk;
+
     private Reader reader;
     private ReaderNumber readerNumber;
     private BirthDate birthDate;
@@ -20,19 +24,19 @@ public class ReaderDetails extends EntityWithPhoto {
     private Long version;
     private List<Genre> interestList;
 
-    protected ReaderDetails() {}
+    public ReaderDetails() {}
 
     // Construtor principal
     public ReaderDetails(ReaderNumber readerNumber, Reader reader, BirthDate birthDate, PhoneNumber phoneNumber,
-                         boolean gdpr, boolean marketing, boolean thirdParty,
-                         String photoURI, List<Genre> interestList)
+                         boolean gdprConsent, boolean marketingConsent, boolean thirdPartySharingConsent,
+                         String photo, List<Genre> interestList)
     {
         if (reader == null || phoneNumber == null)
         {
             throw new IllegalArgumentException("Provided argument resolves to null object");
         }
 
-        if (!gdpr)
+        if (!gdprConsent)
         {
             throw new IllegalArgumentException("Readers must agree with the GDPR rules");
         }
@@ -41,40 +45,45 @@ public class ReaderDetails extends EntityWithPhoto {
         setReaderNumber(readerNumber);
         setPhoneNumber(phoneNumber);
         setBirthDate(birthDate);
-        setGdprConsent(true);
-        setPhotoInternal(photoURI);
-        setMarketingConsent(marketing);
-        setThirdPartySharingConsent(thirdParty);
+        setGdprConsent(gdprConsent);
+        setPhotoInternal(photo);
+        setMarketingConsent(marketingConsent);
+        setThirdPartySharingConsent(thirdPartySharingConsent);
         setInterestList(interestList);
     }
 
     public ReaderDetails(int readerNumber, Reader reader, String birthDate, String phoneNumber,
-                         boolean gdpr, boolean marketing, boolean thirdParty,
-                         String photoURI, List<Genre> interestList)
+                         boolean gdprConsent, boolean marketingConsent, boolean thirdPartySharingConsent,
+                         String photo, List<Genre> interestList)
     {
-        this(new ReaderNumber(readerNumber), reader, new BirthDate(birthDate), new PhoneNumber(phoneNumber), gdpr, marketing, thirdParty, photoURI, interestList);
+        this(new ReaderNumber(readerNumber), reader, new BirthDate(birthDate), new PhoneNumber(phoneNumber), gdprConsent, marketingConsent, thirdPartySharingConsent, photo, interestList);
     }
 
     // Getters and Setters
+    public Long getPk() { return pk; }
+
     public Reader getReader() { return reader; }
     public void setReader(Reader reader) { this.reader = reader; }
 
     public String getReaderNumber() { return readerNumber.toString(); }
-    private void setReaderNumber(ReaderNumber readerNumber) {
+    public void setReaderNumber(ReaderNumber readerNumber) {
         if(readerNumber != null) {
             this.readerNumber = readerNumber;
         }
     }
 
+    public void setVersion(Long version) { this.version = version; }
+    public Long getVersion() { return version; }
+
     public BirthDate getBirthDate() { return birthDate; }
-    private void setBirthDate(BirthDate date) {
+    public void setBirthDate(BirthDate date) {
         if(date != null) {
             this.birthDate = date;
         }
     }
 
     public String getPhoneNumber() { return phoneNumber.toString(); }
-    private void setPhoneNumber(PhoneNumber number) {
+    public void setPhoneNumber(PhoneNumber number) {
         if(number != null) {
             this.phoneNumber = number;
         }
@@ -88,7 +97,6 @@ public class ReaderDetails extends EntityWithPhoto {
     public boolean isThirdPartySharingConsent() { return thirdPartySharingConsent; }
     public void setThirdPartySharingConsent(boolean thirdPartySharingConsent) { this.thirdPartySharingConsent = thirdPartySharingConsent; }
 
-    public Long getVersion() { return version; }
     public List<Genre> getInterestList() { return interestList; }
     public void setInterestList(List<Genre> interestList) { this.interestList = interestList; }
 

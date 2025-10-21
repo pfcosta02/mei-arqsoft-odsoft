@@ -2,12 +2,12 @@ package pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.ma
 
 import org.mapstruct.Mapper;
 import pt.psoft.g1.psoftg1.authormanagement.model.Bio;
-import pt.psoft.g1.psoftg1.authormanagement.model.relational.BioEntity;
+import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.BioMongoDB;
 
 @Mapper(componentModel = "spring")
-public interface BioEntityMapper {
-    Bio toModel(BioEntity entity);
-    BioEntity toEntity(Bio model);
+public interface BioMapperMongoDB {
+    Bio toModel(BioMongoDB entity);
+    BioMongoDB toEntity(Bio model);
 
     default Bio map(String value)
     {

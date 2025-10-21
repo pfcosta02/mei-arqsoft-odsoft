@@ -18,7 +18,7 @@ public interface BookRepository {
     List<Book> findByTitle(@Param("title") String title);
     List<Book> findByAuthorName(@Param("authorName") String authorName);
     Optional<Book> findByIsbn(@Param("isbn") String isbn);
-    Page<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable);
+    List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable);
     List<Book> findBooksByAuthorNumber(String authorNumber);
 
     List<Book> searchBooks(pt.psoft.g1.psoftg1.shared.services.Page page, SearchBooksQuery query);

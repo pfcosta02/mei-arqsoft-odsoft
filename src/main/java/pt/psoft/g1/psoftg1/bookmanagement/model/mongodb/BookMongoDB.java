@@ -25,7 +25,6 @@ public class BookMongoDB extends EntityWithPhotoMongoDB {
     private String bookId;
 
     @Getter
-    @Setter
     @Version
     @Field("version")
     private Long version;
@@ -49,26 +48,29 @@ public class BookMongoDB extends EntityWithPhotoMongoDB {
     @Field("description")
     DescriptionMongoDB description;
 
-    public BookMongoDB(IsbnMongoDB isbn, TitleMongoDB title, DescriptionMongoDB description, GenreMongoDB genre, List<AuthorMongoDB> authors, String photoURI)
+    public BookMongoDB(IsbnMongoDB isbn, TitleMongoDB title, DescriptionMongoDB description, GenreMongoDB genre, List<AuthorMongoDB> authors, String photo)
     {
         setTitle(title);
         setIsbn(isbn);
         setDescription(description);
         setAuthors(authors);
         setGenre(genre);
-        setPhotoInternal(photoURI);
+        setPhotoInternal(photo);
+
+        this.version = 0L;
     }
 
     protected BookMongoDB() {}
 
     // Setters
-    private void setTitle(TitleMongoDB title) { this.title = title; }
-    private void setIsbn(IsbnMongoDB isbn) { this.isbn = isbn; }
-    private void setDescription(DescriptionMongoDB description) { this.description = description; }
+    public void setTitle(TitleMongoDB title) { this.title = title; }
+    public void setIsbn(IsbnMongoDB isbn) { this.isbn = isbn; }
+    public void setDescription(DescriptionMongoDB description) { this.description = description; }
     public void setGenre(GenreMongoDB genre) { this.genre = genre; }
     public void setAuthors(List<AuthorMongoDB> authors) { this.authors = authors; }
 
     // Getters
     public String getDescription(){ return this.description.toString(); }
     public String getIsbn(){ return this.isbn.toString(); }
+    public String getId(){ return bookId; }
 }

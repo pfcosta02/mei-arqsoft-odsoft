@@ -7,8 +7,7 @@ import pt.psoft.g1.psoftg1.shared.model.mongodb.PhotoMongoDB;
 
 import java.util.Optional;
 
-@Repository
-public interface SpringDataPhotoRepositoryMongoDB extends MongoRepository<PhotoMongoDB, Long> {
+public interface SpringDataPhotoRepositoryMongoDB extends MongoRepository<PhotoMongoDB, String> {
     @Query("{ 'id': ?0 }")
     Optional<PhotoMongoDB> findById(String photoId);
 

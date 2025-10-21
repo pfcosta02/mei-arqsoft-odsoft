@@ -26,7 +26,7 @@ public class FineEntity {
     @Getter
     private int centsValue;
 
-    @Setter
+    @Setter @Getter
     @OneToOne(optional = false, orphanRemoval = true)
     @JoinColumn(name = "lending_pk", nullable = false, unique = true)
     private LendingEntity lending;

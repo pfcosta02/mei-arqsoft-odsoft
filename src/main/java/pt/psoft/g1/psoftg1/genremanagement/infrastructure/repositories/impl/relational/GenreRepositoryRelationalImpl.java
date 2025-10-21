@@ -9,17 +9,15 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import lombok.RequiredArgsConstructor;
-
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.criteria.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
@@ -35,6 +33,7 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
 @Profile("jpa")
 @Primary
 @RequiredArgsConstructor
+@Repository
 public class GenreRepositoryRelationalImpl implements GenreRepository
 {
     private final SpringDataGenreRepository genreRepo;
@@ -74,7 +73,7 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     }
 
     @Override
-    public Page<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable)
+    public List<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable)
     {
         return genreRepo.findTop5GenreByBookCount(pageable);
     }

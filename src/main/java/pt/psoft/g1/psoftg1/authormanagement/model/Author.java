@@ -7,38 +7,38 @@ import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
 import pt.psoft.g1.psoftg1.shared.model.Name;
 import pt.psoft.g1.psoftg1.shared.model.Photo;
 
+import java.nio.file.Paths;
 import java.util.Objects;
 
 public class Author extends EntityWithPhoto
 {
-    private String authorNumber;
-    private Long version;
+    public String authorNumber;
+    private long version;
     private Name name;
     private Bio bio;
 
-    public Author(Name name, Bio bio, Photo photoURI)
+    public Author(String name, String bio, String photo)
+    {
+        this(new Name(name), new Bio(bio), photo == null ? null : new Photo(Paths.get(photo)));
+    }
+    public Author(Name name, Bio bio, Photo photo)
     {
         setName(name);
         setBio(bio);
-        setPhotoInternal(photoURI);
+        setPhotoInternal(photo);
         this.version = 0L;
     }
 
-    public Author(String name, String bio, String photoURI)
-    {
-        this(new Name(name), new Bio(bio), new Photo(photoURI));
-    }
-
-    protected Author() { }
+    public Author() { }
 
     // Getters
     public String getAuthorNumber() { return authorNumber; }
-    public Long getVersion() { return version; }
+    public long getVersion() { return version; }
     public Name getName() { return name; }
     public Bio getBio() { return bio; }
 
     // Setters
-    private void setName(Name name)
+    public void setName(Name name)
     {
         if (name == null)
         {
@@ -48,7 +48,7 @@ public class Author extends EntityWithPhoto
         this.name = name;
     }
 
-    private void setBio(Bio bio)
+    public void setBio(Bio bio)
     {
         if (bio == null)
         {
@@ -59,7 +59,7 @@ public class Author extends EntityWithPhoto
     }
 
     // Logica de negocio
-    public void applyPatch(final Long expectedVersion, final UpdateAuthorRequest request)
+    public void applyPatch(final long expectedVersion, final UpdateAuthorRequest request)
     {
         if (!Objects.equals(this.version, expectedVersion))
         {
@@ -76,7 +76,7 @@ public class Author extends EntityWithPhoto
             setBio(new Bio(request.getBio()));
         }
 
-        if (request.getPhotoURI() != null)
+        if (request.getPhoto() != null)
         {
             setPhotoInternal(request.getPhotoURI());
         }
@@ -92,8 +92,3 @@ public class Author extends EntityWithPhoto
         setPhotoInternal((String) null);
     }
 }
-
-
-
-
-

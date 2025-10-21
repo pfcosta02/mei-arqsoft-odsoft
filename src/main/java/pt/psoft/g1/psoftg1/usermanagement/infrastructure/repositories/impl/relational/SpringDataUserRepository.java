@@ -38,7 +38,6 @@ import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
  * Based on https://github.com/Yoh0xFF/java-spring-security-example
  *
  */
-@Repository
 @CacheConfig(cacheNames = "users")
 public interface SpringDataUserRepository extends CrudRepository<UserEntity, Long> {
 

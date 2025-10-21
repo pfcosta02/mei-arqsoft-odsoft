@@ -12,7 +12,6 @@ import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringDataAuthorRepositoryMongoDB extends MongoRepository<AuthorMongoDB, String> {
 
     @Query("{ 'authorNumber': ?0 }")
@@ -28,7 +27,7 @@ public interface SpringDataAuthorRepositoryMongoDB extends MongoRepository<Autho
             "{ $limit: 10 }",
             "{ $project: { _id: 0, name: '$_id', lendingCount: '$count' } }"
     })
-    Page<AuthorLendingView> findTopAuthorByLendings(Pageable  pageable);
+    List<AuthorLendingView> findTopAuthorByLendings(Pageable  pageable);
 
     @Aggregation(pipeline = {
             "{ $lookup: { from: 'books', localField: '_id', foreignField: 'authors.authorId', as: 'books' } }",

@@ -2,12 +2,10 @@ package pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.r
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
 
 import java.util.*;
 
-@Repository
 public interface SpringDataLendingRepository extends CrudRepository<LendingEntity, Long>
 {
 

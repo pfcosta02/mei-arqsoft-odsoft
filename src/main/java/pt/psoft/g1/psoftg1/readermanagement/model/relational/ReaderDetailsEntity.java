@@ -7,9 +7,7 @@ import pt.psoft.g1.psoftg1.shared.model.relational.EntityWithPhotoEntity;
 import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
-
 import java.util.List;
-
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
@@ -20,6 +18,7 @@ import org.springframework.context.annotation.Profile;
 public class ReaderDetailsEntity extends EntityWithPhotoEntity {
 
     @Id
+    @Getter
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long pk;
 
@@ -72,7 +71,7 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
 
     public ReaderDetailsEntity(ReaderNumberEntity readerNumber, ReaderEntity reader, BirthDateEntity birthDate, PhoneNumberEntity phoneNumber,
                                boolean gdpr, boolean marketing, boolean thirdParty,
-                               PhotoEntity photoURI, List<GenreEntity> interestList)
+                               PhotoEntity photo, List<GenreEntity> interestList)
     {
         setReaderNumber(readerNumber);
         setReader(reader);
@@ -81,7 +80,7 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
         setGdprConsent(gdpr);
         setMarketingConsent(marketing);
         setThirdPartySharingConsent(thirdParty);
-        setPhoto(photoURI);
+        setPhoto(photo);
         setInterestList(interestList);
     }
 }

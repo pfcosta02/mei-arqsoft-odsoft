@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import jakarta.persistence.criteria.*;
@@ -26,6 +27,7 @@ import pt.psoft.g1.psoftg1.usermanagement.services.SearchUsersQuery;
 @Profile("jpa")
 @Primary
 @RequiredArgsConstructor
+@Repository
 public class UserRepositoryRelationalImpl implements UserRepository
 {
     private final SpringDataUserRepository userRepo;
@@ -74,9 +76,9 @@ public class UserRepositoryRelationalImpl implements UserRepository
     }
 
     @Override
-    public Optional<User> findById(Long objectId)
+    public Optional<User> findById(String objectId)
     {
-        Optional<UserEntity> entityOpt = userRepo.findById(objectId);
+        Optional<UserEntity> entityOpt = userRepo.findById(Long.parseLong(objectId));
         if (entityOpt.isPresent())
         {
             return Optional.of(userEntityMapper.toModel(entityOpt.get()));

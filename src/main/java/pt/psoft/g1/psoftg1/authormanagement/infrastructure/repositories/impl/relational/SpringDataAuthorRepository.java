@@ -11,7 +11,6 @@ import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
 import java.util.List;
 import java.util.Optional;
 
-//@Repository
 public interface SpringDataAuthorRepository extends CrudRepository<AuthorEntity, Long> {
 
     @Query("SELECT a FROM AuthorEntity a WHERE a.authorNumber = :authorNumber")
@@ -23,7 +22,7 @@ public interface SpringDataAuthorRepository extends CrudRepository<AuthorEntity,
             "JOIN LendingEntity l ON l.book.pk = b.pk " +
             "GROUP BY a.name " +
             "ORDER BY COUNT(l) DESC")
-    Page<AuthorLendingView> findTopAuthorByLendings(Pageable pageable);
+    List<AuthorLendingView> findTopAuthorByLendings(Pageable pageable);
 
     @Query("SELECT DISTINCT coAuthor FROM BookEntity b " +
             "JOIN b.authors coAuthor " +

@@ -16,7 +16,6 @@ public class PhotoMongoDB {
     private String photoId;
 
     @Field("photoFile")
-    @NotNull
     @Setter @Getter
     private String photoFile;
 

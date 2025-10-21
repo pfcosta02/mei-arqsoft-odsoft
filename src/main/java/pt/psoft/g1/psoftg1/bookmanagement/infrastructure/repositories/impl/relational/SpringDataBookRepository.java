@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringDataBookRepository extends CrudRepository<BookEntity, IsbnEntity> {
 
     @Query("SELECT b " +
@@ -25,11 +24,11 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
 
     @Query("SELECT new pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO(b, COUNT(l)) " +
             "FROM BookEntity b " +
-            "JOIN Lending l ON l.book = b " +
+            "JOIN LendingEntity l ON l.book = b " +
             "WHERE l.startDate > :oneYearAgo " +
             "GROUP BY b " +
             "ORDER BY COUNT(l) DESC")
-    Page<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable);
+    List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable);
 
     @Query("SELECT b " +
             "FROM BookEntity b " +

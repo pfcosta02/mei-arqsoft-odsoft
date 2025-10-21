@@ -31,8 +31,8 @@ public abstract class EntityWithPhotoEntity {
     {
         this.photo = photoURI;
     }
-    protected void setPhotoInternal(String photoURI)
+    protected void setPhotoInternal(String photo)
     {
-        setPhotoInternal(new PhotoEntity(photoURI));
+        setPhotoInternal(new PhotoEntity(photo));
     }
 }

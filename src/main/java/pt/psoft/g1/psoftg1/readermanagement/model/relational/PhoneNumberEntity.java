@@ -7,7 +7,6 @@ import java.io.Serializable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-@Entity
 @Embeddable
 @Profile("jpa")
 @Primary
@@ -31,6 +30,9 @@ public class PhoneNumberEntity implements Serializable
     {
         return phoneNumber;
     }
+
+    // Setter
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
     // Helper
     public String toString()

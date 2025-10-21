@@ -1,24 +1,24 @@
 package pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mongodb;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.model.mongodb.ReaderDetailsMongoDB;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mappers.ReaderDetailsMapperMongoDB;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO;
 import pt.psoft.g1.psoftg1.readermanagement.services.SearchReadersQuery;
-import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -27,14 +27,13 @@ import java.util.Optional;
 
 @Profile("mongodb")
 @Qualifier("mongoDbRepo")
-@Component
-@Primary
+@Repository
 @RequiredArgsConstructor
 public class ReaderDetailsRepositoryMongoDBImpl implements ReaderRepository {
 
     private final SpringDataReaderRepositoryMongoDB readerRepo;
     private final ReaderDetailsMapperMongoDB readerMapperMongoDB;
-    private final EntityManager entityManager;
+    private final MongoTemplate mongoTemplate;
 
     @Override
     public Optional<ReaderDetails> findByReaderNumber(@Param("readerNumber") @NotNull String readerNumber)
@@ -116,13 +115,15 @@ public class ReaderDetailsRepositoryMongoDBImpl implements ReaderRepository {
     }
 
     @Override
-    public Page<ReaderDetails> findTopReaders(Pageable pageable)
-    {
-        return readerRepo.findTopReaders(pageable).map(readerMapperMongoDB::toModel);
+    public List<ReaderDetails> findTopReaders(Pageable pageable) {
+        return readerRepo.findTopReaders(pageable)
+                .stream()
+                .map(readerMapperMongoDB::toModel)
+                .toList();
     }
 
     @Override
-    public Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate)
+    public List<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate)
     {
         return readerRepo.findTopByGenre(pageable, genre, startDate, endDate);
     }
@@ -134,53 +135,43 @@ public class ReaderDetailsRepositoryMongoDBImpl implements ReaderRepository {
     }
 
     @Override
-    public List<ReaderDetails> searchReaderDetails(pt.psoft.g1.psoftg1.shared.services.Page page, SearchReadersQuery query)
-    {
-        final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        final CriteriaQuery<ReaderDetailsMongoDB> cq = cb.createQuery(ReaderDetailsMongoDB.class);
-        final Root<ReaderDetailsMongoDB> readerDetailsRoot = cq.from(ReaderDetailsMongoDB.class);
-        Join<ReaderDetailsMongoDB, UserEntity> userJoin = readerDetailsRoot.join("reader");
+    public List<ReaderDetails> searchReaderDetails(pt.psoft.g1.psoftg1.shared.services.Page page, SearchReadersQuery query) {
+        Query mongoQuery = new Query();
+        List<Criteria> orCriteria = new ArrayList<>();
 
-        cq.select(readerDetailsRoot);
-
-        final List<Predicate> where = new ArrayList<>();
-        if (StringUtils.hasText(query.getName()))
-        {
-            //'contains' type search
-            where.add(cb.like(userJoin.get("name").get("name"), "%" + query.getName() + "%"));
-            cq.orderBy(cb.asc(userJoin.get("name")));
-        }
-        if (StringUtils.hasText(query.getEmail()))
-        {
-            //'exatct' type search
-            where.add(cb.equal(userJoin.get("username"), query.getEmail()));
-            cq.orderBy(cb.asc(userJoin.get("username")));
-        }
-        if (StringUtils.hasText(query.getPhoneNumber()))
-        {
-            //'exatct' type search
-            where.add(cb.equal(readerDetailsRoot.get("phoneNumber").get("phoneNumber"), query.getPhoneNumber()));
-            cq.orderBy(cb.asc(readerDetailsRoot.get("phoneNumber").get("phoneNumber")));
+        // Buscar por nome (contains)
+        if (StringUtils.hasText(query.getName())) {
+            orCriteria.add(Criteria.where("reader.name").regex(query.getName(), "i")); // case-insensitive
+            mongoQuery.with(Sort.by(Sort.Direction.ASC, "reader.name"));
         }
 
-        // search using OR
-        if (!where.isEmpty())
-        {
-            cq.where(cb.or(where.toArray(new Predicate[0])));
+        // Buscar por email (exato)
+        if (StringUtils.hasText(query.getEmail())) {
+            orCriteria.add(Criteria.where("reader.username").is(query.getEmail()));
+            mongoQuery.with(Sort.by(Sort.Direction.ASC, "reader.username"));
         }
 
-
-        final TypedQuery<ReaderDetailsMongoDB> q = entityManager.createQuery(cq);
-        q.setFirstResult((page.getNumber() - 1) * page.getLimit());
-        q.setMaxResults(page.getLimit());
-
-        List<ReaderDetails> readerDetails = new ArrayList<>();
-
-        for (ReaderDetailsMongoDB readerDetail : q.getResultList())
-        {
-            readerDetails.add(readerMapperMongoDB.toModel(readerDetail));
+        // Buscar por telefone (exato)
+        if (StringUtils.hasText(query.getPhoneNumber())) {
+            orCriteria.add(Criteria.where("phoneNumber").is(query.getPhoneNumber()));
+            mongoQuery.with(Sort.by(Sort.Direction.ASC, "phoneNumber"));
         }
 
-        return readerDetails;
+        // Combinar OR entre os filtros
+        if (!orCriteria.isEmpty()) {
+            mongoQuery.addCriteria(new Criteria().orOperator(orCriteria.toArray(new Criteria[0])));
+        }
+
+        // Paginação
+        mongoQuery.skip((long) (page.getNumber() - 1) * page.getLimit());
+        mongoQuery.limit(page.getLimit());
+
+        // Executar query
+        List<ReaderDetailsMongoDB> results = mongoTemplate.find(mongoQuery, ReaderDetailsMongoDB.class);
+
+        // Mapear para modelo de domínio
+        return results.stream()
+                .map(readerMapperMongoDB::toModel)
+                .toList();
     }
 }

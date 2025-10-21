@@ -20,7 +20,7 @@ public class ReaderDetailsMongoDB extends EntityWithPhotoMongoDB {
 
     @Id
     @Getter
-    private String readerDetailsId;
+    private String pk;
 
     @Getter @Setter
     private ReaderMongoDB reader;

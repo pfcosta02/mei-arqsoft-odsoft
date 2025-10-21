@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mongodb.SpringDataAuthorRepositoryMongoDB;
 import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
@@ -22,7 +23,9 @@ import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappe
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.services.SearchBooksQuery;
 import pt.psoft.g1.psoftg1.bookmanagement.model.mongodb.BookMongoDB;
+import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mongodb.GenreRepositoryMongoDBImpl;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mongodb.SpringDataGenreRepositoryMongoDB;
+import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
 
 import java.time.LocalDate;
@@ -32,7 +35,7 @@ import java.util.Optional;
 
 @Profile("mongodb")
 @Qualifier("mongoDbRepo")
-@Component
+@Repository
 @RequiredArgsConstructor
 public class BookRepositoryMongoDBImpl implements BookRepository {
 
@@ -96,7 +99,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     }
 
     @Override
-    public Page<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
+    public List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
     {
         //TODO: Corrigir este
         return bookRepositoryMongoDB.findTop5BooksLent(oneYearAgo, pageable);

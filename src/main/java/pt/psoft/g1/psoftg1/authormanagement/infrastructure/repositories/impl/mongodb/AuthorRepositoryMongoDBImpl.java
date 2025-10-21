@@ -3,8 +3,8 @@ package pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mo
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
@@ -15,6 +15,7 @@ import java.util.*;
 
 @Profile("mongodb")
 @Qualifier("mongoDbRepo")
+@Repository
 @RequiredArgsConstructor
 public class AuthorRepositoryMongoDBImpl implements AuthorRepository {
 
@@ -61,10 +62,16 @@ public class AuthorRepositoryMongoDBImpl implements AuthorRepository {
     }
 
     @Override
-    public Author save(Author author)
-    {
-        return authorEntityMapper.toModel( authoRepo.save(authorEntityMapper.toMongoDB(author)));
+    public Author save(Author author) {
+        if (author == null) {
+            throw new IllegalArgumentException("Author cannot be null");
+        }
+
+        var entity = authorEntityMapper.toMongoDB(author);
+        var savedEntity = authoRepo.save(entity);
+        return authorEntityMapper.toModel(savedEntity);
     }
+
 
     @Override
     public Iterable<Author> findAll()
@@ -79,7 +86,7 @@ public class AuthorRepositoryMongoDBImpl implements AuthorRepository {
     }
 
     @Override
-    public Page<AuthorLendingView> findTopAuthorByLendings (Pageable pageableRules)
+    public List<AuthorLendingView> findTopAuthorByLendings (Pageable pageableRules)
     {
         return authoRepo.findTopAuthorByLendings(pageableRules);
     }

@@ -23,7 +23,7 @@ public class User implements UserDetails
 
     public User(final String username, final String password)
     {
-        this.username = username;
+        setUsername(username);
         setPassword(password);
     }
 
@@ -40,6 +40,11 @@ public class User implements UserDetails
         u.setName(name);
         u.addAuthority(new Role(role));
         return u;
+    }
+
+    public void setUsername(final String username)
+    {
+        this.username = username;
     }
 
     public void setPassword(final String password)

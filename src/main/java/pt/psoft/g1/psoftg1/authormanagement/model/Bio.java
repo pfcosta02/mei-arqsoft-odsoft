@@ -18,7 +18,7 @@ public class Bio
         // for frameworks if needed
     }
 
-    private void setBio(String bio)
+    public void setBio(String bio)
     {
         if (bio == null)
         {
@@ -36,6 +36,11 @@ public class Bio
     }
 
     public String toString()
+    {
+        return bio;
+    }
+
+    public String getBio()
     {
         return bio;
     }

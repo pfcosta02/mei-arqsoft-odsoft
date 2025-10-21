@@ -15,7 +15,7 @@ public class Name
     }
 
     // Setter
-    private void setName(String name)
+    public void setName(String name)
     {
         if (name == null)
         {

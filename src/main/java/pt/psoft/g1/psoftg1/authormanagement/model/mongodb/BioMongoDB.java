@@ -3,23 +3,19 @@ package pt.psoft.g1.psoftg1.authormanagement.model.mongodb;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import pt.psoft.g1.psoftg1.authormanagement.model.Bio;
 
+@Document(collection = "bios")
 @Profile("mongodb")
 public class BioMongoDB {
 
-    @Id
-    @Getter @Setter
-    private String bioId;
-
-    private static final int BIO_MAX_LENGTH = 4096;
-
     @Field("bio")  // Optional: Map the field explicitly
     @NotNull
-    @Size(min = 1, max = BIO_MAX_LENGTH)
+    @Size(min = 1, max = Bio.BIO_MAX_LENGTH)
     @Getter
     private String bio;
 
@@ -32,5 +28,5 @@ public class BioMongoDB {
     }
 
     // Setters
-    private void setBio(String bio) { this.bio = bio; }
+    public void setBio(String bio) { this.bio = bio; }
 }

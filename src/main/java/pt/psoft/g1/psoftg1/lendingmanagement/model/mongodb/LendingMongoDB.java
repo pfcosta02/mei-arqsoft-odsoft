@@ -17,7 +17,6 @@ import pt.psoft.g1.psoftg1.readermanagement.model.mongodb.ReaderDetailsMongoDB;
 import java.time.LocalDate;
 
 @Document(collection = "lendings")
-// @EnableMongoAuditing
 @Profile("mongodb")
 @Primary
 public class LendingMongoDB {

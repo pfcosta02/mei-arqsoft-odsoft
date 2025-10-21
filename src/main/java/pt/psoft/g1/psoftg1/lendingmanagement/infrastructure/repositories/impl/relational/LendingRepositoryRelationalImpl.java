@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import jakarta.persistence.criteria.*;
@@ -24,6 +25,7 @@ import pt.psoft.g1.psoftg1.shared.services.Page;
 @Profile("jpa")
 @Primary
 @RequiredArgsConstructor
+@Repository
 public class LendingRepositoryRelationalImpl implements LendingRepository
 {
     private final SpringDataLendingRepository lendingRepo;

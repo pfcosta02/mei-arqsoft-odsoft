@@ -12,11 +12,6 @@ public class Photo
         setPhotoFile(photoPath.toString());
     }
 
-    public Photo(String photoPath)
-    {
-        setPhotoFile(photoPath);
-    }
-
     protected Photo()
     {
         // for frameworks if needed
@@ -25,11 +20,6 @@ public class Photo
     // Setter
     private void setPhotoFile(String photofile)
     {
-        if (photofile == null)
-        {
-            throw new IllegalArgumentException("PhotoFile cannot be null");
-        }
-
         this.photoFile = photofile;
     }
 

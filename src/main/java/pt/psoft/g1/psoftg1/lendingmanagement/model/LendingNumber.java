@@ -72,6 +72,8 @@ public class LendingNumber implements Serializable
         this.lendingNumber = LocalDate.now().getYear() + "/" + sequential;
     }
 
+    public String getLendingNumber() { return lendingNumber; }
+
     // Helper
     public String toString()
     {

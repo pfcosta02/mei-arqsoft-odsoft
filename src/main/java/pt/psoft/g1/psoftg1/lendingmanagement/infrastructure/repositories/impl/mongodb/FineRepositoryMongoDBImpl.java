@@ -4,18 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mappers.FineMapperMongoDB;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.mongodb.FineMongoDB;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
 
 @Profile("mongodb")
-@Primary
 @RequiredArgsConstructor
+@Repository
 public class FineRepositoryMongoDBImpl implements FineRepository
 {
     private final SpringDataFineRepositoryMongoDB fineRepo;
@@ -52,5 +52,4 @@ public class FineRepositoryMongoDBImpl implements FineRepository
     {
         return fineMapperMongoDB.toModel(fineRepo.save(fineMapperMongoDB.toEntity(fine)));
     }
-
 }

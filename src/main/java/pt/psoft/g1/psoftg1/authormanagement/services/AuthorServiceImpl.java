@@ -98,8 +98,8 @@ public class AuthorServiceImpl implements AuthorService {
     }
     @Override
     public List<AuthorLendingView> findTopAuthorByLendings() {
-        Pageable pageableRules = PageRequest.of(0,5);
-        return authorRepository.findTopAuthorByLendings(pageableRules).getContent();
+        Pageable pageableRules = PageRequest.of(0, 5);
+        return authorRepository.findTopAuthorByLendings(pageableRules);
     }
 
     @Override

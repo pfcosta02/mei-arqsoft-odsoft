@@ -26,7 +26,8 @@ public class DescriptionMongoDB implements Serializable {
 
     protected DescriptionMongoDB() {}
 
+    public String getDescription() { return description; }
     private void setDescription(String description) { this.description = description; }
-    public String toString() { return this.description; }
 
+    public String toString() { return this.description; }
 }

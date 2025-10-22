@@ -17,7 +17,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringDataReaderRepositoryImpl extends CrudRepository<ReaderDetailsEntity, Long>
 {
     @Query("SELECT r " +
@@ -32,8 +31,7 @@ public interface SpringDataReaderRepositoryImpl extends CrudRepository<ReaderDet
 
     @Query("SELECT r " +
             "FROM ReaderDetailsEntity r " +
-            "JOIN UserEntity u ON r.reader.id = u.id " +
-            "WHERE u.username = :username")
+            "WHERE r.reader.username = :username")
     Optional<ReaderDetailsEntity> findByUsername(@Param("username") @NotNull String username);
 
     @Query("SELECT r " +

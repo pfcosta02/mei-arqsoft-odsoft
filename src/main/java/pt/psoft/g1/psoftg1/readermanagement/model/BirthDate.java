@@ -46,6 +46,7 @@ public class BirthDate {
     }
 
     // Helper
+    @Override
     public String toString()
     {
         return birthDate.toString();

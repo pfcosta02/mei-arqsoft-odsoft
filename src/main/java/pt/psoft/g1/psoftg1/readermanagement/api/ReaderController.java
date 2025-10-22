@@ -155,7 +155,7 @@ class ReaderController {
         User loggedUser = userService.getAuthenticatedUser(authentication);
 
         //if Librarian is logged in, skip ahead
-        if (!(loggedUser instanceof Librarian)) {
+        if (!(loggedUser.getAuthorities().contains(new Role(Role.LIBRARIAN)))) {
             final var loggedReaderDetails = readerService.findByUsername(loggedUser.getUsername())
                     .orElseThrow(() -> new NotFoundException(ReaderDetails.class, loggedUser.getUsername()));
 

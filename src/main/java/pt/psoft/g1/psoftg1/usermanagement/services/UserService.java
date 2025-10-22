@@ -117,8 +117,10 @@ public class UserService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
-		return userRepo.findByUsername(username).orElseThrow(
-				() -> new UsernameNotFoundException(String.format("User with username - %s, not found", username)));
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        System.out.println("Loaded user: " + username + ", encoded password: " + user.getPassword());
+        return user;
 	}
 
 	public boolean usernameExists(final String username) {

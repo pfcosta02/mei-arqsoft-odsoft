@@ -7,7 +7,6 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
 
 import java.util.*;
 
-@Repository
 public interface SpringDataLendingRepository extends CrudRepository<LendingEntity, Long>
 {
 
@@ -40,13 +39,13 @@ public interface SpringDataLendingRepository extends CrudRepository<LendingEntit
 
     @Query(value =
             "SELECT AVG(DATEDIFF(day, l.start_date, l.returned_date)) " +
-                    "FROM LendingEntity l"
+                    "FROM Lending l"
             , nativeQuery = true)
     Double getAverageDuration();
 
     @Query(value =
             "SELECT AVG(DATEDIFF(day, l.start_date, l.returned_date)) " +
-                    "FROM LendingEntity l " +
+                    "FROM Lending l " +
                     "JOIN BOOK b ON l.BOOK_PK = b.PK " +
                     "WHERE b.ISBN = :isbn"
             , nativeQuery = true)

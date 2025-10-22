@@ -10,15 +10,15 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
+@Getter
 @Embeddable
 @PropertySource({"classpath:config/library.properties"})
 @Profile("jpa")
 @Primary
 public class NameEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.AUTO)
+//    private Long pk;
 
     @Column(name = "NAME", length = 150)
     @NotNull

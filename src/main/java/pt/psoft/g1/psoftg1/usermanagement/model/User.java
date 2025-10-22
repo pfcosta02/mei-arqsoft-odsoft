@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class User implements UserDetails
 {
-    private Long id;
+    public Long id;
 
     private Long version;
     private boolean enabled = true;
@@ -23,7 +23,7 @@ public class User implements UserDetails
 
     public User(final String username, final String password)
     {
-        this.username = username;
+        setUsername(username);
         setPassword(password);
     }
 
@@ -44,8 +44,20 @@ public class User implements UserDetails
 
     public void setPassword(final String password)
     {
-        final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        this.password = passwordEncoder.encode(password);
+        if (password != null && !password.startsWith("$2a$"))
+        {
+            final PasswordEncoder encoder = new BCryptPasswordEncoder();
+            this.password = encoder.encode(password);
+        }
+        else
+        {
+            this.password = password;
+        }
+    }
+
+    public void setUsername(final String username)
+    {
+        this.username = username;
     }
 
     public void addAuthority(final Role r)

@@ -21,6 +21,7 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Getter
     private Long pk;
 
     @OneToOne

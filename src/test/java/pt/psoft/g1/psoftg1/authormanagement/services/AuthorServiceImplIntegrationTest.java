@@ -35,13 +35,13 @@ public class AuthorServiceImplIntegrationTest {
         List<Author> list = new ArrayList<>();
         list.add(alex);
 
-        Mockito.when(authorRepository.searchByNameName(alex.getName()))
+        Mockito.when(authorRepository.searchByNameName(alex.getName().toString()))
                 .thenReturn(list);
     }
 
     @Test
     public void whenValidId_thenAuthorShouldBeFound() {
-        String id = "1L";
+        Long id = 1L;
         Optional<Author> found = authorService.findByAuthorNumber(id);
         found.ifPresent(author -> assertThat(author.getAuthorNumber())
                 .isEqualTo(id));

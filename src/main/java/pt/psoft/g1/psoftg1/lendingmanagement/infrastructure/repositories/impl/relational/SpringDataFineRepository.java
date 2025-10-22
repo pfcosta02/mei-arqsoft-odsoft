@@ -8,12 +8,11 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.FineEntity;
 
 import java.util.Optional;
 
-@Repository
 public interface SpringDataFineRepository extends CrudRepository<FineEntity, Long>
 {
     @Query("SELECT f " +
             "FROM FineEntity f " +
-            "JOIN Lending l ON f.lending.pk = l.pk " +
+            "JOIN LendingEntity l ON f.lending.pk = l.pk " +
             "WHERE l.lendingNumber.lendingNumber = :lendingNumber")
     Optional<FineEntity> findByLendingNumber(String lendingNumber);
 

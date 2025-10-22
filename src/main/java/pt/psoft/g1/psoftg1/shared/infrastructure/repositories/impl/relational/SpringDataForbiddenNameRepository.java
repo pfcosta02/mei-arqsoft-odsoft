@@ -9,7 +9,6 @@ import pt.psoft.g1.psoftg1.shared.model.relational.ForbiddenNameEntity;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringDataForbiddenNameRepository extends CrudRepository<ForbiddenNameEntity, Long> {
     @Query("SELECT fn FROM ForbiddenNameEntity fn" +
             " WHERE :pat LIKE CONCAT('%', fn.forbiddenName, '%') ")

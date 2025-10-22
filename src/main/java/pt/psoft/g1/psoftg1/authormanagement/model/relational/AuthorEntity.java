@@ -45,6 +45,6 @@ public class AuthorEntity extends EntityWithPhotoEntity
     public BioEntity getBio() { return bio; }
 
     // Setters
-    private void setName(NameEntity name) { this.name = name; }
-    private void setBio(BioEntity bio) { this.bio = bio; }
+    public void setName(NameEntity name) { this.name = name; }
+    public void setBio(BioEntity bio) { this.bio = bio; }
 }

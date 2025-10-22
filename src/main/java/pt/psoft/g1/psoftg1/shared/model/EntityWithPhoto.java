@@ -8,30 +8,33 @@ public abstract class EntityWithPhoto
     protected Photo photo;
 
     // Setter
-    protected void setPhotoInternal(Photo photoURI)
+    //This method is used by the mapper in order to set the photo. This will call the setPhotoInternal method that
+    //will contain all the logic to set the photo
+    public void setPhoto(String photo)
     {
-        setPhotoInternal(photoURI.getPhotoFile());
+        setPhotoInternal(photo);
     }
 
-    protected void setPhotoInternal(String photoURI)
+    protected void setPhotoInternal(String photo)
     {
-        if (photoURI == null)
+        if (photo == null)
         {
-            this.photo = null;
+            setPhotoInternal((Photo) null);
+            return;
         }
-        else
+
+        try
         {
-            try
-            {
-                //If the Path object instantiation succeeds, it means that we have a valid Path
-                this.photo = new Photo(Path.of(photoURI));
-            }
-            catch (InvalidPathException e)
-            {
-                //For some reason it failed, let's set to null to avoid invalid references to photos
-                this.photo = null;
-            }
+            setPhotoInternal(new Photo(Path.of(photo)));
         }
+        catch (InvalidPathException e)
+        {
+            setPhotoInternal((Photo) null);
+        }
+    }
+
+    protected void setPhotoInternal(Photo photo) {
+        this.photo = photo;
     }
 
     // Getter

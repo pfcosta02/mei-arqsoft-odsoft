@@ -65,11 +65,11 @@ public class BookEntity extends EntityWithPhotoEntity
     protected BookEntity() {}
 
     // Setters
-    private void setTitle(TitleEntity title) { this.title = title; }
-    private void setIsbn(IsbnEntity isbn) { this.isbn = isbn; }
-    private void setDescription(DescriptionEntity description) { this.description = description; }
-    private void setGenre(GenreEntity genre) { this.genre = genre; }
-    private void setAuthors(List<AuthorEntity> authors) { this.authors = authors; }
+    public void setTitle(TitleEntity title) { this.title = title; }
+    public void setIsbn(IsbnEntity isbn) { this.isbn = isbn; }
+    public void setDescription(DescriptionEntity description) { this.description = description; }
+    public void setGenre(GenreEntity genre) { this.genre = genre; }
+    public void setAuthors(List<AuthorEntity> authors) { this.authors = authors; }
 
     // Getters
     public String getDescription(){ return this.description.toString(); }

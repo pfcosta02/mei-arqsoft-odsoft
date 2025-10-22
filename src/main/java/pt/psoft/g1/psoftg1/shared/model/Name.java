@@ -15,7 +15,7 @@ public class Name
     }
 
     // Setter
-    private void setName(String name)
+    public void setName(String name)
     {
         if (name == null)
         {
@@ -25,10 +25,10 @@ public class Name
         {
             throw new IllegalArgumentException("Name cannot be blank or only white spaces");
         }
-        if (!StringUtilsCustom.isAlphanumeric(name))
-        {
-            throw new IllegalArgumentException("Name can only contain alphanumeric characters");
-        }
+//        if (!StringUtilsCustom.isAlphanumeric(name))
+//        {
+//            throw new IllegalArgumentException("Name can only contain alphanumeric characters");
+//        }
 
         this.name = name;
     }
@@ -37,5 +37,6 @@ public class Name
     public String getName() { return this.name; }
 
     // Helper
+    @Override
     public String toString() { return this.name; }
 }

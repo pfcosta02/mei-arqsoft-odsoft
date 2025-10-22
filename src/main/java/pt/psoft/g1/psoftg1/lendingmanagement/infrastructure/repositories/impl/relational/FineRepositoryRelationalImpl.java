@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mappers.FineEntityMapper;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.FineEntity;
@@ -16,6 +17,7 @@ import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
 
 @Profile("jpa")
 @Primary
+@Repository
 @RequiredArgsConstructor
 public class FineRepositoryRelationalImpl implements FineRepository
 {

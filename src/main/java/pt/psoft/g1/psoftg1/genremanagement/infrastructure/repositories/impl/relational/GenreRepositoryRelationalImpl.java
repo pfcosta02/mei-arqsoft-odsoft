@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
@@ -34,6 +36,7 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
 
 @Profile("jpa")
 @Primary
+@Repository
 @RequiredArgsConstructor
 public class GenreRepositoryRelationalImpl implements GenreRepository
 {
@@ -68,9 +71,11 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     }
 
     @Override
+    @Transactional
     public Genre save(Genre genre)
     {
-        return genreEntityMapper.toModel(genreRepo.save(genreEntityMapper.toEntity(genre)));
+        GenreEntity entity = genreEntityMapper.toEntity(genre);
+        return genreEntityMapper.toModel(genreRepo.save(entity));
     }
 
     @Override
@@ -90,9 +95,9 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Tuple> cq = cb.createTupleQuery();
-        Root<Lending> lendingRoot = cq.from(Lending.class);
-        Join<Lending, Book> bookJoin = lendingRoot.join("book");
-        Join<Book, GenreEntity> genreJoin = bookJoin.join("genre");
+        Root<LendingEntity> lendingRoot = cq.from(LendingEntity.class);
+        Join<LendingEntity, BookEntity> bookJoin = lendingRoot.join("book");
+        Join<BookEntity, GenreEntity> genreJoin = bookJoin.join("genre");
 
         Expression<Integer> year = cb.function("YEAR", Integer.class, lendingRoot.get("startDate"));
         Expression<Integer> month = cb.function("MONTH", Integer.class, lendingRoot.get("startDate"));

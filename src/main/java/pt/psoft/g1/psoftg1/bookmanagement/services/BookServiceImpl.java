@@ -53,7 +53,7 @@ public class BookServiceImpl implements BookService {
 		List<Author> authors = new ArrayList<>();
 		for (Long authorNumber : authorNumbers) {
 
-			Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber.toString());
+			Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber);
 			if(temp.isEmpty()) {
 				continue;
 			}
@@ -83,9 +83,9 @@ public class BookServiceImpl implements BookService {
 
         var book = findByIsbn(request.getIsbn());
         if(request.getAuthors()!= null) {
-            List<String> authorNumbers = request.getAuthors();
+            List<Long> authorNumbers = request.getAuthors();
             List<Author> authors = new ArrayList<>();
-            for (String authorNumber : authorNumbers) {
+            for (Long authorNumber : authorNumbers) {
                 Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber);
                 if (temp.isEmpty()) {
                     continue;

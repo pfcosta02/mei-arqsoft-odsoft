@@ -10,16 +10,16 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 
-@Entity
+//@Entity
 @Embeddable
 @PropertySource({"classpath:config/library.properties"})
 @Profile("jpa")
 @Primary
 public class BirthDateEntity implements Serializable
 {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.AUTO)
+//    private Long pk;
 
     @Getter
     @Column(nullable = false, updatable = false)

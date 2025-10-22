@@ -8,23 +8,25 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
+import lombok.Getter;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-@Entity
+//@Entity
 @Embeddable
 @EqualsAndHashCode
 @Profile("jpa")
 @Primary
 public class LendingNumberEntity implements Serializable
 {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.AUTO)
+//    private Long pk;
 
     @Column(name = "LENDING_NUMBER", length = 32)
     @NotNull
     @NotBlank
+    @Getter
     @Size(min = 6, max = 32)
     private String lendingNumber;
 

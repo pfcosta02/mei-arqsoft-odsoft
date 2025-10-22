@@ -21,7 +21,7 @@ public class GenreEntity
 {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+    private long pk;
 
     @Size(min = 1, max = Genre.GENRE_MAX_LENGTH, message = "Genre name must be between 1 and 100 characters")
     @Column(unique = true, nullable = false, length = Genre.GENRE_MAX_LENGTH)
@@ -33,7 +33,7 @@ public class GenreEntity
     public GenreEntity(String genre) { setGenre(genre); }
 
     // Getter
-    public Long getPk() {
+    public long getPk() {
         return pk;
     }
 

@@ -14,7 +14,6 @@ import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 
 import java.util.*;
 
-@Repository
 public interface SpringDataGenreRepository extends CrudRepository<GenreEntity, Integer> {
 
     @Query("SELECT g FROM GenreEntity g")
@@ -25,7 +24,7 @@ public interface SpringDataGenreRepository extends CrudRepository<GenreEntity, I
 
     @Query("SELECT new pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO(g.genre, COUNT(b))" +
             "FROM GenreEntity g " +
-            "JOIN Book b ON b.genre.pk = g.pk " +
+            "JOIN BookEntity b ON b.genre.pk = g.pk " +
             "GROUP BY g " +
             "ORDER BY COUNT(b) DESC")
     Page<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable);

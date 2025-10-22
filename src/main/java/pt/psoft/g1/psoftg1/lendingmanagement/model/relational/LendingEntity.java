@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
 @Entity
-@Table(uniqueConstraints = {
+@Table(name="Lending", uniqueConstraints = {
         @UniqueConstraint(columnNames={"LENDING_NUMBER"})})
 @Profile("jpa")
 @Primary
@@ -24,6 +24,7 @@ public class LendingEntity {
     private Long pk;
 
     @Embedded
+    @Getter
     private LendingNumberEntity lendingNumber;
 
     @NotNull
@@ -84,4 +85,12 @@ public class LendingEntity {
         this.fineValuePerDayInCents = fineValuePerDayInCents;
         this.commentary = commentary;
     }
+
+    // Setter
+    public void setBook(BookEntity book) { this.book = book;}
+    public void setReaderDetails(ReaderDetailsEntity readerDetails) { this.readerDetails = readerDetails;}
+
+    // Getter
+    public BookEntity getBook() { return book; }
+    public ReaderDetailsEntity getReaderDetails() { return readerDetails; }
 }

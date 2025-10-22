@@ -18,6 +18,17 @@ public class ReaderNumber implements Serializable
         this.readerNumber = LocalDate.now().getYear() + "/" + number;
     }
 
+    public ReaderNumber(String readerNumber)
+    {
+        if (readerNumber == null || !readerNumber.matches("\\d{4}/\\d+"))
+        {
+            throw new IllegalArgumentException(
+                    "Invalid reader number. Expected format: YYYY/number, got: " + readerNumber
+            );
+        }
+        this.readerNumber = readerNumber;
+    }
+
     // Getter
     public String getReaderNumber()
     {

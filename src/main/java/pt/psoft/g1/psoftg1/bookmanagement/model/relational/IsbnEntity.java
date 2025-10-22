@@ -39,4 +39,9 @@ public class IsbnEntity implements Serializable {
     {
         this.isbn = isbn;
     }
+
+    @Override
+    public String toString() {
+        return isbn; // MapStruct muitas vezes chama toString() se o getter falhar
+    }
 }

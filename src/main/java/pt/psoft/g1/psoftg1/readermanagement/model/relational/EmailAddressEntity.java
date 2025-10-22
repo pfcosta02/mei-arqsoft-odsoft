@@ -8,15 +8,15 @@ import java.io.Serializable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-@Entity
+//@Entity
 @Embeddable
 @Profile("jpa")
 @Primary
 public class EmailAddressEntity implements Serializable
 {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.AUTO)
+//    private Long pk;
 
     @Email
     private String address;

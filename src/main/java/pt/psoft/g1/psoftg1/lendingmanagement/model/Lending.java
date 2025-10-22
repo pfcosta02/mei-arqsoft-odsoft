@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.model;
 
+import lombok.Builder;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 
@@ -12,7 +13,8 @@ import org.hibernate.StaleObjectStateException;
 
 public class Lending
 {
-    private Long pk;
+    // TODO: Substituir por ID e nao é suposto ser public
+    public Long pk;
     private LendingNumber lendingNumber;
     private Book book;
     private ReaderDetails readerDetails;
@@ -47,15 +49,38 @@ public class Lending
         setDaysOverdue();
     }
 
+    @Builder
+    public Lending(Book book, ReaderDetails readerDetails, LendingNumber lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents) {
+        try
+        {
+            this.book = Objects.requireNonNull(book);
+            this.readerDetails = Objects.requireNonNull(readerDetails);
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException("Null objects passed to lending");
+        }
+        this.lendingNumber = lendingNumber;
+        this.startDate = startDate;
+        this.limitDate = limitDate;
+        this.returnedDate = returnedDate;
+        this.fineValuePerDayInCents = fineValuePerDayInCents;
+
+        setDaysUntilReturn();
+        setDaysOverdue();
+    }
+
     // Getters
     public Book getBook() { return book; }
     public ReaderDetails getReaderDetails() { return readerDetails; }
     public LocalDate getStartDate() { return startDate; }
     public LocalDate getLimitDate() { return limitDate; }
-    public Optional<LocalDate> getReturnedDate() { return Optional.ofNullable(returnedDate); }
+    public LocalDate getReturnedDate() { return returnedDate; }
     public String getCommentary() { return commentary; }
     public String getLendingNumber() { return lendingNumber.toString(); }
     public long getVersion() { return version; }
+    public String getTitle()
+    {
+        return this.book.getTitle().toString();
+    }
 
     /**
      * <p>Returns the number of days that the lending is/was past its due date</p>
@@ -155,21 +180,10 @@ public class Lending
                                                   LocalDate startDate,
                                                   LocalDate returnedDate,
                                                   int lendingDuration,
-                                                  int fineValuePerDayInCents){
-        Lending lending = new Lending();
+                                                  int fineValuePerDayInCents)
+    {
+        Lending lending = new Lending(book, readerDetails, new LendingNumber(year, seq), startDate, startDate.plusDays(lendingDuration), returnedDate, fineValuePerDayInCents);
 
-        try {
-            lending.book = Objects.requireNonNull(book);
-            lending.readerDetails = Objects.requireNonNull(readerDetails);
-        }catch (NullPointerException e){
-            throw new IllegalArgumentException("Null objects passed to lending");
-        }
-        lending.lendingNumber = new LendingNumber(year, seq);
-        lending.startDate = startDate;
-        lending.limitDate = startDate.plusDays(lendingDuration);
-        lending.fineValuePerDayInCents = fineValuePerDayInCents;
-        lending.returnedDate = returnedDate;
         return lending;
-
     }
 }

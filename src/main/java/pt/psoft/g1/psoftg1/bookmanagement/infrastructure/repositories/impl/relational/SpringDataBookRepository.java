@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringDataBookRepository extends CrudRepository<BookEntity, IsbnEntity> {
 
     @Query("SELECT b " +
@@ -25,7 +24,7 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
 
     @Query("SELECT new pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO(b, COUNT(l)) " +
             "FROM BookEntity b " +
-            "JOIN Lending l ON l.book = b " +
+            "JOIN LendingEntity l ON l.book = b " +
             "WHERE l.startDate > :oneYearAgo " +
             "GROUP BY b " +
             "ORDER BY COUNT(l) DESC")
@@ -41,7 +40,7 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
 
     @Query(value =
             "SELECT b.* " +
-                    "FROM BookEntity b " +
+                    "FROM Book b " +
                     "JOIN BOOK_AUTHORS on b.pk = BOOK_AUTHORS.BOOK_PK " +
                     "JOIN AUTHOR a on BOOK_AUTHORS.AUTHORS_AUTHOR_NUMBER = a.AUTHOR_NUMBER " +
                     "WHERE a.NAME LIKE :authorName"
@@ -50,12 +49,12 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
 
     @Query(value =
             "SELECT b.* " +
-                    "FROM BookEntity b " +
+                    "FROM Book b " +
                     "JOIN BOOK_AUTHORS on b.pk = BOOK_AUTHORS.BOOK_PK " +
                     "JOIN AUTHOR a on BOOK_AUTHORS.AUTHORS_AUTHOR_NUMBER = a.AUTHOR_NUMBER " +
                     "WHERE a.AUTHOR_NUMBER = :authorNumber "
             , nativeQuery = true)
-    List<BookEntity> findBooksByAuthorNumber(String authorNumber);
+    List<BookEntity> findBooksByAuthorNumber(Long authorNumber);
 
 }
 

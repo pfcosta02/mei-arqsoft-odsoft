@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
+@Table(name="ForbiddenName")
 @NoArgsConstructor
 @Profile("jpa")
 @Primary

@@ -10,6 +10,7 @@ import java.nio.file.InvalidPathException;
 import java.util.List;
 
 public class ReaderDetails extends EntityWithPhoto {
+    public Long pk;
     private Reader reader;
     private ReaderNumber readerNumber;
     private BirthDate birthDate;
@@ -20,7 +21,7 @@ public class ReaderDetails extends EntityWithPhoto {
     private Long version;
     private List<Genre> interestList;
 
-    protected ReaderDetails() {}
+    public ReaderDetails() {}
 
     // Construtor principal
     public ReaderDetails(ReaderNumber readerNumber, Reader reader, BirthDate birthDate, PhoneNumber phoneNumber,
@@ -41,7 +42,7 @@ public class ReaderDetails extends EntityWithPhoto {
         setReaderNumber(readerNumber);
         setPhoneNumber(phoneNumber);
         setBirthDate(birthDate);
-        setGdprConsent(true);
+        setGdprConsent(gdpr);
         setPhotoInternal(photoURI);
         setMarketingConsent(marketing);
         setThirdPartySharingConsent(thirdParty);
@@ -56,25 +57,29 @@ public class ReaderDetails extends EntityWithPhoto {
     }
 
     // Getters and Setters
+    public Long getPk() { return pk; }
+
     public Reader getReader() { return reader; }
     public void setReader(Reader reader) { this.reader = reader; }
 
-    public String getReaderNumber() { return readerNumber.toString(); }
-    private void setReaderNumber(ReaderNumber readerNumber) {
+    public String getReaderNumber() { return readerNumber.getReaderNumber(); }
+    public void setReaderNumber(ReaderNumber readerNumber) {
         if(readerNumber != null) {
             this.readerNumber = readerNumber;
         }
     }
 
+    public void setVersion(Long version) { this.version = version;}
+
     public BirthDate getBirthDate() { return birthDate; }
-    private void setBirthDate(BirthDate date) {
+    public void setBirthDate(BirthDate date) {
         if(date != null) {
             this.birthDate = date;
         }
     }
 
-    public String getPhoneNumber() { return phoneNumber.toString(); }
-    private void setPhoneNumber(PhoneNumber number) {
+    public String getPhoneNumber() { return phoneNumber.getPhoneNumber(); }
+    public void setPhoneNumber(PhoneNumber number) {
         if(number != null) {
             this.phoneNumber = number;
         }

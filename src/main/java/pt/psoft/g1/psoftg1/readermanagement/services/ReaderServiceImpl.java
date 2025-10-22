@@ -71,9 +71,9 @@ public class ReaderServiceImpl implements ReaderService {
 
         int count = readerRepo.getCountFromCurrentYear();
         Reader reader = readerMapper.createReader(request);
+        userRepo.save(reader);
         ReaderDetails rd = readerMapper.createReaderDetails(count+1, reader, request, photoURI, interestList);
 
-        userRepo.save(reader);
         return readerRepo.save(rd);
     }
 

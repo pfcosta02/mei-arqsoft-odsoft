@@ -32,6 +32,7 @@ public class UserEntity
     @Id
     @GeneratedValue
     @Column(name="USER_ID")
+    @Getter
     private Long id;
 
     @Version
@@ -80,10 +81,11 @@ public class UserEntity
     private NameEntity name;
 
     @ElementCollection
+    @CollectionTable(name = "AUTHOR_AUTHORITIES")
     @Getter
     private final Set<Role> authorities = new HashSet<>();
 
-    protected UserEntity() {}
+    public UserEntity() {}
 
     public UserEntity(String username, String password, Role role)
     {

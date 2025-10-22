@@ -3,15 +3,9 @@ package pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.ma
 import org.mapstruct.Mapper;
 
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
-import pt.psoft.g1.psoftg1.authormanagement.model.Bio;
 import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
-import pt.psoft.g1.psoftg1.authormanagement.model.relational.BioEntity;
 import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.mappers.NameEntityMapper;
 import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.mappers.PhotoEntityMapper;
-import pt.psoft.g1.psoftg1.shared.model.Photo;
-import pt.psoft.g1.psoftg1.shared.model.Name;
-import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;
-import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 
 @Mapper(componentModel = "spring", uses = { NameEntityMapper.class, BioEntityMapper.class, PhotoEntityMapper.class})
 public interface AuthorEntityMapper

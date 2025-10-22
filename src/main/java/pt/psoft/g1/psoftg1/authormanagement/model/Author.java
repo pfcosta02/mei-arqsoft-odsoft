@@ -7,15 +7,22 @@ import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
 import pt.psoft.g1.psoftg1.shared.model.Name;
 import pt.psoft.g1.psoftg1.shared.model.Photo;
 
+import java.nio.file.Paths;
 import java.util.Objects;
 
 public class Author extends EntityWithPhoto
 {
-    private String authorNumber;
-    private Long version;
+    // TODO: Nao deve ser suposto ser publico
+    public Long authorNumber;
+    private long version;
     private Name name;
     private Bio bio;
+    public Author() { }
 
+    public Author(String name, String bio, String photoURI)
+    {
+        this(new Name(name), new Bio(bio), photoURI == null ? null : new Photo(Paths.get(photoURI)));
+    }
     public Author(Name name, Bio bio, Photo photoURI)
     {
         setName(name);
@@ -24,21 +31,14 @@ public class Author extends EntityWithPhoto
         this.version = 0L;
     }
 
-    public Author(String name, String bio, String photoURI)
-    {
-        this(new Name(name), new Bio(bio), new Photo(photoURI));
-    }
-
-    protected Author() { }
-
     // Getters
-    public String getAuthorNumber() { return authorNumber; }
-    public Long getVersion() { return version; }
+    public Long getAuthorNumber() { return authorNumber; }
+    public long getVersion() { return version; }
     public Name getName() { return name; }
     public Bio getBio() { return bio; }
 
     // Setters
-    private void setName(Name name)
+    public void setName(Name name)
     {
         if (name == null)
         {
@@ -48,7 +48,7 @@ public class Author extends EntityWithPhoto
         this.name = name;
     }
 
-    private void setBio(Bio bio)
+    public void setBio(Bio bio)
     {
         if (bio == null)
         {
@@ -59,7 +59,7 @@ public class Author extends EntityWithPhoto
     }
 
     // Logica de negocio
-    public void applyPatch(final Long expectedVersion, final UpdateAuthorRequest request)
+    public void applyPatch(final long expectedVersion, final UpdateAuthorRequest request)
     {
         if (!Objects.equals(this.version, expectedVersion))
         {

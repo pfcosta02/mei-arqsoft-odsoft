@@ -4,8 +4,8 @@ public class Genre
 {
     public static final int GENRE_MAX_LENGTH = 100;
 
-    private long pk;
-
+    //TODO: Substituir por ID e nao é suposto ser publico
+    public long pk;
     private String genre;
 
     protected Genre() { }
@@ -45,6 +45,7 @@ public class Genre
     }
 
     // Helper
+    @Override
     public String toString()
     {
         return genre;

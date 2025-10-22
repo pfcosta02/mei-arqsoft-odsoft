@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 
-@Repository
 public interface SpringDataPhotoRepository extends CrudRepository<PhotoEntity, Long> {
 
     @Modifying

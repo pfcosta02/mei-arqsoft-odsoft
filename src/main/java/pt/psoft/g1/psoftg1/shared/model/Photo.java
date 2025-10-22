@@ -7,14 +7,9 @@ public class Photo
     private long pk;
     private String photoFile;
 
-    public Photo(Path photoPath)
+    public Photo(Path photoFile)
     {
-        setPhotoFile(photoPath.toString());
-    }
-
-    public Photo(String photoPath)
-    {
-        setPhotoFile(photoPath);
+        setPhotoFile(photoFile.toString());
     }
 
     protected Photo()
@@ -25,19 +20,11 @@ public class Photo
     // Setter
     private void setPhotoFile(String photofile)
     {
-        if (photofile == null)
-        {
-            throw new IllegalArgumentException("PhotoFile cannot be null");
-        }
-
         this.photoFile = photofile;
     }
 
     // Getter
     public String getPhotoFile() { return this.photoFile; }
-
-    // Helper
-    public String toString() { return this.photoFile; }
 }
 
 

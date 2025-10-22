@@ -37,6 +37,7 @@ public class Description {
     }
 
     // Helpers
+    @Override
     public String toString()
     {
         return this.description;

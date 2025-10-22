@@ -13,6 +13,8 @@ import org.hibernate.StaleObjectStateException;
 
 public class Book extends EntityWithPhoto
 {
+    // TODO: Substituir por ID e nao é suposto ser public
+    public Long pk;
     private Long version;
     private Isbn isbn;
     private Title title;
@@ -20,26 +22,20 @@ public class Book extends EntityWithPhoto
     private Genre genre;
     private List<Author> authors;
 
-    protected Book() { }
-
-    public Book(Isbn isbn, Title title, Description description, Genre genre, List<Author> authors, String photoURI)
+    public Book(String isbn, String title, String description, Genre genre, List<Author> authors, String photoURI)
     {
-        setTitle(title);
-        setIsbn(isbn);
+        setTitle(new Title(title));
+        setIsbn(new Isbn(isbn));
         setGenre(genre);
         setAuthors(authors);
         setPhotoInternal(photoURI);
+        setDescription(new Description(description));
 
         this.version = 0L;
     }
 
-    public Book(String isbn, String title, String description, Genre genre, List<Author> authors, String photoURI)
-    {
-        // Avoid duplicated code
-        this(new Isbn(isbn), new Title(title), new Description(description), genre, authors, photoURI);
-    }
-
     // Getters
+    public Long getPk() { return pk; }
     public Isbn getIsbn() { return isbn; }
     public Title getTitle() { return title; }
     public Description getDescription() { return description; }
@@ -48,10 +44,10 @@ public class Book extends EntityWithPhoto
     public Long getVersion() { return version; }
 
     // Setters
-    private void setTitle(Title title) {this.title = title;}
-    private void setIsbn(Isbn isbn) { this.isbn = isbn;}
-    private void setDescription(Description description) {this.description = description; }
-    private void setGenre(Genre genre)
+    public void setTitle(Title title) {this.title = title;}
+    public void setIsbn(Isbn isbn) { this.isbn = isbn;}
+    public void setDescription(Description description) {this.description = description; }
+    public void setGenre(Genre genre)
     {
         if(genre == null)
         {
@@ -60,7 +56,7 @@ public class Book extends EntityWithPhoto
 
         this.genre = genre;
     }
-    private void setAuthors(List<Author> authors)
+    public void setAuthors(List<Author> authors)
     {
         if(authors == null || authors.isEmpty())
         {
@@ -73,6 +69,11 @@ public class Book extends EntityWithPhoto
     // regras de negócio
     public void applyPatch(final Long expectedVersion, UpdateBookRequest request)
     {
+        if (!Objects.equals(this.version, expectedVersion))
+        {
+            throw new StaleObjectStateException("Object was already modified by another user", this.pk);
+        }
+
         String title = request.getTitle();
         String description = request.getDescription();
         Genre genre = request.getGenreObj();

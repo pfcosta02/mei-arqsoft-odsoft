@@ -29,7 +29,7 @@ public class BirthDate {
         this.birthDate = validateDate(LocalDate.of(year, month, day), DEFAULT_MINIMUM_AGE);
     }
 
-    private LocalDate validateDate(LocalDate date, int minimumAge)
+    public LocalDate validateDate(LocalDate date, int minimumAge)
     {
         LocalDate minDate = LocalDate.now().minusYears(minimumAge);
         if (date.isAfter(minDate))
@@ -46,6 +46,7 @@ public class BirthDate {
     }
 
     // Helper
+    @Override
     public String toString()
     {
         return birthDate.toString();

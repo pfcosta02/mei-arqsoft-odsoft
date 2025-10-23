@@ -1,6 +1,4 @@
 package pt.psoft.g1.psoftg1.bookmanagement.model.mongodb;
-
-import org.springframework.data.annotation.Id;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.EqualsAndHashCode;
@@ -15,9 +13,6 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class TitleMongoDB implements Serializable {
 
-    @Id
-    private String titleId;
-
     @NotBlank(message = "Title cannot be blank")
     @Size(min = 1, max = Title.TITLE_MAX_LENGTH)
     @Field("title")
@@ -27,7 +22,4 @@ public class TitleMongoDB implements Serializable {
     protected TitleMongoDB() {}
 
     public TitleMongoDB(String title) { this.title = title; }
-
-    @Override
-    public String toString() { return title; }
 }

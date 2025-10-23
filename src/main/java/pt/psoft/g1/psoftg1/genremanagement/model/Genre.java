@@ -4,7 +4,7 @@ public class Genre
 {
     public static final int GENRE_MAX_LENGTH = 100;
 
-    private long pk;
+    public String pk;
 
     private String genre;
 
@@ -34,7 +34,7 @@ public class Genre
     }
 
     // Getters
-    public long getPk()
+    public String getPk()
     {
         return pk;
     }
@@ -45,6 +45,7 @@ public class Genre
     }
 
     // Helper
+    @Override
     public String toString()
     {
         return genre;

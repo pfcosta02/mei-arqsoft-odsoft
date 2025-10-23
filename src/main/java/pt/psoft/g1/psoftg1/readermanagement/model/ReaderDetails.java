@@ -12,7 +12,7 @@ import java.util.List;
 public class ReaderDetails extends EntityWithPhoto {
 
     // TODO: Substituir por ID e nao é suposto ser public
-    public Long pk;
+    public String readerDetailsId;
 
     private Reader reader;
     private ReaderNumber readerNumber;
@@ -60,12 +60,12 @@ public class ReaderDetails extends EntityWithPhoto {
     }
 
     // Getters and Setters
-    public Long getPk() { return pk; }
+    public String getReaderDetailsId() { return readerDetailsId; }
 
     public Reader getReader() { return reader; }
     public void setReader(Reader reader) { this.reader = reader; }
 
-    public String getReaderNumber() { return readerNumber.toString(); }
+    public String getReaderNumber() { return readerNumber.getReaderNumber(); }
     public void setReaderNumber(ReaderNumber readerNumber) {
         if(readerNumber != null) {
             this.readerNumber = readerNumber;

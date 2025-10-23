@@ -33,15 +33,13 @@ public class UserBootstrapperMongoDB implements CommandLineRunner {
     private final UserRepository userRepository;
     private final ReaderRepository readerRepository;
     private final GenreRepository genreRepository;
-//    private final JdbcTemplate jdbcTemplate;
-//    private List<String> queriesToExecute = new ArrayList<>();
 
     @Override
     @Transactional
     public void run(final String... args)  {
         createReaders();
         createLibrarian();
-//        executeQueries();
+
     }
 
     private void createReaders() {
@@ -74,6 +72,7 @@ public class UserBootstrapperMongoDB implements CommandLineRunner {
                         "readerPhotoTest.jpg",
                         interestList);
                 readerRepository.save(r1);
+                System.out.println(r1.getReaderNumber());
             }
         }
 

@@ -20,6 +20,7 @@ public class EmailAddress {
     }
 
     // Helper
+    @Override
     public String toString()
     {
         return address;

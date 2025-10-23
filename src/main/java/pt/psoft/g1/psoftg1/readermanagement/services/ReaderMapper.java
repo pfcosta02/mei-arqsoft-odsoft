@@ -32,6 +32,6 @@ public abstract class ReaderMapper {
     @Mapping(target = "phoneNumber", source = "request.phoneNumber", qualifiedByName = "toPhoneNumber")
     @Mapping(target = "photo", source = "photo")
     @Mapping(target = "interestList", source = "interestList")
-    @Mapping(target = "pk", ignore = true)
+    @Mapping(target = "readerDetailsId", ignore = true)
     public abstract ReaderDetails createReaderDetails(int readerNumber, Reader reader, CreateReaderRequest request, String photo, List<Genre> interestList);
 }

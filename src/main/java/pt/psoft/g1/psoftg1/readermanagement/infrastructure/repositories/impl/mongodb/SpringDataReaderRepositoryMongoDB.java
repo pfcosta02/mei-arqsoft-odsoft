@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public interface SpringDataReaderRepositoryMongoDB extends MongoRepository<ReaderDetailsMongoDB, String> {
 
-    @Query("{ 'readerNumber': ?0 }")
+    @Query("{ 'readerNumber.reader_number': ?0 }")
     Optional<ReaderDetailsMongoDB> findByReaderNumber(String readerNumber);
 
 

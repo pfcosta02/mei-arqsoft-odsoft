@@ -11,7 +11,7 @@ import org.hibernate.StaleObjectStateException;
 
 public class Lending
 {
-    private Long pk;
+    private String lendingId;
     private LendingNumber lendingNumber;
     private Book book;
     private ReaderDetails readerDetails;
@@ -134,7 +134,7 @@ public class Lending
         // check current version
         if (this.version != desiredVersion)
         {
-            throw new StaleObjectStateException("Object was already modified by another user", this.pk);
+            throw new StaleObjectStateException("Object was already modified by another user", this.lendingId);
         }
 
         if(commentary != null)

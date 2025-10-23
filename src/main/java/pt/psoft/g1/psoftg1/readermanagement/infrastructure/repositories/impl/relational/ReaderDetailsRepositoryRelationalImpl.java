@@ -23,6 +23,10 @@ import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO;
 import pt.psoft.g1.psoftg1.readermanagement.services.SearchReadersQuery;
+import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.relational.SpringDataUserRepository;
+import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.relational.UserRepositoryRelationalImpl;
+import pt.psoft.g1.psoftg1.usermanagement.model.User;
+import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
 import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
 
 @Profile("jpa")
@@ -33,6 +37,7 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
 {
     private final SpringDataReaderRepositoryImpl readerRepo;
     private final ReaderDetailsEntityMapper readerEntityMapper;
+    private final UserRepositoryRelationalImpl userRepo;
     private final EntityManager entityManager;
 
     @Override
@@ -98,8 +103,15 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
     @Override
     public ReaderDetails save(ReaderDetails readerDetails)
     {
-        // TODO
-        return readerDetails;
+        ReaderDetailsEntity readerDetailsEntity = readerEntityMapper.toEntity(readerDetails);
+
+        User userModel = userRepo.findByUsername(readerDetails.getReader().getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        ReaderEntity userEntity = entityManager.getReference(ReaderEntity.class, userModel.getId());
+
+        readerDetailsEntity.setReader(userEntity);
+        return readerEntityMapper.toModel(readerRepo.save(readerDetailsEntity));
     }
 
     @Override

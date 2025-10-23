@@ -16,12 +16,9 @@ import java.time.LocalDate;
 @Profile("mongodb")
 public class BirthDateMongoDB implements Serializable {
 
-    @Id
-    private String birthDateId;
-
     @Field("birth_date")
     @Getter
-    LocalDate birthDate;
+    private LocalDate birthDate;
 
     @Value("${minimumReaderAge}")
     @Field("minimum_age")

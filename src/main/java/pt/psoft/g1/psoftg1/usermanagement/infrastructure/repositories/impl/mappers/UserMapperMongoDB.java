@@ -52,4 +52,14 @@ public interface UserMapperMongoDB
         }
         return value.iterator().next(); // Take the first role
     }
+
+    default Long map(String value) {
+        if (value == null) return null;
+        return Long.parseLong(value);
+    }
+
+    default String map(Long value) {
+        if (value == null) return null;
+        return value.toString();
+    }
 }

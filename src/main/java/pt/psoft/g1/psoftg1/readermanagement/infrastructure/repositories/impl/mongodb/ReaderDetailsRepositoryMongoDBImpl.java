@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
@@ -19,6 +18,12 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.domain.Sort;
+import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mappers.UserMapperMongoDB;
+import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mappers.UserReaderMapper;
+import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mongodb.UserRepositoryMongoDBImpl;
+import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
+import pt.psoft.g1.psoftg1.usermanagement.model.User;
+import pt.psoft.g1.psoftg1.usermanagement.model.mongodb.ReaderMongoDB;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -33,6 +38,10 @@ public class ReaderDetailsRepositoryMongoDBImpl implements ReaderRepository {
 
     private final SpringDataReaderRepositoryMongoDB readerRepo;
     private final ReaderDetailsMapperMongoDB readerMapperMongoDB;
+    private final UserMapperMongoDB userMapperMongoDB;
+    private final UserReaderMapper userReaderMapper;
+    private final UserRepositoryMongoDBImpl userRepo;
+
     private final MongoTemplate mongoTemplate;
 
     @Override
@@ -98,8 +107,15 @@ public class ReaderDetailsRepositoryMongoDBImpl implements ReaderRepository {
     @Override
     public ReaderDetails save(ReaderDetails readerDetails)
     {
-        // TODO
-        return readerDetails;
+        ReaderDetailsMongoDB readerDetailsMongoDB = readerMapperMongoDB.toEntity(readerDetails);
+
+        User userModel = userRepo.findByUsername(readerDetails.getReader().getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Reader reader = UserReaderMapper.toReader(userModel);
+        ReaderMongoDB readerMongoDB = userMapperMongoDB.toEntity(reader);
+        readerDetailsMongoDB.setReader(readerMongoDB);
+        return readerMapperMongoDB.toModel(readerRepo.save(readerDetailsMongoDB));
     }
 
     @Override

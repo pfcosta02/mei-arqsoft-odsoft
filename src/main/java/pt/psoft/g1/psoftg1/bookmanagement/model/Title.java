@@ -3,9 +3,14 @@ package pt.psoft.g1.psoftg1.bookmanagement.model;
 public class Title {
     public static final int TITLE_MAX_LENGTH = 128;
 
-    private final String title;
+    private String title;
 
     public Title(String title)
+    {
+        setTitle(title);
+    }
+
+    public void setTitle(String title)
     {
         if (title == null)
         {
@@ -23,8 +28,6 @@ public class Title {
         this.title = title.strip();
     }
 
-    protected Title() { this.title = null; }
-
     // Getter
     public String getTitle()
     {
@@ -32,6 +35,7 @@ public class Title {
     }
 
     // Helpers
+    @Override
     public String toString()
     {
         return this.title;

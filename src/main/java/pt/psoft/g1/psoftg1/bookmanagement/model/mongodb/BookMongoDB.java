@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.bookmanagement.model.mongodb;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Primary;
@@ -12,6 +13,7 @@ import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
 import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
 import pt.psoft.g1.psoftg1.shared.model.mongodb.EntityWithPhotoMongoDB;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Profile("mongodb")
@@ -20,8 +22,6 @@ import java.util.List;
 public class BookMongoDB extends EntityWithPhotoMongoDB {
 
     @Id
-    @Getter
-    @Setter
     private String bookId;
 
     @Getter
@@ -29,24 +29,25 @@ public class BookMongoDB extends EntityWithPhotoMongoDB {
     @Field("version")
     private Long version;
 
-    @Getter
     @Field("isbn")
     private IsbnMongoDB isbn;
 
     @Getter
+    @NotNull
     @Field("title")
     private TitleMongoDB title;
 
     @Getter
+    @NotNull
     @Field("genre")
     private GenreMongoDB genre;
 
     @Getter
     @Field("authors")
-    private List<AuthorMongoDB> authors;
+    private List<AuthorMongoDB> authors = new ArrayList<>();
 
     @Field("description")
-    DescriptionMongoDB description;
+    private DescriptionMongoDB description;
 
     public BookMongoDB(IsbnMongoDB isbn, TitleMongoDB title, DescriptionMongoDB description, GenreMongoDB genre, List<AuthorMongoDB> authors, String photo)
     {
@@ -56,8 +57,6 @@ public class BookMongoDB extends EntityWithPhotoMongoDB {
         setAuthors(authors);
         setGenre(genre);
         setPhotoInternal(photo);
-
-        this.version = 0L;
     }
 
     protected BookMongoDB() {}
@@ -68,9 +67,10 @@ public class BookMongoDB extends EntityWithPhotoMongoDB {
     public void setDescription(DescriptionMongoDB description) { this.description = description; }
     public void setGenre(GenreMongoDB genre) { this.genre = genre; }
     public void setAuthors(List<AuthorMongoDB> authors) { this.authors = authors; }
+    public void setBookId(String bookId) { this.bookId = bookId; }
 
     // Getters
-    public String getDescription(){ return this.description.toString(); }
-    public String getIsbn(){ return this.isbn.toString(); }
-    public String getId(){ return bookId; }
+    public String getDescription(){ return description.getDescription(); }
+    public String getIsbn(){ return isbn.getIsbn(); }
+    public String getBookId(){ return bookId; }
 }

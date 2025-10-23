@@ -18,7 +18,7 @@ public class GenreMongoDB {
     @Id
     @Setter
     @Getter
-    private String genreId;
+    private String pk;
 
     @Field("genre")
     @Size(min = 1, max = Genre.GENRE_MAX_LENGTH, message = "Genre name must be between 1 and 100 characters")
@@ -50,5 +50,6 @@ public class GenreMongoDB {
         this.genre = genre;
     }
 
+    @Override
     public String toString() { return genre; }
 }

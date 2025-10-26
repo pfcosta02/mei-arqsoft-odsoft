@@ -20,8 +20,8 @@ import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 public class GenreEntity
 {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long pk;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String pk;
 
     @Size(min = 1, max = Genre.GENRE_MAX_LENGTH, message = "Genre name must be between 1 and 100 characters")
     @Column(unique = true, nullable = false, length = Genre.GENRE_MAX_LENGTH)
@@ -33,7 +33,7 @@ public class GenreEntity
     public GenreEntity(String genre) { setGenre(genre); }
 
     // Getter
-    public long getPk() {
+    public String getPk() {
         return pk;
     }
 

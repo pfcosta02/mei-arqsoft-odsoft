@@ -84,7 +84,7 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
     }
 
     @Override
-    public Optional<ReaderDetails> findByUserId(Long userId)
+    public Optional<ReaderDetails> findByUserId(String userId)
     {
         Optional<ReaderDetailsEntity> entityOpt = readerRepo.findByUserId(userId);
         if (entityOpt.isPresent())

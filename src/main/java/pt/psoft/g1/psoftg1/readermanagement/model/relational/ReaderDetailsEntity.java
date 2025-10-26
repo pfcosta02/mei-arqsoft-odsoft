@@ -19,9 +19,8 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
 
     @Id
     @Getter
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Getter
-    private Long pk;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String readerDetailsId;
 
     @OneToOne
     @Getter

@@ -49,9 +49,9 @@ public class BookServiceImpl implements BookService {
 			throw new ConflictException("Book with ISBN " + isbn + " already exists");
 		}
 
-		List<Long> authorNumbers = request.getAuthors();
+		List<String> authorNumbers = request.getAuthors();
 		List<Author> authors = new ArrayList<>();
-		for (Long authorNumber : authorNumbers) {
+		for (String authorNumber : authorNumbers) {
 
 			Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber);
 			if(temp.isEmpty()) {
@@ -83,9 +83,9 @@ public class BookServiceImpl implements BookService {
 
         var book = findByIsbn(request.getIsbn());
         if(request.getAuthors()!= null) {
-            List<Long> authorNumbers = request.getAuthors();
+            List<String> authorNumbers = request.getAuthors();
             List<Author> authors = new ArrayList<>();
-            for (Long authorNumber : authorNumbers) {
+            for (String authorNumber : authorNumbers) {
                 Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber);
                 if (temp.isEmpty()) {
                     continue;

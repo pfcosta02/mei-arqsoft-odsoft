@@ -22,8 +22,8 @@ import org.springframework.context.annotation.Profile;
 public class BookEntity extends EntityWithPhotoEntity
 {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private Long pk;
+    @GeneratedValue(strategy= GenerationType.UUID)
+    private String bookId;
 
     @Version
     @Getter
@@ -72,7 +72,7 @@ public class BookEntity extends EntityWithPhotoEntity
     public void setAuthors(List<AuthorEntity> authors) { this.authors = authors; }
 
     // Getters
-    public String getDescription(){ return this.description.toString(); }
-    public String getIsbn(){ return this.isbn.toString(); }
-    public Long getPk() { return pk; }
+    public String getDescription(){ return description.getDescription(); }
+    public String getIsbn(){ return isbn.getIsbn(); }
+    public String getBookId() { return bookId; }
 }

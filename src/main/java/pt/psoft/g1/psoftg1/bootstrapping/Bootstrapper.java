@@ -184,7 +184,9 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,null);
 
-                bookRepository.save(book);
+
+                Book bokk = bookRepository.save(book);
+                System.out.println(bokk.getDescription());
             }
         }
 

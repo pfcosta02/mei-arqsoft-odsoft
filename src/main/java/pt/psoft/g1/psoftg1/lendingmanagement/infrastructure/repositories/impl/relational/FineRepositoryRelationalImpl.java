@@ -19,7 +19,6 @@ import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
 @Primary
 @Repository
 @RequiredArgsConstructor
-@Repository
 public class FineRepositoryRelationalImpl implements FineRepository
 {
     private final SpringDataFineRepository fineRepo;

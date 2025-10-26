@@ -6,7 +6,7 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
 
 import java.util.*;
 
-public interface SpringDataLendingRepository extends CrudRepository<LendingEntity, Long>
+public interface SpringDataLendingRepository extends CrudRepository<LendingEntity, String>
 {
 
     @Query("SELECT l " +
@@ -18,8 +18,8 @@ public interface SpringDataLendingRepository extends CrudRepository<LendingEntit
 
     @Query("SELECT l " +
             "FROM LendingEntity l " +
-            "JOIN BookEntity b ON l.book.pk = b.pk " +
-            "JOIN ReaderDetailsEntity r ON l.readerDetails.pk = r.pk " +
+            "JOIN BookEntity b ON l.book.bookId = b.bookId " +
+            "JOIN ReaderDetailsEntity r ON l.readerDetails.readerDetailsId = r.readerDetailsId " +
             "WHERE b.isbn.isbn = :isbn " +
             "AND r.readerNumber.readerNumber = :readerNumber ")
     List<LendingEntity> listByReaderNumberAndIsbn(String readerNumber, String isbn);
@@ -31,7 +31,7 @@ public interface SpringDataLendingRepository extends CrudRepository<LendingEntit
 
     @Query("SELECT l " +
             "FROM LendingEntity l " +
-            "JOIN ReaderDetailsEntity r ON l.readerDetails.pk = r.pk " +
+            "JOIN ReaderDetailsEntity r ON l.readerDetails.readerDetailsId = r.readerDetailsId " +
             "WHERE r.readerNumber.readerNumber = :readerNumber " +
             "AND l.returnedDate IS NULL")
     List<LendingEntity> listOutstandingByReaderNumber(@Param("readerNumber") String readerNumber);

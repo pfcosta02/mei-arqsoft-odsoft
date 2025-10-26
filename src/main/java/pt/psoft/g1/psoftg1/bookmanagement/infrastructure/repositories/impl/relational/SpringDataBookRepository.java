@@ -54,7 +54,7 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
                     "JOIN AUTHOR a on BOOK_AUTHORS.AUTHORS_AUTHOR_NUMBER = a.AUTHOR_NUMBER " +
                     "WHERE a.AUTHOR_NUMBER = :authorNumber "
             , nativeQuery = true)
-    List<BookEntity> findBooksByAuthorNumber(Long authorNumber);
+    List<BookEntity> findBooksByAuthorNumber(String authorNumber);
 
 }
 

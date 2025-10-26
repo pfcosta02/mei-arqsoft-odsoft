@@ -32,7 +32,7 @@ public class DescriptionEntity implements Serializable
     }
 
     // Setters
-    private void setDescription(String description)
+    public void setDescription(String description)
     {
         this.description = description;
     }

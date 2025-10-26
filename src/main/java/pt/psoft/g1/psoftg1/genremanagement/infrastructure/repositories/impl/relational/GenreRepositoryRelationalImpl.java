@@ -35,7 +35,6 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
 @Primary
 @Repository
 @RequiredArgsConstructor
-@Repository
 public class GenreRepositoryRelationalImpl implements GenreRepository
 {
     private final SpringDataGenreRepository genreRepo;

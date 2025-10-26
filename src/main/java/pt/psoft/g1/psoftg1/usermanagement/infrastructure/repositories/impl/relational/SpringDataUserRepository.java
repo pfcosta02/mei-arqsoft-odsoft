@@ -40,7 +40,7 @@ import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
  *
  */
 @CacheConfig(cacheNames = "users")
-public interface SpringDataUserRepository extends CrudRepository<UserEntity, Long> {
+public interface SpringDataUserRepository extends CrudRepository<UserEntity, String> {
 
     @CacheEvict(allEntries = true)
     <S extends UserEntity> List<S> saveAll(Iterable<S> entities);
@@ -54,7 +54,7 @@ public interface SpringDataUserRepository extends CrudRepository<UserEntity, Lon
      */
 
     @Cacheable
-    Optional<UserEntity> findById(Long objectId);
+    Optional<UserEntity> findById(String objectId);
 
     /**
      * getById explicitly loads a user or throws an exception if the user does not
@@ -64,7 +64,7 @@ public interface SpringDataUserRepository extends CrudRepository<UserEntity, Lon
      * @return
      */
     @Cacheable
-    default UserEntity getById(final Long id) {
+    default UserEntity getById(final String id) {
         final Optional<UserEntity> maybeUser = findById(id);
         // throws 404 Not Found if the user does not exist or is not enabled
         return maybeUser.filter(UserEntity::isEnabled).orElseThrow(() -> new NotFoundException(UserEntity.class, id));

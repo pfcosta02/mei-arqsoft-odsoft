@@ -12,7 +12,6 @@ import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
 @Primary
 @Repository
 @RequiredArgsConstructor
-@Repository
 public class PhotoRepositoryRelationalImpl implements PhotoRepository
 {
     private final SpringDataPhotoRepository photoRepository;

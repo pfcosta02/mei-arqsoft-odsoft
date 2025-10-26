@@ -27,7 +27,7 @@ public interface SpringDataReaderRepositoryMongoDB extends MongoRepository<Reade
 
 
     @Query("{ 'user.id': ?0 }")
-    Optional<ReaderDetailsMongoDB> findByUserId(Long userId);
+    Optional<ReaderDetailsMongoDB> findByUserId(String userId);
 
 
     @Aggregation(pipeline = {

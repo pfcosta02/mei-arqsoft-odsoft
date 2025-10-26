@@ -17,6 +17,8 @@ public interface BookEntityMapper
 {
     @Mapping(target="photoURI", source="photo")
     Book toModel(BookEntity entity);
+
+    @Mapping(target = "bookId", ignore = true)
     BookEntity toEntity(Book model);
 
     // default String map(Isbn value)

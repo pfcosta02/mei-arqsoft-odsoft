@@ -36,6 +36,9 @@ public class NameEntity {
     {
         setName(name);
     }
+
+    @Override
+    public String toString() { return this.name; }
 }
 
 

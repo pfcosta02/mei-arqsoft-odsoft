@@ -15,7 +15,7 @@ import lombok.Setter;
 public class FineEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+    private String pk;
 
     @PositiveOrZero
     @Column(updatable = false)

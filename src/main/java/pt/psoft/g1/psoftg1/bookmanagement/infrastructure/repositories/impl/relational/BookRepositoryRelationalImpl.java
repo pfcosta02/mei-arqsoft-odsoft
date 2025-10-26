@@ -36,7 +36,6 @@ import java.util.Optional;
 @Primary
 @Repository
 @RequiredArgsConstructor
-@Repository
 public class BookRepositoryRelationalImpl implements BookRepository
 {
     private final SpringDataBookRepository bookRepo;
@@ -103,7 +102,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
-    public List<Book> findBooksByAuthorNumber(Long authorNumber)
+    public List<Book> findBooksByAuthorNumber(String authorNumber)
     {
         List<Book> books = new ArrayList<>();
         for (BookEntity b: bookRepo.findBooksByAuthorNumber(authorNumber))

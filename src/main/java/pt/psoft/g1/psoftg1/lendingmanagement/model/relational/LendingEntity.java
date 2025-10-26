@@ -18,8 +18,8 @@ import org.springframework.context.annotation.Profile;
 public class LendingEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String lendingId;
 
     @Embedded
     @Getter

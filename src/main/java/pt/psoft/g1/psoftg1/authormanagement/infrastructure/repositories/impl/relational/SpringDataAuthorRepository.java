@@ -11,15 +11,15 @@ import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
 import java.util.List;
 import java.util.Optional;
 
-public interface SpringDataAuthorRepository extends CrudRepository<AuthorEntity, Long> {
+public interface SpringDataAuthorRepository extends CrudRepository<AuthorEntity, String> {
 
     @Query("SELECT a FROM AuthorEntity a WHERE a.authorNumber = :authorNumber")
-    Optional<AuthorEntity> findByAuthorNumber(Long authorNumber);
+    Optional<AuthorEntity> findByAuthorNumber(String authorNumber);
 
-    @Query("SELECT new pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView(a.name.name, COUNT(l.pk)) " +
+    @Query("SELECT new pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView(a.name.name, COUNT(l.lendingId)) " +
             "FROM BookEntity b " +
             "JOIN b.authors a " +
-            "JOIN LendingEntity l ON l.book.pk = b.pk " +
+            "JOIN LendingEntity l ON l.book.bookId = b.bookId " +
             "GROUP BY a.name " +
             "ORDER BY COUNT(l) DESC")
     List<AuthorLendingView> findTopAuthorByLendings(Pageable pageable);
@@ -28,7 +28,7 @@ public interface SpringDataAuthorRepository extends CrudRepository<AuthorEntity,
             "JOIN b.authors coAuthor " +
             "WHERE b IN (SELECT b FROM BookEntity b JOIN b.authors a WHERE a.authorNumber = :authorNumber) " +
             "AND coAuthor.authorNumber <> :authorNumber")
-    List<AuthorEntity> findCoAuthorsByAuthorNumber(Long authorNumber);
+    List<AuthorEntity> findCoAuthorsByAuthorNumber(String authorNumber);
 
     @Query("SELECT a FROM AuthorEntity a WHERE a.name.name = :name")
     List<AuthorEntity> searchByNameName(String name);

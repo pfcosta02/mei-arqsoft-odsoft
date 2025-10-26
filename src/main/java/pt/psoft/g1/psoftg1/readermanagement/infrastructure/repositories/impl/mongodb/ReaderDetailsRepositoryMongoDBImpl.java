@@ -85,7 +85,7 @@ public class ReaderDetailsRepositoryMongoDBImpl implements ReaderRepository {
     }
 
     @Override
-    public Optional<ReaderDetails> findByUserId(@Param("userId") @NotNull Long userId)
+    public Optional<ReaderDetails> findByUserId(@Param("userId") @NotNull String userId)
     {
         Optional<ReaderDetailsMongoDB> entityOpt = readerRepo.findByUserId(userId);
         if (entityOpt.isPresent())

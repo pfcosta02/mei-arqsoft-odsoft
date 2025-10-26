@@ -30,10 +30,10 @@ import pt.psoft.g1.psoftg1.usermanagement.model.Role;
 public class UserEntity
 {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name="USER_ID")
     @Getter
-    private Long id;
+    private String userId;
 
     @Version
     private Long version;

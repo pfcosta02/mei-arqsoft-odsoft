@@ -30,7 +30,6 @@ import pt.psoft.g1.psoftg1.shared.services.Page;
 @Primary
 @Repository
 @RequiredArgsConstructor
-@Repository
 public class LendingRepositoryRelationalImpl implements LendingRepository
 {
     private final SpringDataLendingRepository lendingRepo;
@@ -195,7 +194,7 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
 
         // Get the managed JPA reference for the BookEntity using its database ID (pk)
         // This ensures we use the existing BookEntity instead of creating a new one
-        BookEntity bookEntity = em.getReference(BookEntity.class, bookModel.getPk());
+        BookEntity bookEntity = em.getReference(BookEntity.class, bookModel.getBookId());
 
         entity.setBook(bookEntity);
 
@@ -206,7 +205,7 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
 
         // Get the managed JPA reference for the ReaderDetailEntity using its database ID (pk)
         // This ensures we use the existing ReaderDetailEntity instead of creating a new one
-        ReaderDetailsEntity readerDetailsEntity = em.getReference(ReaderDetailsEntity.class, readerDetailsModel.getPk());
+        ReaderDetailsEntity readerDetailsEntity = em.getReference(ReaderDetailsEntity.class, readerDetailsModel.getReaderDetailsId());
 
         entity.setReaderDetails(readerDetailsEntity);
         return lendingEntityMapper.toModel(lendingRepo.save(entity));

@@ -16,7 +16,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringDataBookRepositoryMongoDB extends MongoRepository<BookMongoDB, String> {
 
     @Query("{ 'isbn.isbn': ?0 }")
@@ -43,5 +42,5 @@ public interface SpringDataBookRepositoryMongoDB extends MongoRepository<BookMon
             "{ $unwind: '$book' }",
             "{ $project: { book: 1, count: 1 } }"
     })
-    Page<BookCountDTO> findTop5BooksLent(LocalDate oneYearAgo, Pageable pageable);
+    List<BookCountDTO> findTop5BooksLent(LocalDate oneYearAgo, Pageable pageable);
 }

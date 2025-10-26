@@ -10,13 +10,6 @@ public class Title {
         setTitle(title);
     }
 
-    // Getter
-    public String getTitle()
-    {
-        return this.title;
-    }
-
-    //
     public void setTitle(String title)
     {
         if (title == null)
@@ -33,6 +26,12 @@ public class Title {
         }
 
         this.title = title.strip();
+    }
+
+    // Getter
+    public String getTitle()
+    {
+        return this.title;
     }
 
     // Helpers

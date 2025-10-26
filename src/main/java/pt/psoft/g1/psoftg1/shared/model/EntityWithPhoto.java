@@ -7,14 +7,6 @@ public abstract class EntityWithPhoto
 {
     protected Photo photo;
 
-    // Setter
-    //This method is used by the mapper in order to set the photo. This will call the setPhotoInternal method that
-    //will contain all the logic to set the photo
-    public void setPhoto(String photo)
-    {
-        setPhotoInternal(photo);
-    }
-
     protected void setPhotoInternal(String photo)
     {
         if (photo == null)
@@ -34,12 +26,17 @@ public abstract class EntityWithPhoto
     }
 
     protected void setPhotoInternal(Photo photo) {
-        this.photo = photo;
+        this.photo = photo; // already null-safe
     }
 
     // Getter
     public Photo getPhoto()
     {
         return photo;
+    }
+
+    public void setPhoto(String photo)
+    {
+        setPhotoInternal(photo);
     }
 }

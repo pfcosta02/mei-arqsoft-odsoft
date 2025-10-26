@@ -83,7 +83,7 @@ public class ReaderServiceImpl implements ReaderService {
             throw new IllegalArgumentException("Start date cannot be after end date");
         }
         Pageable pageableRules = PageRequest.of(0,5);
-        return this.readerRepo.findTopByGenre(pageableRules, genre, startDate, endDate).getContent();
+        return this.readerRepo.findTopByGenre(pageableRules, genre, startDate, endDate);
     }
 
     @Override
@@ -146,8 +146,8 @@ public class ReaderServiceImpl implements ReaderService {
         }
 
         Pageable pageableRules = PageRequest.of(0,minTop);
-        Page<ReaderDetails> page = readerRepo.findTopReaders(pageableRules);
-        return page.getContent();
+        List<ReaderDetails> page = readerRepo.findTopReaders(pageableRules);
+        return page;
     }
 
     private List<Genre> getGenreListFromStringList(List<String> interestList) {

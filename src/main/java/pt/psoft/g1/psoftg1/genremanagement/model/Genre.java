@@ -4,8 +4,8 @@ public class Genre
 {
     public static final int GENRE_MAX_LENGTH = 100;
 
-    //TODO: Substituir por ID e nao é suposto ser publico
-    public long pk;
+    public String pk;
+
     private String genre;
 
     protected Genre() { }
@@ -34,7 +34,7 @@ public class Genre
     }
 
     // Getters
-    public long getPk()
+    public String getPk()
     {
         return pk;
     }

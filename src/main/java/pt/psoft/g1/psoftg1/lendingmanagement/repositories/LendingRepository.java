@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.repositories;
 
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 

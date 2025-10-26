@@ -3,16 +3,12 @@ package pt.psoft.g1.psoftg1.shared.model.mongodb;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 @Document
 @Profile("mongodb")
 public abstract class EntityWithPhotoMongoDB {
-
-    @Id
-    private String entityPhotoId;
 
     @Field("photo")  // Embedding the photo, or use `@DBRef` if referencing another document
     @Getter @Setter
@@ -23,5 +19,5 @@ public abstract class EntityWithPhotoMongoDB {
     public EntityWithPhotoMongoDB(PhotoMongoDB photo) { setPhotoInternal(photo); }
 
     protected void setPhotoInternal(PhotoMongoDB photoURI) { this.photo = photoURI; }
-    protected void setPhotoInternal(String photoURI) { setPhotoInternal(new PhotoMongoDB(photoURI)); }
+    protected void setPhotoInternal(String photo) { setPhotoInternal(new PhotoMongoDB(photo)); }
 }

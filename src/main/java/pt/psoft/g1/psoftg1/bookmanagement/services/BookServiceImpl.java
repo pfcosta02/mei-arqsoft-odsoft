@@ -129,7 +129,7 @@ public class BookServiceImpl implements BookService {
 	public List<BookCountDTO> findTop5BooksLent(){
 		LocalDate oneYearAgo = LocalDate.now().minusYears(1);
 		Pageable pageableRules = PageRequest.of(0,5);
-		return this.bookRepository.findTop5BooksLent(oneYearAgo, pageableRules).getContent();
+		return this.bookRepository.findTop5BooksLent(oneYearAgo, pageableRules);
 	}
 
 	@Override

@@ -13,8 +13,7 @@ import org.hibernate.StaleObjectStateException;
 
 public class Book extends EntityWithPhoto
 {
-    // TODO: Substituir por ID e nao é suposto ser public
-    public Long pk;
+    public String bookId;
     private Long version;
     private Isbn isbn;
     private Title title;
@@ -30,12 +29,10 @@ public class Book extends EntityWithPhoto
         setAuthors(authors);
         setPhotoInternal(photoURI);
         setDescription(new Description(description));
-
-        this.version = 0L;
     }
 
     // Getters
-    public Long getPk() { return pk; }
+    public String getBookId() { return bookId; }
     public Isbn getIsbn() { return isbn; }
     public Title getTitle() { return title; }
     public Description getDescription() { return description; }
@@ -44,6 +41,7 @@ public class Book extends EntityWithPhoto
     public Long getVersion() { return version; }
 
     // Setters
+    public void setBookId(String bookId) { this.bookId = bookId; }
     public void setTitle(Title title) {this.title = title;}
     public void setIsbn(Isbn isbn) { this.isbn = isbn;}
     public void setDescription(Description description) {this.description = description; }
@@ -71,7 +69,7 @@ public class Book extends EntityWithPhoto
     {
         if (!Objects.equals(this.version, expectedVersion))
         {
-            throw new StaleObjectStateException("Object was already modified by another user", this.pk);
+            throw new StaleObjectStateException("Object was already modified by another user", this.bookId);
         }
 
         String title = request.getTitle();

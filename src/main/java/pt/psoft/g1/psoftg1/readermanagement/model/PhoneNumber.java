@@ -10,7 +10,7 @@ public class PhoneNumber
     }
 
     // Setter
-    private void setPhoneNumber(String phoneNumber)
+    public void setPhoneNumber(String phoneNumber)
     {
         if (phoneNumber == null || phoneNumber.isBlank())
         {

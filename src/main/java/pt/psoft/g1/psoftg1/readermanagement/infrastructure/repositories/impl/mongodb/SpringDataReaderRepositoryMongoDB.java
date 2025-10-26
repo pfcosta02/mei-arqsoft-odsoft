@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
-import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.readermanagement.model.mongodb.ReaderDetailsMongoDB;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO;
 
@@ -13,10 +12,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
-public interface SpringDataReaderRepositoryMongoDB extends MongoRepository<ReaderDetailsMongoDB, Long> {
+public interface SpringDataReaderRepositoryMongoDB extends MongoRepository<ReaderDetailsMongoDB, String> {
 
-    @Query("{ 'readerNumber': ?0 }")
+    @Query("{ 'readerNumber.reader_number': ?0 }")
     Optional<ReaderDetailsMongoDB> findByReaderNumber(String readerNumber);
 
 
@@ -47,9 +45,7 @@ public interface SpringDataReaderRepositoryMongoDB extends MongoRepository<Reade
             "{ $sort: { lendingCount: -1 } }",
             "{ $limit: 10 }"
     })
-    Page<ReaderDetailsMongoDB> findTopReaders(Pageable pageable);
-
-
+    List<ReaderDetailsMongoDB> findTopReaders(Pageable pageable);
 
     @Aggregation(pipeline = {
             // Unir Reader -> Lending
@@ -71,7 +67,7 @@ public interface SpringDataReaderRepositoryMongoDB extends MongoRepository<Reade
             // Projetar apenas os dados relevantes
             "{ $project: { reader: 1, count: 1, _id: 0 } }"
     })
-    Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate);
+    List<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate);
 
     @Query("{}")
     List<ReaderDetailsMongoDB> findAll();

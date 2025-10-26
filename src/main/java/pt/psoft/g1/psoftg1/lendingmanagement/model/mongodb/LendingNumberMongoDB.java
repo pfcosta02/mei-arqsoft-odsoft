@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -21,6 +22,7 @@ public class LendingNumberMongoDB {
 
     @NotNull
     @NotBlank
+    @Getter
     @Size(min = 6, max = 32)
     private String lendingNumber;
 
@@ -60,6 +62,7 @@ public class LendingNumberMongoDB {
     public String getLendingNumber(){
         return lendingNumber;
     }
+    public void setLendingNumber(String lendingNumber){ this.lendingNumber = lendingNumber; }
 
     @Override
     public String toString(){

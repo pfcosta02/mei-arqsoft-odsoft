@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.shared.model.ForbiddenName;
 import pt.psoft.g1.psoftg1.shared.model.mongodb.ForbiddenNameMongoDB;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
@@ -15,8 +16,8 @@ import java.util.Optional;
 
 @Profile("mongodb")
 @Qualifier("mongoDbRepo")
-@Component
 @RequiredArgsConstructor
+@Repository
 public class ForbiddenNameRepositoryMongoDBImpl implements ForbiddenNameRepository {
 
     private final SpringDataForbiddenNameRepositoryMongoDB forbiddenNameRepositoryMongoDB;

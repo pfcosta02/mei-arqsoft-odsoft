@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class User implements UserDetails
 {
-    public Long id;
+    public Long userId;
 
     private Long version;
     private boolean enabled = true;
@@ -96,6 +96,6 @@ public class User implements UserDetails
     public boolean isCredentialsNonExpired() {
         return isEnabled();
     }
-    public Long getId() { return id; }
+    public Long getId() { return userId; }
     public Long getVersion() { return version; }
 }

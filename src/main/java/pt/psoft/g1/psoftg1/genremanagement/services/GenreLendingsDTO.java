@@ -13,6 +13,9 @@ public class GenreLendingsDTO {
     @NotNull
     private String genre;
     private Number value;
+    private int year;
+    private int month;
+    private long count;
 
     public GenreLendingsDTO(String genre, Double value){
         this.genre = genre;

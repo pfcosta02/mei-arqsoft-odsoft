@@ -11,9 +11,6 @@ import java.io.Serializable;
 @Profile("mongodb")
 public class ReaderNumberMongoDB implements Serializable {
 
-    @Id
-    private String readerNumberId;
-
     @Field("reader_number")
     private String readerNumber;
 

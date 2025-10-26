@@ -17,10 +17,8 @@ import java.util.Optional;
  * Based on https://github.com/Yoh0xFF/java-spring-security-example
  *
  */
-
-@Repository
 @CacheConfig(cacheNames = "users")
-public interface SpringDataUserRepositoryMongoDB extends MongoRepository<UserMongoDB, Long> {
+public interface SpringDataUserRepositoryMongoDB extends MongoRepository<UserMongoDB, String> {
 
     @CacheEvict(allEntries = true)
     <S extends UserMongoDB> List<S> saveAll(Iterable<S> entities);
@@ -34,7 +32,7 @@ public interface SpringDataUserRepositoryMongoDB extends MongoRepository<UserMon
 
 
     @Cacheable
-    Optional<UserMongoDB> findById(String id);
+    Optional<UserMongoDB> findById(String userId);
 
 
     @Cacheable

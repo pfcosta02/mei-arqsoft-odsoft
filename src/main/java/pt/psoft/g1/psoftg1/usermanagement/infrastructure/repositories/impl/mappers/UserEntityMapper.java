@@ -1,6 +1,7 @@
 package pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mappers;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import org.mapstruct.Mapping;
 import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;

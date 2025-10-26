@@ -26,7 +26,7 @@ public class FineMongoDB {
     @Getter
     private int centsValue;
 
-    @Setter
+    @Setter @Getter
     @Field("lending")
     private LendingMongoDB lendingMongoDB;
 

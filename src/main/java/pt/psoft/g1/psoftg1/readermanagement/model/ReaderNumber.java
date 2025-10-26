@@ -3,10 +3,9 @@ package pt.psoft.g1.psoftg1.readermanagement.model;
 import java.io.Serializable;
 import java.time.LocalDate;
 
-
 public class ReaderNumber implements Serializable
 {
-    private final String readerNumber;
+    private String readerNumber;
 
     public ReaderNumber(int year, int number)
     {
@@ -36,6 +35,7 @@ public class ReaderNumber implements Serializable
     }
 
     // Helper
+    @Override
     public String toString() {
         return readerNumber;
     }

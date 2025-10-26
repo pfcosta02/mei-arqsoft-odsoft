@@ -8,7 +8,6 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.mongodb.FineMongoDB;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringDataFineRepositoryMongoDB extends MongoRepository<FineMongoDB, String> {
     @Query("{ 'lendingNumber' : ?0 }")
     Optional<FineMongoDB> findByLendingNumber(String lendingNumber);

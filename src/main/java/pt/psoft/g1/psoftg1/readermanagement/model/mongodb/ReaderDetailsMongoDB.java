@@ -19,7 +19,7 @@ import java.util.List;
 public class ReaderDetailsMongoDB extends EntityWithPhotoMongoDB {
 
     @Id
-    @Getter
+    @Getter @Setter
     private String readerDetailsId;
 
     @Getter @Setter
@@ -44,7 +44,7 @@ public class ReaderDetailsMongoDB extends EntityWithPhotoMongoDB {
     private boolean thirdPartySharingConsent;
 
     @Version
-    @Getter @Setter
+    @Getter
     private Long version;
 
     @Getter @Setter

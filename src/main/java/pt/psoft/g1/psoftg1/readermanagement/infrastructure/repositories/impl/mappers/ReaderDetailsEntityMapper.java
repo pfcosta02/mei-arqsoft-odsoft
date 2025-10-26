@@ -1,9 +1,10 @@
 package pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mappers;
 
 import org.mapstruct.Mapper;
-
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+
+import org.springframework.context.annotation.Profile;
 import pt.psoft.g1.psoftg1.readermanagement.model.BirthDate;
 import pt.psoft.g1.psoftg1.readermanagement.model.PhoneNumber;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
@@ -16,9 +17,11 @@ import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;
 import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mappers.UserEntityMapper;
 
+@Profile("jpa")
 @Mapper(componentModel = "spring", uses = { UserEntityMapper.class})
 public interface ReaderDetailsEntityMapper
 {
+
     ReaderDetails toModel(ReaderDetailsEntity entity);
 
     @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "toPhoneNumberEntity")

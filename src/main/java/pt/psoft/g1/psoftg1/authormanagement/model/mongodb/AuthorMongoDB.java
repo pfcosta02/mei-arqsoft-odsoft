@@ -1,7 +1,6 @@
 package pt.psoft.g1.psoftg1.authormanagement.model.mongodb;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.annotation.Id;
@@ -20,12 +19,10 @@ public class AuthorMongoDB extends EntityWithPhotoMongoDB {
 
     @Id
     @Getter
-    @Setter
     private String authorNumber;
 
     @Version
-    @Getter
-    private Long version;
+    private long version;
 
     @Field("name")
     private NameMongoDB name;
@@ -35,11 +32,11 @@ public class AuthorMongoDB extends EntityWithPhotoMongoDB {
 
     protected AuthorMongoDB() {}
 
-    public AuthorMongoDB(NameMongoDB name, BioMongoDB bio, PhotoMongoDB photoURI)
+    public AuthorMongoDB(NameMongoDB name, BioMongoDB bio, PhotoMongoDB photo)
     {
         setName(name);
         setBio(bio);
-        setPhoto(photoURI);
+        setPhoto(photo);
     }
 
     // Getters
@@ -48,6 +45,6 @@ public class AuthorMongoDB extends EntityWithPhotoMongoDB {
     public BioMongoDB getBio() { return bio; }
 
     // Setters
-    private void setName(NameMongoDB name) { this.name = name; }
-    private void setBio(BioMongoDB bio) { this.bio = bio; }
+    public void setName(NameMongoDB name) { this.name = name; }
+    public void setBio(BioMongoDB bio) { this.bio = bio; }
 }

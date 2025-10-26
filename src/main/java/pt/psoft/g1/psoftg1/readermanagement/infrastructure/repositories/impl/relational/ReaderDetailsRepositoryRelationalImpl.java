@@ -7,7 +7,6 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,17 +17,16 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
-import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
-import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
-import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.FineEntity;
 import pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mappers.ReaderDetailsEntityMapper;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO;
 import pt.psoft.g1.psoftg1.readermanagement.services.SearchReadersQuery;
+import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.relational.SpringDataUserRepository;
+import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.relational.UserRepositoryRelationalImpl;
+import pt.psoft.g1.psoftg1.usermanagement.model.User;
+import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
 import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.relational.UserRepositoryRelationalImpl;
 import pt.psoft.g1.psoftg1.usermanagement.model.User;
 import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
@@ -36,13 +34,13 @@ import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
 
 @Profile("jpa")
 @Primary
-@Repository
 @RequiredArgsConstructor
+@Repository
 public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
 {
     private final SpringDataReaderRepositoryImpl readerRepo;
-    private final UserRepositoryRelationalImpl userRepo;
     private final ReaderDetailsEntityMapper readerEntityMapper;
+    private final UserRepositoryRelationalImpl userRepo;
     private final EntityManager entityManager;
 
     @Override
@@ -138,13 +136,15 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
     }
 
     @Override
-    public Page<ReaderDetails> findTopReaders(Pageable pageable)
-    {
-        return readerRepo.findTopReaders(pageable).map(readerEntityMapper::toModel);
+    public List<ReaderDetails> findTopReaders(Pageable pageable) {
+        return readerRepo.findTopReaders(pageable)
+                .stream()
+                .map(readerEntityMapper::toModel)
+                .toList();
     }
 
     @Override
-    public Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate)
+    public List<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate)
     {
         return readerRepo.findTopByGenre(pageable, genre, startDate, endDate);
     }

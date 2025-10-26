@@ -36,6 +36,7 @@ import java.util.Optional;
 @Primary
 @Repository
 @RequiredArgsConstructor
+@Repository
 public class BookRepositoryRelationalImpl implements BookRepository
 {
     private final SpringDataBookRepository bookRepo;
@@ -95,7 +96,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
-    public Page<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
+    public List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
     {
         //TODO: Corrigir este
         return bookRepo.findTop5BooksLent(oneYearAgo, pageable);

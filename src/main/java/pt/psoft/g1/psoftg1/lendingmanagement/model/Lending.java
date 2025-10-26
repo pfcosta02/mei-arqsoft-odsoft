@@ -3,18 +3,15 @@ package pt.psoft.g1.psoftg1.lendingmanagement.model;
 import lombok.Builder;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
-
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
-
 import org.hibernate.StaleObjectStateException;
 
 public class Lending
 {
-    // TODO: Substituir por ID e nao é suposto ser public
-    public Long pk;
+    public String lendingId;
     private LendingNumber lendingNumber;
     private Book book;
     private ReaderDetails readerDetails;
@@ -77,10 +74,6 @@ public class Lending
     public String getCommentary() { return commentary; }
     public String getLendingNumber() { return lendingNumber.toString(); }
     public long getVersion() { return version; }
-    public String getTitle()
-    {
-        return this.book.getTitle().toString();
-    }
 
     /**
      * <p>Returns the number of days that the lending is/was past its due date</p>
@@ -140,7 +133,7 @@ public class Lending
         // check current version
         if (this.version != desiredVersion)
         {
-            throw new StaleObjectStateException("Object was already modified by another user", this.pk);
+            throw new StaleObjectStateException("Object was already modified by another user", this.lendingId);
         }
 
         if(commentary != null)
@@ -181,9 +174,9 @@ public class Lending
                                                   LocalDate returnedDate,
                                                   int lendingDuration,
                                                   int fineValuePerDayInCents)
-    {
-        Lending lending = new Lending(book, readerDetails, new LendingNumber(year, seq), startDate, startDate.plusDays(lendingDuration), returnedDate, fineValuePerDayInCents);
+        {
+            Lending lending = new Lending(book, readerDetails, new LendingNumber(year, seq), startDate, startDate.plusDays(lendingDuration), returnedDate, fineValuePerDayInCents);
 
-        return lending;
-    }
+            return lending;
+        }
 }

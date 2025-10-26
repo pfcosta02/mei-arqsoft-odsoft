@@ -34,7 +34,7 @@ public class GenreServiceImpl implements GenreService {
     @Override
     public List<GenreBookCountDTO> findTopGenreByBooks(){
         Pageable pageableRules = PageRequest.of(0,5);
-        return this.genreRepository.findTop5GenreByBookCount(pageableRules).getContent();
+        return this.genreRepository.findTop5GenreByBookCount(pageableRules);
     }
 
     @Override

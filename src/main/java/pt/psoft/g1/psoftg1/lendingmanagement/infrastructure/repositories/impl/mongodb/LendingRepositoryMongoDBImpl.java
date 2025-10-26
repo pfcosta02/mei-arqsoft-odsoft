@@ -7,28 +7,30 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import jakarta.persistence.criteria.*;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mappers.LendingMapperMongoDB;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.mongodb.LendingMongoDB;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
-import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 
 @Profile("mongodb")
 @Primary
 @RequiredArgsConstructor
+@Repository
 public class LendingRepositoryMongoDBImpl implements LendingRepository
 {
     private final SpringDataLendingRepositoryMongoDB lendingRepo;
     private final LendingMapperMongoDB lendingMapperMongoDB;
-    private final EntityManager em;
+    private final MongoTemplate mongoTemplate;
 
     @Override
     public Optional<Lending> findByLendingNumber(String lendingNumber)
@@ -87,90 +89,71 @@ public class LendingRepositoryMongoDBImpl implements LendingRepository
     }
 
     @Override
-    public List<Lending> getOverdue(Page page)
-    {
-        final CriteriaBuilder cb = em.getCriteriaBuilder();
-        final CriteriaQuery<LendingMongoDB> cq = cb.createQuery(LendingMongoDB.class);
-        final Root<LendingMongoDB> root = cq.from(LendingMongoDB.class);
-        cq.select(root);
+    public List<Lending> getOverdue(Page page) {
+        Query query = new Query();
 
-        final List<Predicate> where = new ArrayList<>();
+        // returnedDate == null
+        query.addCriteria(Criteria.where("returnedDate").is(null));
+        // limitDate < today
+        query.addCriteria(Criteria.where("limitDate").lt(LocalDate.now()));
 
-        // Select overdue lendings where returnedDate is null and limitDate is before the current date
-        where.add(cb.isNull(root.get("returnedDate")));
-        where.add(cb.lessThan(root.get("limitDate"), LocalDate.now()));
+        // order by limitDate ascending
+        query.with(Sort.by(Sort.Direction.ASC, "limitDate"));
 
-        cq.where(where.toArray(new Predicate[0]));
-        cq.orderBy(cb.asc(root.get("limitDate"))); // Order by limitDate, oldest first
+        // pagination
+        query.skip((page.getNumber() - 1L) * page.getLimit());
+        query.limit(page.getLimit());
 
-        final TypedQuery<LendingMongoDB> q = em.createQuery(cq);
-        q.setFirstResult((page.getNumber() - 1) * page.getLimit());
-        q.setMaxResults(page.getLimit());
+        List<LendingMongoDB> results = mongoTemplate.find(query, LendingMongoDB.class);
 
-        List<Lending> lendings = new ArrayList<>();
-
-        for (LendingMongoDB lendingMongoDB : q.getResultList()) {
-            lendings.add(lendingMapperMongoDB.toModel(lendingMongoDB));
-        }
-
-        return lendings;
+        return results.stream()
+                .map(lendingMapperMongoDB::toModel)
+                .toList();
     }
 
     @Override
-    public List<Lending> searchLendings(Page page, String readerNumber, String isbn, Boolean returned, LocalDate startDate, LocalDate endDate)
-    {
-        final CriteriaBuilder cb = em.getCriteriaBuilder();
-        final CriteriaQuery<LendingMongoDB> cq = cb.createQuery(LendingMongoDB.class);
-        final Root<LendingMongoDB> lendingRoot = cq.from(LendingMongoDB.class);
-        final Join<LendingMongoDB, Book> bookJoin = lendingRoot.join("book");
-        final Join<LendingMongoDB, ReaderDetails> readerDetailsJoin = lendingRoot.join("readerDetails");
-        cq.select(lendingRoot);
+    public List<Lending> searchLendings(Page page, String readerNumber, String isbn,
+                                        Boolean returned, LocalDate startDate, LocalDate endDate) {
+        Query query = new Query();
+        List<Criteria> criteria = new ArrayList<>();
 
-        final List<Predicate> where = new ArrayList<>();
+        if (StringUtils.hasText(readerNumber)) {
+            criteria.add(Criteria.where("readerDetails.readerNumber").is(readerNumber));
+        }
 
-        if (StringUtils.hasText(readerNumber))
-        {
-            where.add(cb.like(readerDetailsJoin.get("readerNumber").get("readerNumber"), readerNumber));
+        if (StringUtils.hasText(isbn)) {
+            criteria.add(Criteria.where("book.isbn").is(isbn));
         }
-        if (StringUtils.hasText(isbn))
-        {
-            where.add(cb.like(bookJoin.get("isbn").get("isbn"), isbn));
-        }
-        if (returned != null)
-        {
-            if(returned)
-            {
-                where.add(cb.isNotNull(lendingRoot.get("returnedDate")));
-            }
-            else
-            {
-                where.add(cb.isNull(lendingRoot.get("returnedDate")));
+
+        if (returned != null) {
+            if (returned) {
+                criteria.add(Criteria.where("returnedDate").ne(null));
+            } else {
+                criteria.add(Criteria.where("returnedDate").is(null));
             }
         }
-        if(startDate!=null)
-        {
-            where.add(cb.greaterThanOrEqualTo(lendingRoot.get("startDate"), startDate));
-        }
-        if(endDate!=null)
-        {
-            where.add(cb.lessThanOrEqualTo(lendingRoot.get("startDate"), endDate));
+
+        if (startDate != null) {
+            criteria.add(Criteria.where("startDate").gte(startDate));
         }
 
-        cq.where(where.toArray(new Predicate[0]));
-        cq.orderBy(cb.asc(lendingRoot.get("lendingNumber")));
-
-        final TypedQuery<LendingMongoDB> q = em.createQuery(cq);
-        q.setFirstResult((page.getNumber() - 1) * page.getLimit());
-        q.setMaxResults(page.getLimit());
-
-        List<Lending> lendings = new ArrayList<>();
-
-        for (LendingMongoDB lendingMongoDB : q.getResultList())
-        {
-            lendings.add(lendingMapperMongoDB.toModel(lendingMongoDB));
+        if (endDate != null) {
+            criteria.add(Criteria.where("startDate").lte(endDate));
         }
 
-        return lendings;
+        if (!criteria.isEmpty()) {
+            query.addCriteria(new Criteria().andOperator(criteria.toArray(new Criteria[0])));
+        }
+
+        query.with(Sort.by(Sort.Direction.ASC, "lendingNumber"));
+        query.skip((page.getNumber() - 1L) * page.getLimit());
+        query.limit(page.getLimit());
+
+        List<LendingMongoDB> results = mongoTemplate.find(query, LendingMongoDB.class);
+
+        return results.stream()
+                .map(lendingMapperMongoDB::toModel)
+                .toList();
     }
 
     @Override

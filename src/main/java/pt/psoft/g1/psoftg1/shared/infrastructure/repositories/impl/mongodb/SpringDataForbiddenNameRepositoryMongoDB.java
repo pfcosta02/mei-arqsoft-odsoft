@@ -9,7 +9,6 @@ import pt.psoft.g1.psoftg1.shared.model.mongodb.ForbiddenNameMongoDB;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringDataForbiddenNameRepositoryMongoDB extends MongoRepository<ForbiddenNameMongoDB, String> {
 
     @Query("{ 'forbiddenName': { $regex: ?0, $options: 'i' } }")

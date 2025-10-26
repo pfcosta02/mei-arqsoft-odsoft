@@ -1,15 +1,13 @@
 package pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mongodb;
 
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.domain.Sort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mappers.UserMapperMongoDB;
@@ -19,9 +17,6 @@ import pt.psoft.g1.psoftg1.usermanagement.model.User;
 import pt.psoft.g1.psoftg1.usermanagement.model.mongodb.LibrarianMongoDB;
 import pt.psoft.g1.psoftg1.usermanagement.model.mongodb.ReaderMongoDB;
 import pt.psoft.g1.psoftg1.usermanagement.model.mongodb.UserMongoDB;
-import pt.psoft.g1.psoftg1.usermanagement.model.relational.LibrarianEntity;
-import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
-import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
 import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 import pt.psoft.g1.psoftg1.usermanagement.services.SearchUsersQuery;
 
@@ -32,11 +27,12 @@ import java.util.Optional;
 @Profile("mongodb")
 @Primary
 @RequiredArgsConstructor
+@Repository
 public class UserRepositoryMongoDBImpl implements UserRepository {
 
     private final SpringDataUserRepositoryMongoDB userRepo;
     private final UserMapperMongoDB userMapperMongoDB;
-    private final EntityManager em;
+    private final MongoTemplate mongoTemplate;
 
     @Override
     public <S extends User> List<S> saveAll(Iterable<S> entities)
@@ -80,7 +76,7 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> findById(Long objectId)
+    public Optional<User> findById(String objectId)
     {
         Optional<UserMongoDB> entityOpt = userRepo.findById(objectId);
         if (entityOpt.isPresent())
@@ -108,39 +104,39 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
     }
 
     @Override
-    public List<User> searchUsers(Page page, SearchUsersQuery query)
-    {
-        final CriteriaBuilder cb = em.getCriteriaBuilder();
-        final CriteriaQuery<UserMongoDB> cq = cb.createQuery(UserMongoDB.class);
-        final Root<UserMongoDB> root = cq.from(UserMongoDB.class);
-        cq.select(root);
+    public List<User> searchUsers(Page page, SearchUsersQuery query) {
+        Query mongoQuery = new Query();
+        List<Criteria> orCriteria = new ArrayList<>();
 
-        final List<Predicate> where = new ArrayList<>();
+        // username (exact match)
         if (StringUtils.hasText(query.getUsername())) {
-            where.add(cb.equal(root.get("username"), query.getUsername()));
+            orCriteria.add(Criteria.where("username").is(query.getUsername()));
         }
+
+        // fullName (contains / case-insensitive)
         if (StringUtils.hasText(query.getFullName())) {
-            where.add(cb.like(root.get("fullName"), "%" + query.getFullName() + "%"));
+            orCriteria.add(Criteria.where("fullName").regex(query.getFullName(), "i"));
         }
 
-        // search using OR
-        if (!where.isEmpty()) {
-            cq.where(cb.or(where.toArray(new Predicate[0])));
+        // Combine OR conditions
+        if (!orCriteria.isEmpty()) {
+            mongoQuery.addCriteria(new Criteria().orOperator(orCriteria.toArray(new Criteria[0])));
         }
 
-        cq.orderBy(cb.desc(root.get("createdAt")));
+        // Sort by createdAt DESC
+        mongoQuery.with(Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        final TypedQuery<UserMongoDB> q = em.createQuery(cq);
-        q.setFirstResult((page.getNumber() - 1) * page.getLimit());
-        q.setMaxResults(page.getLimit());
+        // Pagination
+        mongoQuery.skip((long) (page.getNumber() - 1) * page.getLimit());
+        mongoQuery.limit(page.getLimit());
 
-        List<User> users = new ArrayList<>();
+        // Execute query
+        List<UserMongoDB> results = mongoTemplate.find(mongoQuery, UserMongoDB.class);
 
-        for (UserMongoDB userEntity : q.getResultList()) {
-            users.add(userMapperMongoDB.toModel(userEntity));
-        }
-
-        return users;
+        // Map to domain model
+        return results.stream()
+                .map(userMapperMongoDB::toModel)
+                .toList();
     }
 
     @Override

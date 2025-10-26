@@ -12,9 +12,6 @@ import java.io.Serializable;
 @Profile("mongodb")
 public class EmailAddressMongoDB implements Serializable {
 
-    @Id
-    private String emailAddressId;
-
     @Field("email")
     @Email
     private String address;

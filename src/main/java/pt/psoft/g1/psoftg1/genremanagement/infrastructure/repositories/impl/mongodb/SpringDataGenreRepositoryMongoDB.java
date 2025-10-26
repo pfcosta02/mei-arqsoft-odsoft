@@ -14,7 +14,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringDataGenreRepositoryMongoDB extends MongoRepository<GenreMongoDB, String> {
     @Query("{}")
     List<GenreMongoDB> findAllGenres();
@@ -30,7 +29,7 @@ public interface SpringDataGenreRepositoryMongoDB extends MongoRepository<GenreM
             "{ $limit: 5 }",
             "{ $project: { _id: 0, genre: '$_id', bookCount: '$count' } }"
     })
-    Page<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable);
+    List<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable);
 
     @Aggregation(pipeline = {
             "{ $match: { startDate: { $gte: ?0, $lte: ?1 } } }",

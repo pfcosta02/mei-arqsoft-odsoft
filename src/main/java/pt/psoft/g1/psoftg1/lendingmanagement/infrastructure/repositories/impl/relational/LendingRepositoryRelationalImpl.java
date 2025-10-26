@@ -30,6 +30,7 @@ import pt.psoft.g1.psoftg1.shared.services.Page;
 @Primary
 @Repository
 @RequiredArgsConstructor
+@Repository
 public class LendingRepositoryRelationalImpl implements LendingRepository
 {
     private final SpringDataLendingRepository lendingRepo;

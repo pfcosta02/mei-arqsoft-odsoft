@@ -1,15 +1,10 @@
 package pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.relational;
 
 import jakarta.validation.constraints.NotNull;
-
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
-
 import org.springframework.data.domain.Pageable;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO;
 
@@ -51,7 +46,7 @@ public interface SpringDataReaderRepositoryImpl extends CrudRepository<ReaderDet
             "JOIN LendingEntity l ON l.readerDetails.pk = rd.pk " +
             "GROUP BY rd " +
             "ORDER BY COUNT(l) DESC")
-    Page<ReaderDetailsEntity> findTopReaders(Pageable pageable);
+    List<ReaderDetailsEntity> findTopReaders(Pageable pageable);
 
     @Query("SELECT NEW pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO(rd, count(l)) " +
             "FROM ReaderDetailsEntity rd " +
@@ -63,7 +58,7 @@ public interface SpringDataReaderRepositoryImpl extends CrudRepository<ReaderDet
             "AND l.startDate <= :endDate " +
             "GROUP BY rd.pk " +
             "ORDER BY COUNT(l.pk) DESC")
-    Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate);
+    List<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate);
 
     @Query("SELECT r FROM ReaderDetailsEntity r")
     Iterable<ReaderDetailsEntity> findAll();

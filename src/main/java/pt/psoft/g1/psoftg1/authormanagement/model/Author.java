@@ -12,27 +12,26 @@ import java.util.Objects;
 
 public class Author extends EntityWithPhoto
 {
-    // TODO: Nao deve ser suposto ser publico
-    public Long authorNumber;
+    public String authorNumber;
     private long version;
     private Name name;
     private Bio bio;
     public Author() { }
 
-    public Author(String name, String bio, String photoURI)
+    public Author(String name, String bio, String photo)
     {
-        this(new Name(name), new Bio(bio), photoURI == null ? null : new Photo(Paths.get(photoURI)));
+        this(new Name(name), new Bio(bio), photo == null ? null : new Photo(Paths.get(photo)));
     }
-    public Author(Name name, Bio bio, Photo photoURI)
+    public Author(Name name, Bio bio, Photo photo)
     {
         setName(name);
         setBio(bio);
-        setPhotoInternal(photoURI);
+        setPhotoInternal(photo);
         this.version = 0L;
     }
 
     // Getters
-    public Long getAuthorNumber() { return authorNumber; }
+    public String getAuthorNumber() { return authorNumber; }
     public long getVersion() { return version; }
     public Name getName() { return name; }
     public Bio getBio() { return bio; }
@@ -76,7 +75,7 @@ public class Author extends EntityWithPhoto
             setBio(new Bio(request.getBio()));
         }
 
-        if (request.getPhotoURI() != null)
+        if (request.getPhoto() != null)
         {
             setPhotoInternal(request.getPhotoURI());
         }
@@ -92,8 +91,3 @@ public class Author extends EntityWithPhoto
         setPhotoInternal((String) null);
     }
 }
-
-
-
-
-

@@ -78,9 +78,9 @@ public class UserRepositoryRelationalImpl implements UserRepository
     }
 
     @Override
-    public Optional<User> findById(Long objectId)
+    public Optional<User> findById(String objectId)
     {
-        Optional<UserEntity> entityOpt = userRepo.findById(objectId);
+        Optional<UserEntity> entityOpt = userRepo.findById(Long.parseLong(objectId));
         if (entityOpt.isPresent())
         {
             return Optional.of(userEntityMapper.toModel(entityOpt.get()));

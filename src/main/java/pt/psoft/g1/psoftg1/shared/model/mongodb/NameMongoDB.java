@@ -15,9 +15,6 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Profile("mongodb")
 public class NameMongoDB {
 
-    @Id
-    private String nameId;
-
     @Field("name")
     @NotNull
     @Getter @Setter

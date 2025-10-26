@@ -98,7 +98,7 @@ public class UserService implements UserDetailsService {
 	}
 
 	@Transactional
-	public User update(final Long id, final EditUserRequest request) {
+	public User update(final String id, final EditUserRequest request) {
 		final User user = userRepo.getById(id);
 		userEditMapper.update(request, user);
 
@@ -106,7 +106,7 @@ public class UserService implements UserDetailsService {
 	}
 
 	@Transactional
-	public User delete(final Long id) {
+	public User delete(final String id) {
 		final User user = userRepo.getById(id);
 
 		// user.setUsername(user.getUsername().replace("@", String.format("_%s@",
@@ -127,7 +127,7 @@ public class UserService implements UserDetailsService {
 		return userRepo.findByUsername(username).isPresent();
 	}
 
-	public User getUser(final Long id) {
+	public User getUser(final String id) {
 		return userRepo.getById(id);
 	}
 

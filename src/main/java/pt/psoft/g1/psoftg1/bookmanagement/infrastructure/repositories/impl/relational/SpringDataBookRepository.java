@@ -28,7 +28,7 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
             "WHERE l.startDate > :oneYearAgo " +
             "GROUP BY b " +
             "ORDER BY COUNT(l) DESC")
-    Page<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable);
+    List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable);
 
     @Query("SELECT b " +
             "FROM BookEntity b " +

@@ -22,6 +22,7 @@ import java.util.Set;
 public class UserMongoDB {
 
     @Id
+    @Getter
     private String userId;
 
     @Field("version")
@@ -70,9 +71,9 @@ public class UserMongoDB {
 
     @Getter
     @Field("authorities")
-    private final Set<Role> authorities = new HashSet<>();
+    private Set<Role> authorities = new HashSet<>();
 
-    protected UserMongoDB() {}
+    public UserMongoDB() {}
 
     public UserMongoDB(String username, String password, Role role)
     {

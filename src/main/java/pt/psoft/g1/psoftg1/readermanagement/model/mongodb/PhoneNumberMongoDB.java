@@ -11,9 +11,6 @@ import java.io.Serializable;
 @Profile("mongodb")
 public class PhoneNumberMongoDB implements Serializable {
 
-    @Id
-    private String phoneNumberId;
-
     @Field("phone_number")
     private String phoneNumber;
 
@@ -24,6 +21,7 @@ public class PhoneNumberMongoDB implements Serializable {
     protected PhoneNumberMongoDB() {}
 
     public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
     @Override
     public String toString() { return this.phoneNumber; }

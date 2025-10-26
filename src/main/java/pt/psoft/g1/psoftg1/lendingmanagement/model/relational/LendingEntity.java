@@ -6,9 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
-
 import java.time.LocalDate;
-
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 

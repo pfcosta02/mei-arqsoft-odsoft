@@ -1,7 +1,6 @@
 package pt.psoft.g1.psoftg1.readermanagement.repositories;
 
 import jakarta.validation.constraints.NotNull;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import pt.psoft.g1.psoftg1.readermanagement.services.SearchReadersQuery;
@@ -23,8 +22,8 @@ public interface ReaderRepository {
     int getCountFromCurrentYear();
     ReaderDetails save(ReaderDetails readerDetails);
     Iterable<ReaderDetails> findAll();
-    Page<ReaderDetails> findTopReaders(Pageable pageable);
-    Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate);
+    List<ReaderDetails> findTopReaders(Pageable pageable);
+    List<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate);
     void delete(ReaderDetails readerDetails);
     List<ReaderDetails> searchReaderDetails(pt.psoft.g1.psoftg1.shared.services.Page page, SearchReadersQuery query);
 }

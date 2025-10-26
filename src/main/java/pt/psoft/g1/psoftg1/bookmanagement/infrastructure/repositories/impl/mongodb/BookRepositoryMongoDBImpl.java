@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,7 +12,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mongodb.SpringDataAuthorRepositoryMongoDB;
 import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
@@ -22,7 +21,10 @@ import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappe
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.services.SearchBooksQuery;
 import pt.psoft.g1.psoftg1.bookmanagement.model.mongodb.BookMongoDB;
+import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mappers.GenreMapperMongoDB;
+import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mongodb.GenreRepositoryMongoDBImpl;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mongodb.SpringDataGenreRepositoryMongoDB;
+import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
 
 import java.time.LocalDate;
@@ -32,14 +34,18 @@ import java.util.Optional;
 
 @Profile("mongodb")
 @Qualifier("mongoDbRepo")
-@Component
+@Repository
 @RequiredArgsConstructor
 public class BookRepositoryMongoDBImpl implements BookRepository {
 
     private final SpringDataBookRepositoryMongoDB bookRepositoryMongoDB;
     private final SpringDataGenreRepositoryMongoDB genreRepositoryMongoDB;
+
     private final SpringDataAuthorRepositoryMongoDB authorRepositoryMongoDB;
     private final BookMapperMongoDB bookMapperMongoDB;
+
+    private final GenreRepositoryMongoDBImpl genreRepo;
+    private final GenreMapperMongoDB genreMapperMongoDB;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -96,7 +102,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     }
 
     @Override
-    public Page<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
+    public List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
     {
         //TODO: Corrigir este
         return bookRepositoryMongoDB.findTop5BooksLent(oneYearAgo, pageable);
@@ -153,30 +159,71 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
                 .toList();
     }
 
+//    @Override
+//    public Book save(Book book) {
+//        BookMongoDB bookMongoDB = bookMapperMongoDB.toMongoDB(book);
+//
+//        List<AuthorMongoDB> authors = bookMongoDB.getAuthors().stream()
+//                .map(author -> authorRepositoryMongoDB
+//                        .searchByNameName(author.getName().getName().toString())
+//                        .stream()
+//                        .findFirst()
+//                        .orElseGet(() -> authorRepositoryMongoDB.save(author)))
+//                .toList();
+//
+//        bookMongoDB.setAuthors(authors);
+//
+//        if (bookMongoDB.getGenre() != null) {
+//            GenreMongoDB existingGenre = genreRepositoryMongoDB
+//                    .findByString(bookMongoDB.getGenre().getGenre())
+//                    .orElseGet(() -> genreRepositoryMongoDB.save(bookMongoDB.getGenre()));
+//            bookMongoDB.setGenre(existingGenre);
+//        }
+//
+//        BookMongoDB savedEntity = bookRepositoryMongoDB.save(bookMongoDB);
+//        return bookMapperMongoDB.toModel(savedEntity);
+//    }
+
     @Override
     public Book save(Book book) {
-        BookMongoDB bookMongoDB = bookMapperMongoDB.toMongoDB(book);
+        // Converte o modelo de domínio para documento Mongo
+        BookMongoDB bookDoc = bookMapperMongoDB.toMongoDB(book);
 
-        List<AuthorMongoDB> authors = bookMongoDB.getAuthors().stream()
-                .map(author -> authorRepositoryMongoDB
-                        .searchByNameName(author.getName().toString())
-                        .stream()
-                        .findFirst()
-                        .orElseGet(() -> authorRepositoryMongoDB.save(author)))
-                .toList();
+        // Verifica se o gênero existe
+        Genre genreDoc = genreRepo.findByString(book.getGenre().getGenre())
+                .orElseThrow(() -> new RuntimeException("Genre not found"));
 
-        bookMongoDB.setAuthors(authors);
+        GenreMongoDB genreMongoDB = genreMapperMongoDB.toMongoDB(genreDoc);
 
-        if (bookMongoDB.getGenre() != null) {
-            GenreMongoDB existingGenre = genreRepositoryMongoDB
-                    .findByString(bookMongoDB.getGenre().getGenre())
-                    .orElseGet(() -> genreRepositoryMongoDB.save(bookMongoDB.getGenre()));
-            bookMongoDB.setGenre(existingGenre);
+        // Associa o gênero existente ao documento do livro
+        bookDoc.setGenre(genreMongoDB);
+
+        // Cria uma lista de autores existentes
+        List<AuthorMongoDB> authors = new ArrayList<>();
+
+        for (var author : book.getAuthors()) {
+            // Busca o autor pelo nome
+            // (em MongoDB geralmente retornamos lista, como antes)
+            List<AuthorMongoDB> matches = authorRepositoryMongoDB.searchByNameName(author.getName().getName());
+            if (matches.isEmpty()) {
+                throw new RuntimeException("Author not found");
+            }
+
+            // Escolhe o primeiro autor encontrado (ou aplica outra lógica)
+            AuthorMongoDB existingAuthor = matches.get(0);
+            authors.add(existingAuthor);
         }
 
-        BookMongoDB savedEntity = bookRepositoryMongoDB.save(bookMongoDB);
-        return bookMapperMongoDB.toModel(savedEntity);
+        // Associa os autores existentes
+        bookDoc.setAuthors(authors);
+
+        // Salva o documento no MongoDB
+        BookMongoDB savedDoc = bookRepositoryMongoDB.save(bookDoc);
+
+        // Retorna o modelo de domínio convertido de volta
+        return bookMapperMongoDB.toModel(savedDoc);
     }
+
 
     @Override
     public void delete(Book book) {

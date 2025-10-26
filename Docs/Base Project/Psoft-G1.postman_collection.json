@@ -1181,7 +1181,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/genres/avgLendings?period=day&start=2024-05-01&end=2024-05-31",
+											"raw": "{{host}}{{baseUrl}}/genres/avgLendings?period=day&start=2025-05-01&end=2025-05-31",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -1196,11 +1196,11 @@
 												},
 												{
 													"key": "start",
-													"value": "2024-05-01"
+													"value": "2025-05-01"
 												},
 												{
 													"key": "end",
-													"value": "2024-05-31"
+													"value": "2025-05-31"
 												}
 											]
 										}
@@ -1228,7 +1228,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/genres/avgLendings?period=month&start=2024-06-01&end=2024-05-31",
+											"raw": "{{host}}{{baseUrl}}/genres/avgLendings?period=month&start=2025-06-01&end=2025-05-31",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -1243,11 +1243,11 @@
 												},
 												{
 													"key": "start",
-													"value": "2024-06-01"
+													"value": "2025-06-01"
 												},
 												{
 													"key": "end",
-													"value": "2024-05-31"
+													"value": "2025-05-31"
 												}
 											]
 										}
@@ -1275,7 +1275,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/genres/avgLendings?period=day&start=2024-35-01&end=2024-05-31",
+											"raw": "{{host}}{{baseUrl}}/genres/avgLendings?period=day&start=2025-35-01&end=2025-05-31",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -1290,11 +1290,11 @@
 												},
 												{
 													"key": "start",
-													"value": "2024-35-01"
+													"value": "2025-35-01"
 												},
 												{
 													"key": "end",
-													"value": "2024-05-31"
+													"value": "2025-05-31"
 												}
 											]
 										}
@@ -1322,7 +1322,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/genres/avgLendings?period=dia&start=2024-05-01&end=2024-05-31",
+											"raw": "{{host}}{{baseUrl}}/genres/avgLendings?period=dia&start=2025-05-01&end=2025-05-31",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -1337,11 +1337,11 @@
 												},
 												{
 													"key": "start",
-													"value": "2024-05-01"
+													"value": "2025-05-01"
 												},
 												{
 													"key": "end",
-													"value": "2024-05-31"
+													"value": "2025-05-31"
 												}
 											]
 										}
@@ -1374,7 +1374,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infantil&startDate=2024-01-01&endDate=2024-06-01",
+											"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infantil&startDate=2025-01-01&endDate=2025-06-01",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -1389,11 +1389,11 @@
 												},
 												{
 													"key": "startDate",
-													"value": "2024-01-01"
+													"value": "2025-01-01"
 												},
 												{
 													"key": "endDate",
-													"value": "2024-06-01"
+													"value": "2025-06-01"
 												}
 											]
 										}
@@ -1664,7 +1664,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"page\": {\r\n        \"number\" : 1,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2024,\r\n        \"month\" : 5\r\n    }\r\n}",
+									"raw": "{\r\n    \"page\": {\r\n        \"number\" : 1,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2025,\r\n        \"month\" : 5\r\n    }\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1784,13 +1784,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}{{baseUrl}}/readers/2024/1/lendings?isbn=9782722203402",
+									"raw": "{{host}}{{baseUrl}}/readers/2025/1/lendings?isbn=9782722203402",
 									"host": [
 										"{{host}}{{baseUrl}}"
 									],
 									"path": [
 										"readers",
-										"2024",
+										"2025",
 										"1",
 										"lendings"
 									],
@@ -1825,13 +1825,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}{{baseUrl}}/readers/2024/1/lendings?isbn=9782722203403",
+									"raw": "{{host}}{{baseUrl}}/readers/2025/1/lendings?isbn=9782722203403",
 									"host": [
 										"{{host}}{{baseUrl}}"
 									],
 									"path": [
 										"readers",
-										"2024",
+										"2025",
 										"1",
 										"lendings"
 									],
@@ -2081,7 +2081,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infantil&startDate=2024-01-01&endDate=2024-06-30",
+									"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infantil&startDate=2025-01-01&endDate=2025-06-30",
 									"host": [
 										"{{host}}{{baseUrl}}"
 									],
@@ -2096,11 +2096,11 @@
 										},
 										{
 											"key": "startDate",
-											"value": "2024-01-01"
+											"value": "2025-01-01"
 										},
 										{
 											"key": "endDate",
-											"value": "2024-06-30"
+											"value": "2025-06-30"
 										}
 									]
 								}
@@ -2128,7 +2128,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Comédia&startDate=2024-01-01&endDate=2024-06-30",
+									"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Comédia&startDate=2025-01-01&endDate=2025-06-30",
 									"host": [
 										"{{host}}{{baseUrl}}"
 									],
@@ -2143,11 +2143,11 @@
 										},
 										{
 											"key": "startDate",
-											"value": "2024-01-01"
+											"value": "2025-01-01"
 										},
 										{
 											"key": "endDate",
-											"value": "2024-06-30"
+											"value": "2025-06-30"
 										}
 									]
 								}
@@ -2303,13 +2303,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}{{baseUrl}}/readers/2024/1/photo",
+									"raw": "{{host}}{{baseUrl}}/readers/2025/1/photo",
 									"host": [
 										"{{host}}{{baseUrl}}"
 									],
 									"path": [
 										"readers",
-										"2024",
+										"2025",
 										"1",
 										"photo"
 									]
@@ -2347,13 +2347,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}{{baseUrl}}/readers/2024/999/photo",
+									"raw": "{{host}}{{baseUrl}}/readers/2025/999/photo",
 									"host": [
 										"{{host}}{{baseUrl}}"
 									],
 									"path": [
 										"readers",
-										"2024",
+										"2025",
 										"999",
 										"photo"
 									]
@@ -2394,13 +2394,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}{{baseUrl}}/readers/2024/6",
+									"raw": "{{host}}{{baseUrl}}/readers/2025/6",
 									"host": [
 										"{{host}}{{baseUrl}}"
 									],
 									"path": [
 										"readers",
-										"2024",
+										"2025",
 										"6"
 									]
 								}
@@ -2778,13 +2778,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{host}}{{baseUrl}}/lendings/2024/13",
+									"raw": "{{host}}{{baseUrl}}/lendings/2025/13",
 									"host": [
 										"{{host}}{{baseUrl}}"
 									],
 									"path": [
 										"lendings",
-										"2024",
+										"2025",
 										"13"
 									]
 								}
@@ -2829,13 +2829,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{host}}{{baseUrl}}/lendings/2024/13",
+									"raw": "{{host}}{{baseUrl}}/lendings/2025/13",
 									"host": [
 										"{{host}}{{baseUrl}}"
 									],
 									"path": [
 										"lendings",
-										"2024",
+										"2025",
 										"13"
 									]
 								}
@@ -2907,7 +2907,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2024/1\"\r\n}",
+											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2025/1\"\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -2948,7 +2948,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2024/2\"\r\n}",
+											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2025/2\"\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -2989,7 +2989,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2024/3\"\r\n}",
+											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2025/3\"\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -3086,13 +3086,13 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/lendings/2024/35",
+											"raw": "{{host}}{{baseUrl}}/lendings/2025/35",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"lendings",
-												"2024",
+												"2025",
 												"35"
 											]
 										}
@@ -3136,13 +3136,13 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/lendings/2024/13",
+											"raw": "{{host}}{{baseUrl}}/lendings/2025/13",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"lendings",
-												"2024",
+												"2025",
 												"13"
 											]
 										}
@@ -3185,13 +3185,13 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/lendings/2024/8",
+											"raw": "{{host}}{{baseUrl}}/lendings/2025/8",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"lendings",
-												"2024",
+												"2025",
 												"8"
 											]
 										}
@@ -3234,13 +3234,13 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/lendings/2024/3",
+											"raw": "{{host}}{{baseUrl}}/lendings/2025/3",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"lendings",
-												"2024",
+												"2025",
 												"3"
 											]
 										}
@@ -4915,13 +4915,13 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/readers/2024/6",
+											"raw": "{{host}}{{baseUrl}}/readers/2025/6",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"readers",
-												"2024",
+												"2025",
 												"6"
 											]
 										}
@@ -4958,13 +4958,13 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/readers/2024/999",
+											"raw": "{{host}}{{baseUrl}}/readers/2025/999",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"readers",
-												"2024",
+												"2025",
 												"999"
 											]
 										}
@@ -5160,7 +5160,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2024/8\"\r\n}",
+											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2025/8\"\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -5217,7 +5217,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2024/8\"\r\n}",
+											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2025/8\"\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -5274,7 +5274,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2024/8\"\r\n}",
+											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2025/8\"\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -5318,7 +5318,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2024/8\"\r\n}",
+											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2025/8\"\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -5359,7 +5359,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2024/1\"\r\n}",
+											"raw": "{\r\n    \"isbn\": \"9782722203402\",\r\n    \"readerNumber\": \"2025/1\"\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -5497,13 +5497,13 @@
 											}
 										},
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/lendings/2024/8",
+											"raw": "{{host}}{{baseUrl}}/lendings/2025/8",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"lendings",
-												"2024",
+												"2025",
 												"8"
 											]
 										}
@@ -5533,13 +5533,13 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/lendings/2024/8",
+											"raw": "{{host}}{{baseUrl}}/lendings/2025/8",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"lendings",
-												"2024",
+												"2025",
 												"8"
 											]
 										}
@@ -5596,13 +5596,13 @@
 											}
 										},
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/lendings/2024/8",
+											"raw": "{{host}}{{baseUrl}}/lendings/2025/8",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"lendings",
-												"2024",
+												"2025",
 												"8"
 											]
 										}
@@ -5730,13 +5730,13 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{host}}{{baseUrl}}/lendings/2024/35",
+													"raw": "{{host}}{{baseUrl}}/lendings/2025/35",
 													"host": [
 														"{{host}}{{baseUrl}}"
 													],
 													"path": [
 														"lendings",
-														"2024",
+														"2025",
 														"35"
 													]
 												}
@@ -5780,13 +5780,13 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{host}}{{baseUrl}}/lendings/2024/13",
+													"raw": "{{host}}{{baseUrl}}/lendings/2025/13",
 													"host": [
 														"{{host}}{{baseUrl}}"
 													],
 													"path": [
 														"lendings",
-														"2024",
+														"2025",
 														"13"
 													]
 												}
@@ -5829,13 +5829,13 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{host}}{{baseUrl}}/lendings/2024/8",
+													"raw": "{{host}}{{baseUrl}}/lendings/2025/8",
 													"host": [
 														"{{host}}{{baseUrl}}"
 													],
 													"path": [
 														"lendings",
-														"2024",
+														"2025",
 														"8"
 													]
 												}
@@ -5878,13 +5878,13 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{host}}{{baseUrl}}/lendings/2024/3",
+													"raw": "{{host}}{{baseUrl}}/lendings/2025/3",
 													"host": [
 														"{{host}}{{baseUrl}}"
 													],
 													"path": [
 														"lendings",
-														"2024",
+														"2025",
 														"3"
 													]
 												}
@@ -5998,13 +5998,13 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{host}}{{baseUrl}}/lendings/2024/2",
+													"raw": "{{host}}{{baseUrl}}/lendings/2025/2",
 													"host": [
 														"{{host}}{{baseUrl}}"
 													],
 													"path": [
 														"lendings",
-														"2024",
+														"2025",
 														"2"
 													]
 												}
@@ -6092,13 +6092,13 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{host}}{{baseUrl}}/lendings/2024/43",
+													"raw": "{{host}}{{baseUrl}}/lendings/2025/43",
 													"host": [
 														"{{host}}{{baseUrl}}"
 													],
 													"path": [
 														"lendings",
-														"2024",
+														"2025",
 														"43"
 													]
 												}
@@ -6142,13 +6142,13 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{host}}{{baseUrl}}/lendings/2024/20",
+													"raw": "{{host}}{{baseUrl}}/lendings/2025/20",
 													"host": [
 														"{{host}}{{baseUrl}}"
 													],
 													"path": [
 														"lendings",
-														"2024",
+														"2025",
 														"20"
 													]
 												}
@@ -6191,13 +6191,13 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{host}}{{baseUrl}}/lendings/2024/8",
+													"raw": "{{host}}{{baseUrl}}/lendings/2025/8",
 													"host": [
 														"{{host}}{{baseUrl}}"
 													],
 													"path": [
 														"lendings",
-														"2024",
+														"2025",
 														"8"
 													]
 												}
@@ -6240,13 +6240,13 @@
 												"method": "GET",
 												"header": [],
 												"url": {
-													"raw": "{{host}}{{baseUrl}}/lendings/2024/2",
+													"raw": "{{host}}{{baseUrl}}/lendings/2025/2",
 													"host": [
 														"{{host}}{{baseUrl}}"
 													],
 													"path": [
 														"lendings",
-														"2024",
+														"2025",
 														"2"
 													]
 												}
@@ -8060,7 +8060,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"page\": {\r\n        \"number\" : 1,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2024,\r\n        \"month\" : 6\r\n    }\r\n}",
+											"raw": "{\r\n    \"page\": {\r\n        \"number\" : 1,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2025,\r\n        \"month\" : 6\r\n    }\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -8102,7 +8102,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"page\": {\r\n        \"number\" : 1,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2024,\r\n        \"month\" : 13\r\n    }\r\n}",
+											"raw": "{\r\n    \"page\": {\r\n        \"number\" : 1,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2025,\r\n        \"month\" : 13\r\n    }\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -8144,7 +8144,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"page\": {\r\n        \"number\" : 0,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2024,\r\n        \"month\" : 3\r\n    }\r\n}",
+											"raw": "{\r\n    \"page\": {\r\n        \"number\" : 0,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2025,\r\n        \"month\" : 3\r\n    }\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -8196,7 +8196,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\r\n    \"page\": {\r\n        \"number\" : 1,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2024,\r\n        \"month\" : 3\r\n    }\r\n}",
+											"raw": "{\r\n    \"page\": {\r\n        \"number\" : 1,\r\n        \"limit\" : 10\r\n    },\r\n    \"query\": {\r\n        \"year\" : 2025,\r\n        \"month\" : 3\r\n    }\r\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -8840,7 +8840,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infantil&startDate=2024-01-01&endDate=2024-06-01",
+											"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infantil&startDate=2025-01-01&endDate=2025-06-01",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -8855,11 +8855,11 @@
 												},
 												{
 													"key": "startDate",
-													"value": "2024-01-01"
+													"value": "2025-01-01"
 												},
 												{
 													"key": "endDate",
-													"value": "2024-06-01"
+													"value": "2025-06-01"
 												}
 											]
 										}
@@ -8887,7 +8887,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infantil&startDate=2024-02-01&endDate=2024-01-01",
+											"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infantil&startDate=2025-02-01&endDate=2025-01-01",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -8902,11 +8902,11 @@
 												},
 												{
 													"key": "startDate",
-													"value": "2024-02-01"
+													"value": "2025-02-01"
 												},
 												{
 													"key": "endDate",
-													"value": "2024-01-01"
+													"value": "2025-01-01"
 												}
 											]
 										}
@@ -8934,7 +8934,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infan&startDate=2024-01-01&endDate=2024-06-01",
+											"raw": "{{host}}{{baseUrl}}/readers/top5ByGenre?genre=Infan&startDate=2025-01-01&endDate=2025-06-01",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -8949,11 +8949,11 @@
 												},
 												{
 													"key": "startDate",
-													"value": "2024-01-01"
+													"value": "2025-01-01"
 												},
 												{
 													"key": "endDate",
-													"value": "2024-06-01"
+													"value": "2025-06-01"
 												}
 											]
 										}
@@ -9189,7 +9189,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/genres/lendingsAverageDurationPerMonth?startDate=2024-01-01&endDate=2024-07-01",
+											"raw": "{{host}}{{baseUrl}}/genres/lendingsAverageDurationPerMonth?startDate=2025-01-01&endDate=2025-07-01",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -9200,11 +9200,11 @@
 											"query": [
 												{
 													"key": "startDate",
-													"value": "2024-01-01"
+													"value": "2025-01-01"
 												},
 												{
 													"key": "endDate",
-													"value": "2024-07-01"
+													"value": "2025-07-01"
 												}
 											]
 										}
@@ -9232,7 +9232,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/genres/lendingsAverageDurationPerMonth?startDate=2024-03-01&endDate=2024-02-01",
+											"raw": "{{host}}{{baseUrl}}/genres/lendingsAverageDurationPerMonth?startDate=2025-03-01&endDate=2025-02-01",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -9243,11 +9243,11 @@
 											"query": [
 												{
 													"key": "startDate",
-													"value": "2024-03-01"
+													"value": "2025-03-01"
 												},
 												{
 													"key": "endDate",
-													"value": "2024-02-01"
+													"value": "2025-02-01"
 												}
 											]
 										}
@@ -9275,7 +9275,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/genres/lendingsAverageDurationPerMonth?startDate=2024-31-01&endDate=2024-07-01",
+											"raw": "{{host}}{{baseUrl}}/genres/lendingsAverageDurationPerMonth?startDate=2025-31-01&endDate=2025-07-01",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -9286,11 +9286,11 @@
 											"query": [
 												{
 													"key": "startDate",
-													"value": "2024-31-01"
+													"value": "2025-31-01"
 												},
 												{
 													"key": "endDate",
-													"value": "2024-07-01"
+													"value": "2025-07-01"
 												}
 											]
 										}
@@ -9328,7 +9328,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/genres/lendingsAverageDurationPerMonth?startDate=2024-01-01&endDate=2024-07-01",
+											"raw": "{{host}}{{baseUrl}}/genres/lendingsAverageDurationPerMonth?startDate=2025-01-01&endDate=2025-07-01",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
@@ -9339,11 +9339,11 @@
 											"query": [
 												{
 													"key": "startDate",
-													"value": "2024-01-01"
+													"value": "2025-01-01"
 												},
 												{
 													"key": "endDate",
-													"value": "2024-07-01"
+													"value": "2025-07-01"
 												}
 											]
 										}
@@ -9470,13 +9470,13 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{host}}{{baseUrl}}/readers/2024/1",
+											"raw": "{{host}}{{baseUrl}}/readers/2025/1",
 											"host": [
 												"{{host}}{{baseUrl}}"
 											],
 											"path": [
 												"readers",
-												"2024",
+												"2025",
 												"1"
 											]
 										}

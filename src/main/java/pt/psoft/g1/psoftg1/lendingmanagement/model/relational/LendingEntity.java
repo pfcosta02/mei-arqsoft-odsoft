@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Profile;
 public class LendingEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String lendingId;
 
     @Embedded

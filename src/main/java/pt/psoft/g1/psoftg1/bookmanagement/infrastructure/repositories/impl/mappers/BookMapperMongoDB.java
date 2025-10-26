@@ -17,7 +17,6 @@ public interface BookMapperMongoDB {
     @Mapping(target="photoURI", source="photo")
     Book toModel(BookMongoDB bookMongoDB);
 
-    @Mapping(target = "bookId", ignore = true)
     BookMongoDB toMongoDB(Book book);
 
    default String map(TitleMongoDB titleMongoDB) {

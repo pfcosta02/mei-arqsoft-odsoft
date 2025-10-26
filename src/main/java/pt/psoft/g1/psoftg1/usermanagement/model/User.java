@@ -55,21 +55,19 @@ public class User implements UserDetails
         }
     }
 
+    public void setUserId(String userId) {this.userId = userId; }
     public void setUsername(final String username)
     {
         this.username = username;
     }
-
     public void addAuthority(final Role r)
     {
         authorities.add(r);
     }
-
     public void setName(String name)
     {
         this.name = new Name(name);
     }
-
     public void setEnabled(boolean value)
     {
         this.enabled = value;

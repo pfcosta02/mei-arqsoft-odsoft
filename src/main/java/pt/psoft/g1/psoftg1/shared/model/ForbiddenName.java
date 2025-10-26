@@ -2,6 +2,7 @@ package pt.psoft.g1.psoftg1.shared.model;
 
 public class ForbiddenName
 {
+    private String forbiddenNameId;
     private String forbiddenName;
 
     public ForbiddenName(String forbiddenName)
@@ -27,5 +28,15 @@ public class ForbiddenName
     public String getForbiddenName()
     {
         return forbiddenName;
+    }
+
+    public  String getForbiddenNameId()
+    {
+        return forbiddenNameId;
+    }
+
+    public void setForbiddenNameId(String forbiddenName)
+    {
+        this.forbiddenNameId = forbiddenName;
     }
 }

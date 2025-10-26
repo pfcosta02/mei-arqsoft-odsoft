@@ -61,6 +61,7 @@ public class ReaderDetails extends EntityWithPhoto {
 
     // Getters and Setters
     public String getReaderDetailsId() { return readerDetailsId; }
+    public void setReaderDetailsId(String readerDetailsId) { this.readerDetailsId = readerDetailsId; }
 
     public Reader getReader() { return reader; }
     public void setReader(Reader reader) { this.reader = reader; }

@@ -9,6 +9,7 @@ import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
@@ -31,6 +32,7 @@ public class ReaderServiceImpl implements ReaderService {
     private final GenreRepository genreRepo;
     private final ForbiddenNameRepository forbiddenNameRepository;
     private final PhotoRepository photoRepository;
+    private final IdGenerator idGenerator;
 
 
     @Override
@@ -71,9 +73,10 @@ public class ReaderServiceImpl implements ReaderService {
 
         int count = readerRepo.getCountFromCurrentYear();
         Reader reader = readerMapper.createReader(request);
+        reader.setUserId(idGenerator.generateId());
         userRepo.save(reader);
         ReaderDetails rd = readerMapper.createReaderDetails(count+1, reader, request, photoURI, interestList);
-
+        rd.setReaderDetailsId(idGenerator.generateId());
         return readerRepo.save(rd);
     }
 

@@ -27,7 +27,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Profile("mongodb")
-@Order(1)
+@Order(2)
 public class UserBootstrapperMongoDB implements CommandLineRunner {
 
     private final UserRepository userRepository;

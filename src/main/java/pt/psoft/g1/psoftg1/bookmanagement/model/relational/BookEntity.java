@@ -22,7 +22,6 @@ import org.springframework.context.annotation.Profile;
 public class BookEntity extends EntityWithPhotoEntity
 {
     @Id
-    @GeneratedValue(strategy= GenerationType.UUID)
     private String bookId;
 
     @Version

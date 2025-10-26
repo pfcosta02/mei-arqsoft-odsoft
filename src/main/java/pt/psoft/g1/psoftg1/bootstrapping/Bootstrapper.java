@@ -15,6 +15,7 @@ import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
@@ -31,7 +32,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 //@Profile("bootstrap")
 @PropertySource({"classpath:config/library.properties"})
-@Order(2)
+@Order(3)
 public class Bootstrapper implements CommandLineRunner
 {
     @Value("${lendingDurationInDays}")
@@ -45,7 +46,7 @@ public class Bootstrapper implements CommandLineRunner
     private final LendingRepository lendingRepository;
     private final ReaderRepository readerRepository;
     private final PhotoRepository photoRepository;
-
+    private final IdGenerator idGenerator;
     private final ForbiddenNameService forbiddenNameService;
 
     @Override
@@ -143,26 +144,31 @@ public class Bootstrapper implements CommandLineRunner
         if (genreRepository.findByString("Fantasia").isEmpty())
         {
             final Genre g1 = new Genre("Fantasia");
+            g1.setPk(idGenerator.generateId());
             genreRepository.save(g1);
         }
         if (genreRepository.findByString("Informação").isEmpty())
         {
             final Genre g2 = new Genre("Informação");
+            g2.setPk(idGenerator.generateId());
             genreRepository.save(g2);
         }
         if (genreRepository.findByString("Romance").isEmpty())
         {
             final Genre g3 = new Genre("Romance");
+            g3.setPk(idGenerator.generateId());
             genreRepository.save(g3);
         }
         if (genreRepository.findByString("Infantil").isEmpty())
         {
             final Genre g4 = new Genre("Infantil");
+            g4.setPk(idGenerator.generateId());
             genreRepository.save(g4);
         }
         if (genreRepository.findByString("Thriller").isEmpty())
         {
             final Genre g5 = new Genre("Thriller");
+            g5.setPk(idGenerator.generateId());
             genreRepository.save(g5);
         }
     }
@@ -184,9 +190,8 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,null);
 
-
-                Book bokk = bookRepository.save(book);
-                System.out.println(bokk.getDescription());
+                book.setBookId(idGenerator.generateId());
+                bookRepository.save(book);
             }
         }
 
@@ -201,6 +206,7 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,null);
 
+                book.setBookId(idGenerator.generateId());
                 bookRepository.save(book);
             }
         }
@@ -222,6 +228,7 @@ public class Bootstrapper implements CommandLineRunner
                         authors,
                         null);
 
+                book.setBookId(idGenerator.generateId());
                 bookRepository.save(book);
             }
         }
@@ -264,7 +271,7 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,
                         null);
-
+                book.setBookId(idGenerator.generateId());
                 bookRepository.save(book);
             }
         }
@@ -282,7 +289,7 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,
                         "bookPhotoTest.jpg");
-
+                book.setBookId(idGenerator.generateId());
                 bookRepository.save(book);
             }
         }
@@ -300,7 +307,7 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,
                         null);
-
+                book.setBookId(idGenerator.generateId());
                 bookRepository.save(book);
             }
         }
@@ -323,7 +330,7 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,
                         null);
-
+                book.setBookId(idGenerator.generateId());
                 bookRepository.save(book);
             }
         }
@@ -346,7 +353,7 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,
                         null);
-
+                book.setBookId(idGenerator.generateId());
                 bookRepository.save(book);
             }
         }
@@ -370,7 +377,7 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,
                         null);
-
+                book.setBookId(idGenerator.generateId());
                 bookRepository.save(book);
             }
         }
@@ -396,7 +403,7 @@ public class Bootstrapper implements CommandLineRunner
                         genre.get(),
                         authors,
                         null);
-
+                book.setBookId(idGenerator.generateId());
                 bookRepository.save(book);
             }
         }
@@ -466,6 +473,7 @@ public class Bootstrapper implements CommandLineRunner
                 startDate = LocalDate.of(2025, 1,31-i);
                 returnedDate = LocalDate.of(2025,2,15+i);
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(i*2), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
+                lending.setLendingId(idGenerator.generateId());
                 lendingRepository.save(lending);
             }
         }
@@ -476,6 +484,7 @@ public class Bootstrapper implements CommandLineRunner
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2025, 3,25+i);
                 lending = Lending.newBootstrappingLending(books.get(1+i), readers.get(1+i*2), 2025, seq, startDate, null, lendingDurationInDays, fineValuePerDayInCents);
+                lending.setLendingId(idGenerator.generateId());
                 lendingRepository.save(lending);
             }
         }
@@ -485,6 +494,7 @@ public class Bootstrapper implements CommandLineRunner
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2025, 4,(1+2*i));
                 lending = Lending.newBootstrappingLending(books.get(3/(i+1)), readers.get(i*2), 2025, seq, startDate, null, lendingDurationInDays, fineValuePerDayInCents);
+                lending.setLendingId(idGenerator.generateId());
                 lendingRepository.save(lending);
             }
         }
@@ -496,6 +506,7 @@ public class Bootstrapper implements CommandLineRunner
                 startDate = LocalDate.of(2025, 5,(i+1));
                 returnedDate = LocalDate.of(2025,5,(i+2));
                 lending = Lending.newBootstrappingLending(books.get(3-i), readers.get(1+i*2), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
+                lending.setLendingId(idGenerator.generateId());
                 lendingRepository.save(lending);
             }
         }
@@ -507,6 +518,7 @@ public class Bootstrapper implements CommandLineRunner
                 startDate = LocalDate.of(2025, 5,(i+2));
                 returnedDate = LocalDate.of(2025,5,(i+2*2));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(i), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
+                lending.setLendingId(idGenerator.generateId());
                 lendingRepository.save(lending);
             }
         }
@@ -518,6 +530,7 @@ public class Bootstrapper implements CommandLineRunner
                 startDate = LocalDate.of(2025, 5,(i+8));
                 returnedDate = LocalDate.of(2025,5,(2*i+8));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(1+i%4), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
+                lending.setLendingId(idGenerator.generateId());
                 lendingRepository.save(lending);
             }
         }
@@ -529,6 +542,7 @@ public class Bootstrapper implements CommandLineRunner
                 startDate = LocalDate.of(2025, 5,(i+18));
                 returnedDate = LocalDate.of(2025,5,(2*i+18));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(i%2+2), 2025, seq, startDate, returnedDate, lendingDurationInDays, fineValuePerDayInCents);
+                lending.setLendingId(idGenerator.generateId());
                 lendingRepository.save(lending);
             }
         }
@@ -539,6 +553,7 @@ public class Bootstrapper implements CommandLineRunner
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2025, 6,(i/3+1));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(i%2+3), 2025, seq, startDate, null, lendingDurationInDays, fineValuePerDayInCents);
+                lending.setLendingId(idGenerator.generateId());
                 lendingRepository.save(lending);
             }
         }
@@ -549,6 +564,7 @@ public class Bootstrapper implements CommandLineRunner
             if(lendingRepository.findByLendingNumber("2025/" + seq).isEmpty()){
                 startDate = LocalDate.of(2025, 6,(2+i/4));
                 lending = Lending.newBootstrappingLending(books.get(i), readers.get(4-i%4), 2025, seq, startDate, null, lendingDurationInDays, fineValuePerDayInCents);
+                lending.setLendingId(idGenerator.generateId());
                 lendingRepository.save(lending);
             }
         }

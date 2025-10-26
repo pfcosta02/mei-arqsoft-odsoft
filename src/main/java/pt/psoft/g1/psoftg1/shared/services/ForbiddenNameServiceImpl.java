@@ -3,6 +3,7 @@ package pt.psoft.g1.psoftg1.shared.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
 import pt.psoft.g1.psoftg1.shared.model.ForbiddenName;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 
@@ -14,6 +15,7 @@ import java.io.InputStreamReader;
 @RequiredArgsConstructor
 public class ForbiddenNameServiceImpl implements ForbiddenNameService {
     private final ForbiddenNameRepository repo;
+    private final IdGenerator idGenerator;
 
     public void loadDataFromFile(String fileName) {
         try {
@@ -24,6 +26,7 @@ public class ForbiddenNameServiceImpl implements ForbiddenNameService {
                     final var fn = repo.findByForbiddenName(line);
                     if (fn.isEmpty()) {
                         ForbiddenName entity = new ForbiddenName(line);
+                        entity.setForbiddenNameId(idGenerator.generateId());
                         repo.save(entity);
                     }
                 }

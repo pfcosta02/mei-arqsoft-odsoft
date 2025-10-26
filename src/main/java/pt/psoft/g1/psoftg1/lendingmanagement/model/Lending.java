@@ -11,7 +11,7 @@ import org.hibernate.StaleObjectStateException;
 
 public class Lending
 {
-    public String lendingId;
+    private String lendingId;
     private LendingNumber lendingNumber;
     private Book book;
     private ReaderDetails readerDetails;
@@ -63,10 +63,12 @@ public class Lending
 
         setDaysUntilReturn();
         setDaysOverdue();
+        setLendingId(lendingId);
     }
 
     // Getters
     public Book getBook() { return book; }
+    public String getLendingId() { return lendingId; }
     public ReaderDetails getReaderDetails() { return readerDetails; }
     public LocalDate getStartDate() { return startDate; }
     public LocalDate getLimitDate() { return limitDate; }
@@ -114,6 +116,10 @@ public class Lending
 
 
     // Setters
+    public void setLendingId(String lendingId) {
+        this.lendingId = lendingId;
+    }
+
     /**
      * <p>Sets {@code commentary} and the current date as {@code returnedDate}.
      * <p>If {@code returnedDate} is after {@code limitDate}, fine is applied with corresponding value.

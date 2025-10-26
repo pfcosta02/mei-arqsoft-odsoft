@@ -13,7 +13,7 @@ import org.hibernate.StaleObjectStateException;
 
 public class Book extends EntityWithPhoto
 {
-    public String bookId;
+    private String bookId;
     private Long version;
     private Isbn isbn;
     private Title title;

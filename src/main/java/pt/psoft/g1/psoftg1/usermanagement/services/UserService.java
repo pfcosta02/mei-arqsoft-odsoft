@@ -31,6 +31,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 import pt.psoft.g1.psoftg1.usermanagement.model.Librarian;
@@ -52,6 +53,7 @@ public class UserService implements UserDetailsService {
 
 	private final UserRepository userRepo;
 	private final EditUserMapper userEditMapper;
+    private final IdGenerator idGenerator;
 
 	private final ForbiddenNameRepository forbiddenNameRepository;
 
@@ -93,7 +95,7 @@ public class UserService implements UserDetailsService {
 		//final User user = userEditMapper.create(request);
 		user.setPassword(passwordEncoder.encode(request.getPassword()));
 		//user.addAuthority(new Role(request.getRole()));
-
+        user.setUserId(idGenerator.generateId());
 		return userRepo.save(user);
 	}
 

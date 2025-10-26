@@ -5,7 +5,6 @@ public class Genre
     public static final int GENRE_MAX_LENGTH = 100;
 
     public String pk;
-
     private String genre;
 
     protected Genre() { }
@@ -37,6 +36,10 @@ public class Genre
     public String getPk()
     {
         return pk;
+    }
+
+    public void setPk(String pk) {
+        this.pk = pk;
     }
 
     public String getGenre()

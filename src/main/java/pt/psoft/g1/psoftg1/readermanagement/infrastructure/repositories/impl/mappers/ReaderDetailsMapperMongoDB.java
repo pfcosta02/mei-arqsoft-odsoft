@@ -55,7 +55,6 @@ public interface ReaderDetailsMapperMongoDB
         return value == null ? null : new BirthDate(value.getBirthDate().toString());
     }
 
-    @Named("toBirthDate")
     default BirthDate toBirthDate(String value)
     {
         return new BirthDate(value);
@@ -71,7 +70,6 @@ public interface ReaderDetailsMapperMongoDB
         return new ReaderNumber(value);
     }
 
-    @Named("toPhoneNumber")
     default PhoneNumber tPhoneNumber(String value)
     {
         return value == null ? null : new PhoneNumber(value);

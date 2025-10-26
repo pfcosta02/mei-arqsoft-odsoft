@@ -92,4 +92,7 @@ public class LendingMongoDB {
         this.fineValuePerDayInCents = fineValuePerDayInCents;
         this.commentary = commentary;
     }
+
+    public String getLendingId() { return lendingId; }
+    public void setLendingId(String lendingId) { this.lendingId = lendingId; }
 }

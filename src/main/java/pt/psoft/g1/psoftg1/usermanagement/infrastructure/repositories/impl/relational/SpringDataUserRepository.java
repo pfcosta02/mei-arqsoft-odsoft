@@ -45,7 +45,7 @@ public interface SpringDataUserRepository extends CrudRepository<UserEntity, Str
     @CacheEvict(allEntries = true)
     <S extends UserEntity> List<S> saveAll(Iterable<S> entities);
 
-    @Caching(evict = { @CacheEvict(key = "#p0.id", condition = "#p0.id != null"),
+    @Caching(evict = { @CacheEvict(key = "#p0.userId", condition = "#p0.userId != null"),
             @CacheEvict(key = "#p0.username", condition = "#p0.username != null") })
     <S extends UserEntity> S save(S entity);
 

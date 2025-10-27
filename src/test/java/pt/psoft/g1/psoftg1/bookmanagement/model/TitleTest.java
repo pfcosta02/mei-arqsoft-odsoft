@@ -67,4 +67,29 @@ class TitleTest {
         assertEquals("Some other title", title.toString());
     }
 
+    /* =========================================================== NOVOS TESTES =========================================================== */
+
+    @Test
+    void ensureTitleNotNullException()
+    {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> new Title(null));
+    
+        assertEquals("Title cannot be null", exception.getMessage());
+    }
+
+    @Test
+    void ensureTitleWithOnlySpacesThrowsException() 
+    {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> new Title("   "));
+        assertEquals("Title cannot be blank", exception.getMessage());
+    }
+
+    @Test
+    void ensureTitleCanBeExactlyAtMaxLength() 
+    {
+        String maxTitle = "A".repeat(Title.TITLE_MAX_LENGTH);
+        Title title = new Title(maxTitle);
+        assertEquals(maxTitle, title.getTitle());
+    }
+
 }

@@ -37,6 +37,7 @@ public class Author extends EntityWithPhoto
     public Bio getBio() { return bio; }
 
     // Setters
+    public void setAuthorNumber(String authorNumber) { this.authorNumber = authorNumber; }
     public void setName(Name name)
     {
         if (name == null)

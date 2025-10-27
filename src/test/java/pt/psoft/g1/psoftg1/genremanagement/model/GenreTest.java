@@ -1,9 +1,9 @@
 package pt.psoft.g1.psoftg1.genremanagement.model;
 
-import org.junit.jupiter.api.Test;
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class GenreTest {
 
@@ -16,7 +16,6 @@ class GenreTest {
     void ensureGenreMustNotBeBlank() {
         assertThrows(IllegalArgumentException.class, () -> new Genre(""));
     }
-
 
     /**
      * Text from <a href="https://www.lipsum.com/">Lorem Ipsum</a> generator.
@@ -46,6 +45,38 @@ class GenreTest {
     void ensureGenreIsSet() {
         final var genre = new Genre("Some genre");
         assertEquals("Some genre", genre.toString());
+    }
+
+    /* =========================================================== NOVOS TESTES =========================================================== */
+
+    @Test
+    void ensureGenreNotNullException()
+    {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> new Genre(null));;
+
+        assertEquals("Genre cannot be null", exception.getMessage());
+    }
+
+    @Test
+    void ensureGenreStripsWhitespace() 
+    {
+        Genre genre = new Genre("  Adventure  ");
+        assertEquals("Adventure", genre.getGenre());
+    }
+
+    @Test
+    void ensureGenreBlankExceptionMessage() 
+    {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> new Genre(""));
+        assertEquals("Genre cannot be blank", exception.getMessage());
+    }
+
+    @Test
+    void ensureGenreTooLongExceptionMessage() 
+    {
+        String longGenre = "A".repeat(Genre.GENRE_MAX_LENGTH + 1);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> new Genre(longGenre));
+        assertEquals("Genre has a maximum of " + Genre.GENRE_MAX_LENGTH + " characters", exception.getMessage());
     }
 
 }

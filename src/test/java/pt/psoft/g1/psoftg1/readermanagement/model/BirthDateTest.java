@@ -1,13 +1,10 @@
 package pt.psoft.g1.psoftg1.readermanagement.model;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.nio.file.AccessDeniedException;
-import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.time.LocalDate;
 
 public class BirthDateTest {
 
@@ -30,6 +27,19 @@ public class BirthDateTest {
     @Test
     void ensureCorrectStringRepresentation() {
         BirthDate birthDate = new BirthDate(2000, 1, 1);
-        assertEquals("2000-1-1", birthDate.toString());
+        assertEquals("2000-01-01", birthDate.toString());
     }
+
+    /* =========================================================== NOVOS TESTES =========================================================== */
+
+    @Test
+    void ensureExceptionIsThrownForTooYoungBirthDate() 
+    {
+        // Arrange
+        LocalDate tooYoung = LocalDate.now().minusYears(10); // menos de 12 anos
+        
+        // Act + Assert
+        assertThrows(IllegalArgumentException.class, () -> new BirthDate(tooYoung.getYear(), tooYoung.getMonthValue(), tooYoung.getDayOfMonth()));
+    }
+
 }

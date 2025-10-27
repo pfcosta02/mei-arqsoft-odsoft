@@ -33,4 +33,19 @@ public class PhoneNumberTest {
         PhoneNumber anotherPhoneNumber = new PhoneNumber("212345678");
         assertEquals("212345678", anotherPhoneNumber.toString());
     }
+
+    /* =========================================================== NOVOS TESTES =========================================================== */
+
+    @Test
+    void ensureNullPhoneNumberThrowsException() 
+    {
+        assertThrows(IllegalArgumentException.class, () -> new PhoneNumber(null));
+    }
+
+    @Test
+    void ensureBlankPhoneNumberThrowsException() 
+    {
+        assertThrows(IllegalArgumentException.class, () -> new PhoneNumber(""));
+        assertThrows(IllegalArgumentException.class, () -> new PhoneNumber("   "));
+    }
 }

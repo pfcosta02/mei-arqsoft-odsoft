@@ -84,10 +84,12 @@ public class LendingEntity {
     }
 
     // Setter
+    public void setLendingId(String lendingId) { this.lendingId = lendingId; }
     public void setBook(BookEntity book) { this.book = book;}
     public void setReaderDetails(ReaderDetailsEntity readerDetails) { this.readerDetails = readerDetails;}
 
     // Getter
+    public String getLendingId() { return lendingId; }
     public BookEntity getBook() { return book; }
     public ReaderDetailsEntity getReaderDetails() { return readerDetails; }
 }

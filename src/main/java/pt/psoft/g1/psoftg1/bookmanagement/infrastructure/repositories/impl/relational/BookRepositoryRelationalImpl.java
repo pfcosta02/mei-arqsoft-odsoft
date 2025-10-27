@@ -199,8 +199,6 @@ public class BookRepositoryRelationalImpl implements BookRepository
 
         // Persist the BookEntity and return the saved Book as a domain model
         BookEntity saved = bookRepo.save(entity);
-        System.out.println("Saved entity ISBN: " +
-                (saved.getIsbn() != null ? saved.getIsbn() : "null"));
         return bookEntityMapper.toModel(saved);
     }
 

@@ -69,6 +69,7 @@ public class BookEntity extends EntityWithPhotoEntity
     public void setDescription(DescriptionEntity description) { this.description = description; }
     public void setGenre(GenreEntity genre) { this.genre = genre; }
     public void setAuthors(List<AuthorEntity> authors) { this.authors = authors; }
+    public void setBookId(String bookId) { this.bookId = bookId; }
 
     // Getters
     public String getDescription(){ return description.getDescription(); }

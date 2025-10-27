@@ -27,7 +27,7 @@ Este documento serve para toda a documentação do projeto para a unidade curric
 ![VL_Level_2.jpg](System-as-is/Vista%20L%C3%B3gica/VL_Level_2.jpg)
 
 #### Nível 3
-![VL_Level_3_Folder.jpg](System-as-is/Vista%20L%C3%B3gica/VL_Level_3_Folder.jpg)
+![VL_Level_3_Folder.jpg](System-as-is/Vista%20L%C3%B3gica/VL_Level_3.jpg)
 
 
 ### Vistas Físicas

@@ -1,34 +1,33 @@
 package pt.psoft.g1.psoftg1.shared.repository;
 
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.util.List;
-import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.relational.ForbiddenNameRepositoryRelationalImpl;
-import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.relational.SpringDataForbiddenNameRepository;
-import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.mappers.ForbiddenNameEntityMapper;
+import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.mappers.ForbiddenNameMapperMongoDB;
+import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.mongodb.ForbiddenNameRepositoryMongoDBImpl;
+import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.mongodb.SpringDataForbiddenNameRepositoryMongoDB;
 import pt.psoft.g1.psoftg1.shared.model.ForbiddenName;
-import pt.psoft.g1.psoftg1.shared.model.relational.ForbiddenNameEntity;
+import pt.psoft.g1.psoftg1.shared.model.mongodb.ForbiddenNameMongoDB;
 
-class ForbiddenNameRepositoryImplTest {
+import java.util.List;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class ForbiddenNameRepositoryMongoDBImplTest {
     @InjectMocks
-    private ForbiddenNameRepositoryRelationalImpl forbiddenRepo;
+    private ForbiddenNameRepositoryMongoDBImpl forbiddenRepo;
 
     @Mock
-    private SpringDataForbiddenNameRepository forbiddenNameRepository;
+    private SpringDataForbiddenNameRepositoryMongoDB forbiddenNameRepository;
 
     @Mock
-    private ForbiddenNameEntityMapper forbiddenNameEntityMapper;
+    private ForbiddenNameMapperMongoDB forbiddenNameEntityMapper;
 
     @BeforeEach
     void setUp() {
@@ -36,10 +35,10 @@ class ForbiddenNameRepositoryImplTest {
     }
 
     @Test
-    void testFindAll() 
+    void testFindAll()
     {
         // Arrange
-        ForbiddenNameEntity entity = mock(ForbiddenNameEntity.class);
+        ForbiddenNameMongoDB entity = mock(ForbiddenNameMongoDB.class);
         ForbiddenName model = mock(ForbiddenName.class);
 
         when(forbiddenNameRepository.findAll()).thenReturn(List.of(entity));
@@ -54,10 +53,10 @@ class ForbiddenNameRepositoryImplTest {
     }
 
     @Test
-    void testFindByForbiddenNameIsContained() 
+    void testFindByForbiddenNameIsContained()
     {
         // Arrange
-        ForbiddenNameEntity entity = mock(ForbiddenNameEntity.class);
+        ForbiddenNameMongoDB entity = mock(ForbiddenNameMongoDB.class);
         ForbiddenName model = mock(ForbiddenName.class);
 
         when(forbiddenNameRepository.findByForbiddenNameIsContained("bad")).thenReturn(List.of(entity));
@@ -72,14 +71,14 @@ class ForbiddenNameRepositoryImplTest {
     }
 
     @Test
-    void testSave() 
+    void testSave()
     {
         // Arrange
         ForbiddenName model = mock(ForbiddenName.class);
-        ForbiddenNameEntity entity = mock(ForbiddenNameEntity.class);
+        ForbiddenNameMongoDB entity = mock(ForbiddenNameMongoDB.class);
         ForbiddenName savedModel = mock(ForbiddenName.class);
 
-        when(forbiddenNameEntityMapper.toEntity(model)).thenReturn(entity);
+        when(forbiddenNameEntityMapper.toMongoDB(model)).thenReturn(entity);
         when(forbiddenNameRepository.save(entity)).thenReturn(entity);
         when(forbiddenNameEntityMapper.toModel(entity)).thenReturn(savedModel);
 
@@ -91,10 +90,10 @@ class ForbiddenNameRepositoryImplTest {
     }
 
     @Test
-    void testFindByForbiddenName() 
+    void testFindByForbiddenName()
     {
         // Arrange
-        ForbiddenNameEntity entity = mock(ForbiddenNameEntity.class);
+        ForbiddenNameMongoDB entity = mock(ForbiddenNameMongoDB.class);
         ForbiddenName model = mock(ForbiddenName.class);
 
         when(forbiddenNameRepository.findByForbiddenName("badword")).thenReturn(Optional.of(entity));
@@ -109,7 +108,7 @@ class ForbiddenNameRepositoryImplTest {
     }
 
     @Test
-    void testDeleteForbiddenName() 
+    void testDeleteForbiddenName()
     {
         // Arrange
         when(forbiddenNameRepository.deleteForbiddenName("badword")).thenReturn(1);

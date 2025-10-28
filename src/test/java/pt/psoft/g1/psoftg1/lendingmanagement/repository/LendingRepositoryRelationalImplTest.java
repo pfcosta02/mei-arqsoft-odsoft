@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,7 +30,6 @@ import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.relat
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
-import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mappers.LendingEntityMapper;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.relational.LendingRepositoryRelationalImpl;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.relational.SpringDataLendingRepository;
@@ -43,7 +41,7 @@ import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity
 import pt.psoft.g1.psoftg1.shared.services.Page;
 
 /* Teste Unitario, opaque-box do LendingRepositoryImpl */
-class LendingRepositoryImplTest 
+class LendingRepositoryRelationalImplTest
 {
     @InjectMocks
     private LendingRepositoryRelationalImpl lendingRepo;

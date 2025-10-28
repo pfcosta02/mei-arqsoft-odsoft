@@ -26,12 +26,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mappers.GenreEntityMapper;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.relational.GenreRepositoryRelationalImpl;
@@ -41,7 +38,7 @@ import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.genremanagement.services.GenreLendingsPerMonthDTO;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
 
-class GenreRepositoryImplTest {
+class GenreRepositoryRelationalImplTest {
 
     @InjectMocks
     private GenreRepositoryRelationalImpl genreRepo;

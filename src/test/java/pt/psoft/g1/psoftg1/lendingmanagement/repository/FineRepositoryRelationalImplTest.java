@@ -17,9 +17,8 @@ import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.re
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.FineEntity;
 
-class FineRepositoryImplTest
+class FineRepositoryRelationalImplTest
 {
-
     @InjectMocks
     private FineRepositoryRelationalImpl fineRepo;
 

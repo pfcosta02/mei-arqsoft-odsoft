@@ -51,4 +51,9 @@ public interface SpringDataUserRepositoryMongoDB extends MongoRepository<UserMon
     @Cacheable
     @Query("{ 'name.name': ?0 }")
     List<UserMongoDB> findByNameName(String name);
+
+    @Cacheable
+    @Query("{ 'name.name': { $regex: ?0, $options: 'i' } }")
+    List<UserMongoDB> findByNameNameContains(String namePart);
+
 }

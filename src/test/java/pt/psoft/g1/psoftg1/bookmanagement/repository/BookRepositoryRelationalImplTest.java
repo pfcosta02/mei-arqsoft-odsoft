@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -22,8 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -50,7 +47,7 @@ import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 
 /* Teste Unitario, opaque-box do BookRepositoryImpl */
-class BookRepositoryImplTest 
+class BookRepositoryRelationalImplTest
 {
     @InjectMocks
     private BookRepositoryRelationalImpl bookRepo;

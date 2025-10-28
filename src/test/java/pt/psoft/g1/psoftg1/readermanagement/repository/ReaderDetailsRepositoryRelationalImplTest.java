@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,8 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -44,7 +41,7 @@ import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.usermanagement.model.User;
 import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
 
-class ReaderDetailsRepositoryImplTest {
+class ReaderDetailsRepositoryRelationalImplTest {
 
     @InjectMocks
     private ReaderDetailsRepositoryRelationalImpl readerRepo;

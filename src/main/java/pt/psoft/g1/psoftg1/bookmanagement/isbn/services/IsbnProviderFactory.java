@@ -14,20 +14,24 @@ public class IsbnProviderFactory {
 
     private final OpenLibraryProvider openLibraryProvider;
 
+    private final FallbackIsbnProvider fallbackIsbnProvider;
+
     @Value("${isbn.provider}")
     private String activeProvider;
 
     @Autowired
-    public IsbnProviderFactory(GoogleBooksProvider googleBooksProvider, OpenLibraryProvider openLibraryProvider) {
+    public IsbnProviderFactory(GoogleBooksProvider googleBooksProvider, OpenLibraryProvider openLibraryProvider, FallbackIsbnProvider fallbackIsbnProvider) {
         this.googleBooksProvider = googleBooksProvider;
         this.openLibraryProvider = openLibraryProvider;
+        this.fallbackIsbnProvider = fallbackIsbnProvider;
     }
 
     public IsbnProvider getProvider() {
         return switch (activeProvider.toLowerCase()) {
             case "googlebooks" -> googleBooksProvider;
             case "openlibrary" -> openLibraryProvider;
-            default -> googleBooksProvider; // fallback
+            case "gb_and_ol", "fallback" -> fallbackIsbnProvider;
+            default -> fallbackIsbnProvider; // fallback
         };
     }
 }

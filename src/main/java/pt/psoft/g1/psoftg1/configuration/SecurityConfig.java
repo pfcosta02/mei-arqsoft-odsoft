@@ -137,6 +137,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE,"/api/books/{isbn}/photo").hasRole(Role.LIBRARIAN)
                 .requestMatchers(HttpMethod.GET,"/api/books/suggestions").hasRole(Role.READER)
                 .requestMatchers(HttpMethod.POST,"/api/books/search").hasAnyRole(Role.LIBRARIAN, Role.READER)
+                .requestMatchers("/api/books/external/**").permitAll()
                 //endBooks
                 //readers
                 .requestMatchers(HttpMethod.PATCH,"/api/readers").hasRole(Role.READER)

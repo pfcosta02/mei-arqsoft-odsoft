@@ -1,7 +1,10 @@
 package pt.psoft.g1.psoftg1.bootstrapping;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,12 +25,13 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 @Profile("jpa")
-@Order(1)
+@Order(2)
 public class UserBootstrapper implements CommandLineRunner {
 
     private final UserRepository userRepository;
@@ -36,12 +40,16 @@ public class UserBootstrapper implements CommandLineRunner {
     private final JdbcTemplate jdbcTemplate;
     private List<String> queriesToExecute = new ArrayList<>();
 
+    @Autowired
+    private CacheManager cacheManager;
+
     @Override
     @Transactional
     public void run(final String... args)  {
         createReaders();
         createLibrarian();
         executeQueries();
+        Objects.requireNonNull(cacheManager.getCache("genres")).clear();
     }
 
     private void createReaders() {
@@ -266,5 +274,10 @@ public class UserBootstrapper implements CommandLineRunner {
         for (String query : queriesToExecute) {
             jdbcTemplate.update(query);
         }
+    }
+
+    @PostConstruct
+    public void clearCachesAfterBootstrap() {
+        Objects.requireNonNull(cacheManager.getCache("genres")).clear();
     }
 }

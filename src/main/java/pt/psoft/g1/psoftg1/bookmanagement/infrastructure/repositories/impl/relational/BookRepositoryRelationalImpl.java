@@ -1,6 +1,9 @@
 package pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.relational;
 
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
@@ -45,6 +48,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     private final EntityManager em;
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#genre")
     public List<Book> findByGenre(@Param("genre") String genre)
     {
         List<Book> books = new ArrayList<>();
@@ -57,6 +61,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#title")
     public List<Book> findByTitle(@Param("title") String title)
     {
         List<Book> books = new ArrayList<>();
@@ -69,6 +74,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#authorName")
     public List<Book> findByAuthorName(@Param("authorName") String authorName)
     {
         List<Book> books = new ArrayList<>();
@@ -81,6 +87,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#isbn")
     public Optional<Book> findByIsbn(@Param("isbn") String isbn)
     {
         Optional<BookEntity> entityOpt = bookRepo.findByIsbn(isbn);
@@ -95,6 +102,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
+    @Cacheable(cacheNames = "booksTop5", key = "#oneYearAgo.toString() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
     {
         //TODO: Corrigir este
@@ -102,6 +110,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#authorNumber")
     public List<Book> findBooksByAuthorNumber(String authorNumber)
     {
         List<Book> books = new ArrayList<>();
@@ -156,6 +165,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"books", "booksTop5"}, allEntries = true)
     public Book save(Book book)
     {
         // Convert the domain model (Book) to a JPA entity (BookEntity)
@@ -181,7 +191,8 @@ public class BookRepositoryRelationalImpl implements BookRepository
         {
             // Retrieve the corresponding Author model from the repository by author number
             //TODO: temos aqui uma questao, o searchByNameName retorna uma lista de nomes, entao pode nao ser o autor correto (no caso de haver varios autores com o mesmo nome)
-            Author auth  = authorRepo.searchByNameName(author.getName().getName()).get(0);
+            List<Author> auth1  = authorRepo.searchByNameName(author.getName().getName());
+            Author auth = auth1.get(0);
             if (auth == null)
             {
                 throw new RuntimeException("Author not found");
@@ -203,6 +214,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
+    @CacheEvict(cacheNames = {"books", "booksTop5"}, allEntries = true)
     public void delete(Book book)
     {
         // TODO: implement delete logic

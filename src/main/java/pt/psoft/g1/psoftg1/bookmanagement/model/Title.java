@@ -5,6 +5,10 @@ public class Title {
 
     private String title;
 
+    protected Title() {
+        // for frameworks (Jackson, JPA, etc.)
+    }
+
     public Title(String title)
     {
         setTitle(title);

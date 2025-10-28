@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -37,6 +40,7 @@ public class UserRepositoryRelationalImpl implements UserRepository
     private final EntityManager em;
 
     @Override
+    //@CacheEvict(cacheNames = "users", allEntries = true)
     public <S extends User> List<S> saveAll(Iterable<S> entities)
     {
         List<S> savedEntities = new ArrayList<>();
@@ -56,6 +60,10 @@ public class UserRepositoryRelationalImpl implements UserRepository
     }
 
     @Override
+//    @Caching(evict = {
+//            @CacheEvict(cacheNames = "users", key = "#entity.userId", condition = "#entity.userId != null"),
+//            @CacheEvict(cacheNames = "users", key = "#entity.username", condition = "#entity.username != null")
+//    })
     public <S extends User> S save(S entity)
     {
         if (entity instanceof Reader) {
@@ -78,6 +86,7 @@ public class UserRepositoryRelationalImpl implements UserRepository
     }
 
     @Override
+    //@Cacheable(cacheNames = "users", key = "#objectId")
     public Optional<User> findById(String objectId)
     {
         Optional<UserEntity> entityOpt = userRepo.findById(objectId);
@@ -92,6 +101,7 @@ public class UserRepositoryRelationalImpl implements UserRepository
     }
 
     @Override
+    //@Cacheable(cacheNames = "users", key = "#username")
     public Optional<User> findByUsername(String username)
     {
         Optional<UserEntity> entityOpt = userRepo.findByUsername(username);
@@ -142,6 +152,7 @@ public class UserRepositoryRelationalImpl implements UserRepository
     }
 
     @Override
+    //@Cacheable(cacheNames = "users", key = "#name")
     public List<User> findByNameName(String name)
     {
         List<User> users = new ArrayList<>();
@@ -154,6 +165,7 @@ public class UserRepositoryRelationalImpl implements UserRepository
     }
 
     @Override
+    //@Cacheable(cacheNames = "users", key = "'nameContains:' + #name")
     public List<User> findByNameNameContains(String name)
     {
         List<User> users = new ArrayList<>();

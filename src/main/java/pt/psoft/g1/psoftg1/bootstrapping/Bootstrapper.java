@@ -1,8 +1,11 @@
 package pt.psoft.g1.psoftg1.bootstrapping;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.annotation.Order;
@@ -26,6 +29,7 @@ import pt.psoft.g1.psoftg1.shared.services.ForbiddenNameService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -35,6 +39,9 @@ import java.util.Optional;
 @Order(3)
 public class Bootstrapper implements CommandLineRunner
 {
+    @Autowired
+    private CacheManager cacheManager;
+
     @Value("${lendingDurationInDays}")
     private int lendingDurationInDays;
     @Value("${fineValuePerDayInCents}")
@@ -58,6 +65,10 @@ public class Bootstrapper implements CommandLineRunner
         loadForbiddenNames();
         createLendings();
         createPhotos();
+
+        Objects.requireNonNull(cacheManager.getCache("genres")).clear();
+        Objects.requireNonNull(cacheManager.getCache("books")).clear();
+        Objects.requireNonNull(cacheManager.getCache("authors")).clear();
     }
 
     private void createAuthors()
@@ -575,6 +586,13 @@ public class Bootstrapper implements CommandLineRunner
         if(photoJoao.isEmpty()) {
             Photo photo = new Photo(Paths.get(""))
         }*/
+    }
+
+    @PostConstruct
+    public void clearCachesAfterBootstrap() {
+        Objects.requireNonNull(cacheManager.getCache("genres")).clear();
+        Objects.requireNonNull(cacheManager.getCache("books")).clear();
+        Objects.requireNonNull(cacheManager.getCache("authors")).clear();
     }
 }
 

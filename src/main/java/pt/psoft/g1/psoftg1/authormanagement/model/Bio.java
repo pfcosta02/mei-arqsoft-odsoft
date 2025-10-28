@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.authormanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import pt.psoft.g1.psoftg1.shared.model.StringUtilsCustom;
 
 public class Bio
@@ -45,6 +46,7 @@ public class Bio
         return bio;
     }
 
+    @JsonIgnore
     public String getValue()
     {
         return bio;

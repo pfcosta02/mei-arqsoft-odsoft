@@ -39,21 +39,20 @@ import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
  * Based on https://github.com/Yoh0xFF/java-spring-security-example
  *
  */
-@CacheConfig(cacheNames = "users")
+
 public interface SpringDataUserRepository extends CrudRepository<UserEntity, String> {
 
-    @CacheEvict(allEntries = true)
+
     <S extends UserEntity> List<S> saveAll(Iterable<S> entities);
 
-    @Caching(evict = { @CacheEvict(key = "#p0.userId", condition = "#p0.userId != null"),
-            @CacheEvict(key = "#p0.username", condition = "#p0.username != null") })
+
     <S extends UserEntity> S save(S entity);
 
     /**
      * findById searches a specific user and returns an optional
      */
 
-    @Cacheable
+
     Optional<UserEntity> findById(String objectId);
 
     /**
@@ -63,22 +62,22 @@ public interface SpringDataUserRepository extends CrudRepository<UserEntity, Str
      * @param id
      * @return
      */
-    @Cacheable
+
     default UserEntity getById(final String id) {
         final Optional<UserEntity> maybeUser = findById(id);
         // throws 404 Not Found if the user does not exist or is not enabled
         return maybeUser.filter(UserEntity::isEnabled).orElseThrow(() -> new NotFoundException(UserEntity.class, id));
     }
 
-    @Cacheable
+
     @Query("SELECT u FROM UserEntity u WHERE u.username = ?1")
     Optional<UserEntity> findByUsername(String username);
 
-    @Cacheable
+
     @Query("SELECT u FROM UserEntity u WHERE u.name.name = ?1")
     List<UserEntity> findByNameName(String name);
 
-    @Cacheable
+
     @Query("SELECT u FROM UserEntity u WHERE LOWER(u.name.name) LIKE LOWER(CONCAT('%', :namePart, '%'))")
     List<UserEntity> findByNameNameContains(@Param("namePart") String namePart);
 }

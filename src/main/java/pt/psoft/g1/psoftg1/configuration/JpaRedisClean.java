@@ -3,26 +3,24 @@ package pt.psoft.g1.psoftg1.configuration;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+@Profile("jpa")
 @Component
-@Profile("mongodb")
-@Order(1) // executa primeiro
-public class MongoClean implements CommandLineRunner {
+@Order(1)
+public class JpaRedisClean implements CommandLineRunner {
 
-    private final MongoTemplate mongoTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public MongoClean(MongoTemplate mongoTemplate, RedisTemplate<String, Object> redisTemplate) {
-        this.mongoTemplate = mongoTemplate;
+    public JpaRedisClean(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
     @Override
     public void run(String... args) {
-        mongoTemplate.getDb().drop();
+        // Delete all keys
         redisTemplate.getConnectionFactory().getConnection().flushAll();
+        System.out.println("✅ Redis cache cleared on startup.");
     }
 }

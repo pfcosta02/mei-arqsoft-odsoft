@@ -29,6 +29,11 @@ public abstract class EntityWithPhoto
         this.photo = photo; // already null-safe
     }
 
+    public void setPhotoByClass(Photo photo)
+    {
+        setPhotoInternal(photo);
+    }
+
     // Getter
     public Photo getPhoto()
     {

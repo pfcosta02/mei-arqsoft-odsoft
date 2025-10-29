@@ -1,14 +1,14 @@
 package pt.psoft.g1.psoftg1.shared.model;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PhotoTest {
+class PhotoTest 
+{
     @Test
     void ensurePathMustNotBeNull() {
         assertThrows(NullPointerException.class, () -> new Photo(null));

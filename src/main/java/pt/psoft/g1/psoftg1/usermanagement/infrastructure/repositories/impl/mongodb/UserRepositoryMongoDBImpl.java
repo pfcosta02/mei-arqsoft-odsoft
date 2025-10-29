@@ -17,6 +17,7 @@ import pt.psoft.g1.psoftg1.usermanagement.model.User;
 import pt.psoft.g1.psoftg1.usermanagement.model.mongodb.LibrarianMongoDB;
 import pt.psoft.g1.psoftg1.usermanagement.model.mongodb.ReaderMongoDB;
 import pt.psoft.g1.psoftg1.usermanagement.model.mongodb.UserMongoDB;
+import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
 import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 import pt.psoft.g1.psoftg1.usermanagement.services.SearchUsersQuery;
 
@@ -154,7 +155,13 @@ public class UserRepositoryMongoDBImpl implements UserRepository {
     @Override
     public List<User> findByNameNameContains(String name)
     {
-        return null;
+        List<User> users = new ArrayList<>();
+        for (UserMongoDB r: userRepo.findByNameNameContains(name))
+        {
+            users.add(userMapperMongoDB.toModel(r));
+        }
+
+        return users;
     }
 
     @Override

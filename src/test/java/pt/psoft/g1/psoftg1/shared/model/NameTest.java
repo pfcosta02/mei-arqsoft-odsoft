@@ -4,7 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class NameTest {
+class NameTest 
+{
     @Test
     void ensureNameMustNotBeNull() {
         assertThrows(IllegalArgumentException.class, () -> new Name(null));
@@ -26,7 +27,7 @@ class NameTest {
      */
     @Test
     void ensureNameMustNotBeOversize() {
-        assertThrows(IllegalArgumentException.class, () -> new Name("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut fermentum venenatis augue, a congue turpis eleifend ut. Etiam fringilla ex nulla, id quis."));
+        assertThrows(IllegalArgumentException.class, () -> new Name("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse non laoreet sapien. Interdum et malesuada fames ac ante ipsum primis in faucibus. In non mattis quam efficitur."));
     }
 
     @Test
@@ -41,4 +42,20 @@ class NameTest {
         name.setName("Some other name");
         assertEquals("Some other name", name.toString());
     }
+
+    /* =========================================================== NOVOS TESTES =========================================================== */
+
+    @Test
+    void ensureNameWithNumbersIsRejected() 
+    {
+        assertThrows(IllegalArgumentException.class, () -> new Name("Ricardo123"));
+    }
+
+    @Test
+    void ensureNameWithSpacesIsAccepted() 
+    {
+        assertDoesNotThrow(() -> new Name("Ricardo Manuel"));
+    }
+
+
 }

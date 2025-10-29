@@ -29,6 +29,8 @@ public class Book extends EntityWithPhoto
         setAuthors(authors);
         setPhotoInternal(photoURI);
         setDescription(new Description(description));
+
+        this.version = 0L;
     }
 
     // Getters

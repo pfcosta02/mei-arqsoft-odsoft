@@ -1,8 +1,9 @@
 package pt.psoft.g1.psoftg1.bookmanagement.model;
 
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DescriptionTest {
 
@@ -10,7 +11,6 @@ class DescriptionTest {
     void ensureDescriptionCanBeNull() {
         assertDoesNotThrow(() -> new Description(null));
     }
-
 
     /**
      * Text from <a href="https://www.lipsum.com/">Lorem Ipsum</a> generator.
@@ -47,6 +47,32 @@ class DescriptionTest {
         final var description = new Description("Some description");
         description.setDescription("Some other description");
         assertEquals("Some other description", description.toString());
+    }
+
+    /* =========================================================== NOVOS TESTES =========================================================== */
+
+    @Test
+    void ensureBlankDescriptionBecomesNull() 
+    {
+        Description description = new Description("   ");
+        assertNull(description.getDescription());
+    }
+
+    @Test
+    void ensureDescriptionSanitizesHtml() 
+    {
+        Description description = new Description("<script>alert('XSS');</script><b>bold</b>");
+        // O <script> deve ser removido, mas <b> pode permanecer (dependendo da policy do OWASP)
+        assertFalse(description.getDescription().contains("script"));
+        assertTrue(description.getDescription().contains("bold"));
+    }
+
+    @Test
+    void ensureDescriptionAtMaxLength() 
+    {
+        String maxLengthDesc = "a".repeat(Description.DESC_MAX_LENGTH);
+        Description descr = new Description(maxLengthDesc);
+        assertEquals(maxLengthDesc, descr.toString());
     }
 
 }

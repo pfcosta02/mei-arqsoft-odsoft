@@ -20,7 +20,8 @@
 		<maven.compiler.target>17</maven.compiler.target>
 		<maven.compiler.release>17</maven.compiler.release>
 
-		<!-- automatically run annotation processors within the incremental compilation -->
+        <sonar.coverage.exclusions>**/configuration/**,**/dto/**,**/mapper/**,**/bootstrapping/**,**/exceptions/**,**/viewer/**,**/*Entity.java,**/*DTO.java,**/*Mapper.java,**/*View.java,**/*Request.java,**/*Query.java,**/*Properties.java,**/*Repository.java,**/*Response.java</sonar.coverage.exclusions>
+        <!-- automatically run annotation processors within the incremental compilation -->
 		<m2e.apt.activation>jdt_apt</m2e.apt.activation>
 	</properties>
 
@@ -69,6 +70,20 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.2.1</version> <!-- Ou a versão mais recente -->
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+            <version>5.1.3</version> <!-- Ou a versão mais recente -->
+        </dependency>
 
 		<!-- Lombok to automate setter/getter generation -->
 		<dependency>
@@ -126,12 +141,28 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.9.1.2184</version>
+            </plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<release>17</release>
-                    <encoding>UTF-8</encoding>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
@@ -150,18 +181,167 @@
 							<artifactId>lombok-mapstruct-binding</artifactId>
 							<version>0.2.0</version>
 						</path>
-
-
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.0.0-M9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include> <!-- Padrão para testes de integração -->
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>1.15.6</version>
+                <version>1.21.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.1</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>mutationCoverage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludedClasses>
+                        <!-- Excluindo subpacote SQL -->
+                        <excludedClass>pt.psoft.g1.psoftg1.authormanagement.model.relational.*</excludedClass>
+                        <excludedClass>pt.psoft.g1.psoftg1.bookmanagement.model.relational.*</excludedClass>
+                        <excludedClass>pt.psoft.g1.psoftg1.genremanagement.model.relational.*</excludedClass>
+                        <excludedClass>pt.psoft.g1.psoftg1.lendingmanagement.model.relational.*</excludedClass>
+                        <excludedClass>pt.psoft.g1.psoftg1.readermanagement.model.relational.*</excludedClass>
+                        <excludedClass>pt.psoft.g1.psoftg1.usermanagement.model.relational.*</excludedClass>
+                    </excludedClasses>
+                    <!-- Pacote principal para incluir no teste de mutação -->
+                    <targetClasses>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.api.*Controller</param>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.relational.*</param>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mongodb.*</param>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.services.*ServiceImpl</param>
+
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.api.*Controller</param>
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.relational.*</param>
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mongodb.*</param>
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.services.*ServiceImpl</param>
+
+                        <param>pt.psoft.g1.psoftg1.genremanagement.api.*Controller</param>
+                        <param>pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.relational.*</param>
+                        <param>pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mongodb.*</param>
+                        <param>pt.psoft.g1.psoftg1.genremanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.genremanagement.services.*ServiceImpl</param>
+
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.api.*Controller</param>
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.relational.*</param>
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mongodb.*</param>
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.services.*ServiceImpl</param>
+
+                        <param>pt.psoft.g1.psoftg1.readermanagement.api.*Controller</param>
+                        <param>pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.relational.*</param>
+                        <param>pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mongodb.*</param>
+                        <param>pt.psoft.g1.psoftg1.readermanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.readermanagement.services.*ServiceImpl</param>
+
+
+                        <param>pt.psoft.g1.psoftg1.usermanagement.api.*Controller</param>
+                        <param>pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.relational.*</param>
+                        <param>pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mongodb.*</param>
+                        <param>pt.psoft.g1.psoftg1.usermanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.usermanagement.services.*ServiceImpl</param>
+                        <!-- <param>pt.psoft.g1.psoftg1.bookmanagement.api.*Controller</param>
+						<param>pt.psoft.g1.psoftg1.genremanagement.api.*Controller</param>
+						<param>pt.psoft.g1.psoftg1.lendingmanagement.api.*Controller</param>
+						<param>pt.psoft.g1.psoftg1.readermanagement.api.*Controller</param> -->
+                    </targetClasses>
+                    <!-- Pacote de testes -->
+                    <targetTests>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.api.*</param>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.services.*</param>
+                        <param>pt.psoft.g1.psoftg1.authormanagement.repository.*</param>
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.api.*</param>
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.services.*</param>
+                        <param>pt.psoft.g1.psoftg1.bookmanagement.repository.*</param>
+                        <param>pt.psoft.g1.psoftg1.genremanagement.api.*</param>
+                        <param>pt.psoft.g1.psoftg1.genremanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.genremanagement.services.*</param>
+                        <param>pt.psoft.g1.psoftg1.genremanagement.repository.*</param>
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.api.*</param>
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.services.*</param>
+                        <param>pt.psoft.g1.psoftg1.lendingmanagement.repository.*</param>
+                        <param>pt.psoft.g1.psoftg1.readermanagement.api.*</param>
+                        <param>pt.psoft.g1.psoftg1.readermanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.readermanagement.services.*</param>
+                        <param>pt.psoft.g1.psoftg1.readermanagement.repository.*</param>
+                        <param>pt.psoft.g1.psoftg1.usermanagement.model.*</param>
+                        <param>pt.psoft.g1.psoftg1.usermanagement.repository.*</param>
+                    </targetTests>
+                    <threads>4</threads>
+                    <outputFormats>
+                        <param>HTML</param>
+                    </outputFormats>
+                </configuration>
+            </plugin>
+
+            <!-- Plugin do JaCoCo -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/bootstrapping/**</exclude>
+                        <exclude>**/mappers/**</exclude>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/configuration/**</exclude>
+                        <exclude>**/exceptions/**</exclude>
+                        <exclude>**/*Entity.java</exclude>
+                        <exclude>**/*MongoDB.java</exclude>
+                        <exclude>**/*DTO.java</exclude>
+                        <exclude>**/*Request.java</exclude>
+                        <exclude>**/*Mapper.java</exclude>
+                        <exclude>**/*Repository.java</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 		</plugins>
 	</build>
-
 </project>

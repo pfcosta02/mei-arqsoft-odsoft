@@ -17,15 +17,15 @@ class LendingNumberTest {
     }
     @Test
     void ensureLendingNumberNotWrongFormat(){
-        assertThrows(IllegalArgumentException.class, () -> new LendingNumber("1/2024"));
-        assertThrows(IllegalArgumentException.class, () -> new LendingNumber("24/1"));
-        assertThrows(IllegalArgumentException.class, () -> new LendingNumber("2024-1"));
-        assertThrows(IllegalArgumentException.class, () -> new LendingNumber("2024\\1"));
+        assertThrows(IllegalArgumentException.class, () -> new LendingNumber("1/2025"));
+        assertThrows(IllegalArgumentException.class, () -> new LendingNumber("25/1"));
+        assertThrows(IllegalArgumentException.class, () -> new LendingNumber("2025-1"));
+        assertThrows(IllegalArgumentException.class, () -> new LendingNumber("2025\\1"));
     }
     @Test
     void ensureLendingNumberIsSetWithString() {
-        final var ln = new LendingNumber("2024/1");
-        assertEquals("2024/1", ln.toString());
+        final var ln = new LendingNumber("2025/1");
+        assertEquals("2025/1", ln.toString());
     }
 
     @Test
@@ -37,18 +37,50 @@ class LendingNumberTest {
 
     @Test
     void ensureLendingNumberIsSetWithYearAndSequential() {
-        final LendingNumber ln = new LendingNumber(2024,1);
+        final LendingNumber ln = new LendingNumber(2025,1);
         assertNotNull(ln);
     }
 
     @Test
     void ensureSequentialCannotBeNegative() {
-        assertThrows(IllegalArgumentException.class, () -> new LendingNumber(2024,-1));
+        assertThrows(IllegalArgumentException.class, () -> new LendingNumber(2025, -1));
     }
 
     @Test
     void ensureYearCannotBeInTheFuture() {
         assertThrows(IllegalArgumentException.class, () -> new LendingNumber(LocalDate.now().getYear()+1,1));
+    }
+
+    /* =========================================================== NOVOS TESTES =========================================================== */
+
+    @Test
+    void ensureYearCannotBeBefore1970() 
+    {
+        assertThrows(IllegalArgumentException.class, () -> new LendingNumber(1969, 1));
+    }
+
+    
+    @Test
+    void ensureYear1970IsValid() 
+    {
+        final LendingNumber ln = new LendingNumber(1970, 0);
+        assertEquals("1970/0", ln.toString());
+    }
+
+    
+    void ensureCurrentYearIsValid() 
+    {
+        int currentYear = LocalDate.now().getYear();
+        final LendingNumber ln = new LendingNumber(currentYear, 5);
+        assertEquals(currentYear + "/5", ln.toString());
+    }
+
+
+    @Test
+    void ensureLendingNumberToStringWithYearAndSequential() 
+    {
+        final LendingNumber ln = new LendingNumber(2025, 1);
+        assertEquals("2025/1", ln.toString());
     }
 
 }

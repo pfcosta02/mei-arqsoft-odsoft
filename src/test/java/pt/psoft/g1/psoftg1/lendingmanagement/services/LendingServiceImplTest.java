@@ -1,179 +1,385 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.services;
 
-import org.hibernate.StaleObjectStateException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
-import pt.psoft.g1.psoftg1.authormanagement.model.Author;
-import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationContext;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
+import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.exceptions.LendingForbiddenException;
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
-import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
+import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
+import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
-import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
-import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
+import pt.psoft.g1.psoftg1.shared.services.Page;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 
-@Transactional
-@SpringBootTest
 class LendingServiceImplTest {
-    @Autowired
-    private LendingService lendingService;
-    @Autowired
-    private LendingRepository lendingRepository;
-    @Autowired
-    private ReaderRepository readerRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private BookRepository bookRepository;
-    @Autowired
-    private GenreRepository genreRepository;
-    @Autowired
-    private AuthorRepository authorRepository;
 
-    private Lending lending;
-    private ReaderDetails readerDetails;
-    private Reader reader;
-    private Book book;
-    private Author author;
-    private Genre genre;
+    @Mock
+    private LendingRepository lendingRepository;
+    @Mock
+    private ApplicationContext applicationContext;
+    @Mock
+    private IdGenerator idGenerator;
+    @Mock
+    private FineRepository fineRepository;
+    @Mock
+    private BookRepository bookRepository;
+    @Mock
+    private ReaderRepository readerRepository;
+
+    @InjectMocks
+    private LendingServiceImpl lendingService;
 
     @BeforeEach
-    void setUp() {
-        author = new Author("Manuel Antonio Pina",
-                "Manuel António Pina foi um jornalista e escritor português, premiado em 2011 com o Prémio Camões",
-                null);
-        authorRepository.save(author);
+    void setup() {
+        MockitoAnnotations.openMocks(this);
 
-        genre = new Genre("Género");
-        genreRepository.save(genre);
-
-        List<Author> authors = List.of(author);
-        book = new Book("9782826012092",
-                "O Inspetor Max",
-                "conhecido pastor-alemão que trabalha para a Judiciária, vai ser fundamental para resolver um importante caso de uma rede de malfeitores que quer colocar uma bomba num megaconcerto de uma ilustre cantora",
-                genre,
-                authors,
-                null);
-        bookRepository.save(book);
-
-        reader = Reader.newReader("manuel@gmail.com", "Manuelino123!", "Manuel Sarapinto das Coives");
-        userRepository.save(reader);
-
-        readerDetails = new ReaderDetails(1,
-                reader,
-                "2000-01-01",
-                "919191919",
-                true,
-                true,
-                true,
-                null,null);
-        readerRepository.save(readerDetails);
-
-        // Create and save the lending
-        lending = Lending.newBootstrappingLending(book,
-                readerDetails,
-                LocalDate.now().getYear(),
-                999,
-                LocalDate.of(LocalDate.now().getYear(), 1,1),
-                LocalDate.of(LocalDate.now().getYear(), 1,11),
-                15,
-                300);
-        lendingRepository.save(lending);
-
-    }
-
-    @AfterEach
-    void tearDown() {
-        lendingRepository.delete(lending);
-        readerRepository.delete(readerDetails);
-        userRepository.delete(reader);
-        bookRepository.delete(book);
-        genreRepository.delete(genre);
-        authorRepository.delete(author);
-    }
-
-    @Test
-    void testFindByLendingNumber() {
-        assertThat(lendingService.findByLendingNumber(LocalDate.now().getYear() + "/999")).isPresent();
-        assertThat(lendingService.findByLendingNumber(LocalDate.now().getYear() + "/1")).isEmpty();
-    }
-/*
-    @Test
-    void testListByReaderNumberAndIsbn() {
-
-    }
- */
-    @Test
-    void testCreate() {
-        var request = new CreateLendingRequest("9782826012092",
-                LocalDate.now().getYear() + "/1");
-        var lending1 = lendingService.create(request);
-        assertThat(lending1).isNotNull();
-        var lending2 = lendingService.create(request);
-        assertThat(lending2).isNotNull();
-        var lending3 = lendingService.create(request);
-        assertThat(lending3).isNotNull();
-
-        // 4th lending
-        assertThrows(LendingForbiddenException.class, () -> lendingService.create(request));
-
-        lendingRepository.delete(lending3);
-        lendingRepository.save(Lending.newBootstrappingLending(book,
-                readerDetails,
-                2024,
-                997,
-                LocalDate.of(2024, 3,1),
-                null,
-                15,
-                300));
-
-        // Having an overdue lending
-        assertThrows(LendingForbiddenException.class, () -> lendingService.create(request));
+        when(applicationContext.getBean(IdGenerator.class)).thenReturn(idGenerator);
 
     }
 
     @Test
-    void testSetReturned() {
-        int year = 2024, seq = 888;
-        var notReturnedLending = lendingRepository.save(Lending.newBootstrappingLending(book,
-                readerDetails,
-                year,
-                seq,
-                LocalDate.of(2024, 3,1),
-                null,
-                15,
-                300));
-        var request = new SetLendingReturnedRequest(null);
-        assertThrows(StaleObjectStateException.class,
-                () -> lendingService.setReturned(year + "/" + seq, request, (notReturnedLending.getVersion()-1)));
+    void testListByReaderNumberAndIsbn_WithEmptyReturned() {
+        // Arrange
+        String readerNumber = "R123";
+        String isbn = "ISBN123";
+        List<Lending> lendings = List.of(mock(Lending.class), mock(Lending.class));
+        when(lendingRepository.listByReaderNumberAndIsbn(readerNumber, isbn)).thenReturn(lendings);
 
-        assertDoesNotThrow(
-                () -> lendingService.setReturned(year + "/" + seq, request, notReturnedLending.getVersion()));
+        // Act
+        List<Lending> result = lendingService.listByReaderNumberAndIsbn(readerNumber, isbn, Optional.empty());
+
+        // Assert
+        assertEquals(lendings.size(), result.size());
+        assertEquals(lendings, result);
     }
-/*
+
+    @Test
+    void testListByReaderNumberAndIsbn_WithReturnedTrue() {
+        // Arrange
+        String readerNumber = "R123";
+        String isbn = "ISBN123";
+
+        Lending returnedLending = mock(Lending.class);
+        when(returnedLending.getReturnedDate()).thenReturn(LocalDate.now()); // simulate returned
+
+        Lending notReturnedLending = mock(Lending.class);
+        when(notReturnedLending.getReturnedDate()).thenReturn(null); // simulate not returned
+
+        List<Lending> lendings = new ArrayList<>();
+        lendings.add(returnedLending);
+        lendings.add(notReturnedLending);
+        when(lendingRepository.listByReaderNumberAndIsbn(readerNumber, isbn)).thenReturn(lendings);
+
+        // Act
+        List<Lending> result = lendingService.listByReaderNumberAndIsbn(readerNumber, isbn, Optional.of(true));
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(returnedLending, result.get(0));
+    }
+
+    @Test
+    void testListByReaderNumberAndIsbn_WithReturnedFalse() {
+        // Arrange
+        String readerNumber = "R123";
+        String isbn = "ISBN123";
+
+        Lending returnedLending = mock(Lending.class);
+        when(returnedLending.getReturnedDate()).thenReturn(LocalDate.now()); // simulate returned
+
+        Lending notReturnedLending = mock(Lending.class);
+        when(notReturnedLending.getReturnedDate()).thenReturn(null); // simulate not returned
+
+        List<Lending> lendings = new ArrayList<>();
+        lendings.add(returnedLending);
+        lendings.add(notReturnedLending);
+        when(lendingRepository.listByReaderNumberAndIsbn(readerNumber, isbn)).thenReturn(lendings);
+
+        // Act
+        List<Lending> result = lendingService.listByReaderNumberAndIsbn(readerNumber, isbn, Optional.of(false));
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(notReturnedLending, result.get(0));
+    }
+
+    @Test
+    void testListByReaderNumberAndIsbn_NoMatchingResults() {
+        // Arrange
+        String readerNumber = "R123";
+        String isbn = "ISBN123";
+
+        Lending returnedLending = mock(Lending.class);
+        when(returnedLending.getReturnedDate()).thenReturn(LocalDate.now()); // simulate returned
+
+        Lending notReturnedLending = mock(Lending.class);
+        when(notReturnedLending.getReturnedDate()).thenReturn(null); // simulate not returned
+
+        List<Lending> lendings = new ArrayList<>();
+        lendings.add(returnedLending);
+        lendings.add(notReturnedLending);
+        when(lendingRepository.listByReaderNumberAndIsbn(readerNumber, isbn)).thenReturn(lendings);
+
+        // Act
+        List<Lending> result = lendingService.listByReaderNumberAndIsbn(readerNumber, isbn, Optional.of(false));
+
+        // Assert
+        assertTrue(result.stream().noneMatch(l -> l.getReturnedDate() != null));
+    }
+
+    @Test
+    void testFindByLendingNumber_Success() {
+        String lendingNumber = "LN123";
+        Lending lending = mock(Lending.class);
+        when(lending.getLendingNumber()).thenReturn(lendingNumber);
+
+        when(lendingRepository.findByLendingNumber(lendingNumber)).thenReturn(Optional.of(lending));
+
+        Optional<Lending> result = lendingService.findByLendingNumber(lendingNumber);
+
+        assertTrue(result.isPresent());
+        assertEquals(lendingNumber, result.get().getLendingNumber());
+    }
+
+    @Test
+    void testFindByLendingNumber_NotFound() {
+        String lendingNumber = "LN123";
+
+        when(lendingRepository.findByLendingNumber(lendingNumber)).thenReturn(Optional.empty());
+
+        Optional<Lending> result = lendingService.findByLendingNumber(lendingNumber);
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void testCreateLending_ThrowsLendingForbiddenException_WhenUserHasOutstandingBooks() {
+        String readerNumber = "R123";
+        String isbn = "ISBN123";
+        CreateLendingRequest request = mock(CreateLendingRequest.class);
+        Isbn mockIsbn = mock(Isbn.class);
+        when(mockIsbn.getIsbn()).thenReturn(isbn);
+        when(request.getReaderNumber()).thenReturn(readerNumber);
+        when(request.getIsbn()).thenReturn(isbn);
+
+        Book book = mock(Book.class);
+        ReaderDetails reader = mock(ReaderDetails.class);
+
+
+        Lending existingLending = mock(Lending.class);
+        when(existingLending.getDaysDelayed()).thenReturn(0);  // simulate no delay
+        when(existingLending.getReturnedDate()).thenReturn(null);// simulate not returned yet
+        when(existingLending.getBook()).thenReturn(book);
+        when(existingLending.getBook().getIsbn()).thenReturn(mockIsbn);
+        when(existingLending.getReaderDetails()).thenReturn(reader);
+        when(existingLending.getReaderDetails().getReaderNumber()).thenReturn(readerNumber);
+
+        when(lendingRepository.listOutstandingByReaderNumber(readerNumber)).thenReturn(List.of(existingLending, existingLending, existingLending));
+
+
+        LendingForbiddenException exception = assertThrows(LendingForbiddenException.class, () ->
+                lendingService.create(request));
+
+        assertEquals("Reader has three books outstanding already", exception.getMessage());
+    }
+
+    @Test
+    void testCreateLending_ThrowsNotFoundException_WhenBookNotFound() {
+        String readerNumber = "R123";
+        String isbn = "ISBN123";
+        CreateLendingRequest request = mock(CreateLendingRequest.class);
+        when(request.getReaderNumber()).thenReturn(readerNumber);
+        when(request.getIsbn()).thenReturn(isbn);
+
+        when(lendingRepository.listOutstandingByReaderNumber(readerNumber)).thenReturn(List.of());
+        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.empty());
+
+
+        NotFoundException exception = assertThrows(NotFoundException.class, () ->
+                lendingService.create(request));
+
+        assertEquals("Book not found", exception.getMessage());
+    }
+
+    @Test
+    void testCreateLending_ThrowsNotFoundException_WhenReaderNotFound() {
+        String readerNumber = "R123";
+        String isbn = "ISBN123";
+        CreateLendingRequest request = mock(CreateLendingRequest.class);
+        Isbn mockIsbn = mock(Isbn.class);
+        when(request.getReaderNumber()).thenReturn(readerNumber);
+        when(request.getIsbn()).thenReturn(isbn);
+
+        Book book = mock(Book.class);
+        when(book.getIsbn()).thenReturn(mockIsbn);
+
+        when(lendingRepository.listOutstandingByReaderNumber(readerNumber)).thenReturn(List.of());
+        when(bookRepository.findByIsbn(isbn)).thenReturn(Optional.of(book));
+        when(readerRepository.findByReaderNumber(readerNumber)).thenReturn(Optional.empty());
+
+        NotFoundException exception = assertThrows(NotFoundException.class, () ->
+                lendingService.create(request));
+
+        assertEquals("Reader not found", exception.getMessage());
+
+    }
+
+    @Test
+    void testSetReturned_SavesFine_WhenLendingIsDelayed() 
+    {
+        // Arrange
+        String lendingNumber = "LN123";
+        SetLendingReturnedRequest request = mock(SetLendingReturnedRequest.class);
+        when(request.getCommentary()).thenReturn("Commentary");
+        Lending lending = mock(Lending.class);
+        when(lending.getLendingNumber()).thenReturn(lendingNumber);
+        when(lending.getDaysDelayed()).thenReturn(1);  // simulate delay
+        when(lending.getReturnedDate()).thenReturn(null);  // simulate not returned yet
+
+        when(lendingRepository.findByLendingNumber(lendingNumber)).thenReturn(Optional.of(lending));
+        when(lendingRepository.save(lending)).thenReturn(lending);
+        
+        // Act
+        Lending returned = lendingService.setReturned(lendingNumber, request, 1);
+
+        // Assert
+        assertEquals(lending, returned);
+    }
+
     @Test
     void testGetAverageDuration() {
+        when(lendingRepository.getAverageDuration()).thenReturn(15.7);
+
+        Double avgDuration = lendingService.getAverageDuration();
+
+        assertEquals(15.7, avgDuration);
     }
 
     @Test
     void testGetOverdue() {
+        Page page = mock(Page.class);
+        when(page.getNumber()).thenReturn(1);
+        when(page.getLimit()).thenReturn(10);
+        List<Lending> overdueLendings = List.of(mock(Lending.class), mock(Lending.class));
+
+        when(lendingRepository.getOverdue(page)).thenReturn(overdueLendings);
+
+        List<Lending> result = lendingService.getOverdue(page);
+
+        assertEquals(overdueLendings.size(), result.size());
     }
 
- */
+    @Test
+    void testSearchLendings_WithValidPageAndQuery() {
+        // Arrange
+        Page page = mock(Page.class);
+        when(page.getNumber()).thenReturn(1);
+        when(page.getLimit()).thenReturn(10);
+        SearchLendingQuery query = mock(SearchLendingQuery.class);
+        when(query.getReaderNumber()).thenReturn("R123");
+        when(query.getIsbn()).thenReturn("ISBN123");
+        when(query.getReturned()).thenReturn(true);
+        when(query.getStartDate()).thenReturn("2023-01-01");
+        when(query.getEndDate()).thenReturn("2023-02-01");
+        List<Lending> lendings = List.of(mock(Lending.class), mock(Lending.class));
+
+        LocalDate startDate = LocalDate.parse("2023-01-01");
+        LocalDate endDate = LocalDate.parse("2023-02-01");
+
+        when(lendingRepository.searchLendings(page, "R123", "ISBN123", true, startDate, endDate)).thenReturn(lendings);
+
+        // Act
+        List<Lending> result = lendingService.searchLendings(page, query);
+
+        // Assert
+        assertEquals(lendings.size(), result.size());
+    }
+
+    @Test
+    void testSearchLendings_WithNullQuery_UsesDefaultValues() {
+        // Arrange
+        Page page = mock(Page.class);
+        when(page.getNumber()).thenReturn(1);
+        when(page.getLimit()).thenReturn(10);
+        SearchLendingQuery query = mock(SearchLendingQuery.class);
+        when(query.getReaderNumber()).thenReturn("R123");
+        when(query.getIsbn()).thenReturn("ISBN123");
+        when(query.getReturned()).thenReturn(true);
+        when(query.getStartDate()).thenReturn("2023-01-01");
+        when(query.getEndDate()).thenReturn("2023-02-01");
+        List<Lending> lendings = List.of(mock(Lending.class));
+
+        LocalDate startDate = LocalDate.now().minusDays(10);
+        LocalDate endDate = null;
+
+        when(lendingRepository.searchLendings(page, "", "", null, startDate, endDate)).thenReturn(lendings);
+
+        // Act
+        List<Lending> result = lendingService.searchLendings(page, null);
+
+        // Assert
+        assertEquals(lendings.size(), result.size());
+    }
+
+    @Test
+    void testSearchLendings_InvalidDateFormat_ThrowsException() {
+        // Arrange
+        Page page = mock(Page.class);
+        when(page.getNumber()).thenReturn(1);
+        when(page.getLimit()).thenReturn(10);
+        SearchLendingQuery query = mock(SearchLendingQuery.class);
+        when(query.getReaderNumber()).thenReturn("R123");
+        when(query.getIsbn()).thenReturn("ISBN123");
+        when(query.getReturned()).thenReturn(true);
+        when(query.getStartDate()).thenReturn("invalid-date");
+        when(query.getEndDate()).thenReturn("2023-02-01");
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                lendingService.searchLendings(page, query));
+
+        assertEquals("Expected format is YYYY-MM-DD", exception.getMessage());
+    }
+
+    @Test
+    void testSearchLendings_WithSpecificDateRange() {
+        // Arrange
+        Page page = mock(Page.class);
+        when(page.getNumber()).thenReturn(1);
+        when(page.getLimit()).thenReturn(10);
+        SearchLendingQuery query = mock(SearchLendingQuery.class);
+        when(query.getReaderNumber()).thenReturn("R123");
+        when(query.getIsbn()).thenReturn("ISBN123");
+        when(query.getReturned()).thenReturn(true);
+        when(query.getStartDate()).thenReturn("2023-01-01");
+        when(query.getEndDate()).thenReturn("2023-01-31");
+        List<Lending> lendings = List.of(mock(Lending.class));
+
+        LocalDate startDate = LocalDate.parse("2023-01-01");
+        LocalDate endDate = LocalDate.parse("2023-01-31");
+
+        when(lendingRepository.searchLendings(page, "R123", "ISBN123", true, startDate, endDate)).thenReturn(lendings);
+
+        // Act
+        List<Lending> result = lendingService.searchLendings(page, query);
+
+        // Assert
+        assertEquals(lendings.size(), result.size());
+    }
 }

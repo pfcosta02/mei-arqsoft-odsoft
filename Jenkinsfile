@@ -5,9 +5,9 @@ pipeline {
         githubPush()
     }
 
-    tools {
-        maven 'Maven 3.9.11'
-    }
+//     tools {
+//         maven 'Maven 3.9.11'
+//     }
 
     environment {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')

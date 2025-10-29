@@ -70,11 +70,11 @@ pipeline {
                     echo 'Installing code...'
                     if (isUnix())
                     {
-                        sh "${env.MAVEN_HOME}mvn install -DskipTests"
+                        sh "mvn install -DskipTests"
                     }
                     else
                     {
-                        bat "${env.MAVEN_HOME}mvn install -DskipTests"
+                        bat "mvn install -DskipTests"
                     }
                 }
             }
@@ -89,11 +89,11 @@ pipeline {
                     echo 'Running unit tests...'
                     if (isUnix())
                     {
-                        sh "${env.MAVEN_HOME}mvn surefire:test"
+                        sh "mvn surefire:test"
                     }
                     else
                     {
-                        bat "${env.MAVEN_HOME}mvn surefire:test"
+                        bat "mvn surefire:test"
                     }
                 }
             }
@@ -105,11 +105,11 @@ pipeline {
 //                     echo 'Running integration tests...'
 //                     if (isUnix())
 //                     {
-//                         sh "${env.MAVEN_HOME}mvn failsafe:integration-test failsafe:verify"
+//                         sh "mvn failsafe:integration-test failsafe:verify"
 //                     }
 //                     else
 //                     {
-//                         bat "${env.MAVEN_HOME}mvn failsafe:integration-test failsafe:verify"
+//                         bat "mvn failsafe:integration-test failsafe:verify"
 //                     }
 //                 }
 //             }
@@ -121,11 +121,11 @@ pipeline {
                     echo 'Running mutation tests...'
                     if (isUnix())
                     {
-                        sh "${env.MAVEN_HOME}mvn org.pitest:pitest-maven:mutationCoverage"
+                        sh "mvn org.pitest:pitest-maven:mutationCoverage"
                     }
                     else
                     {
-                        bat "${env.MAVEN_HOME}mvn org.pitest:pitest-maven:mutationCoverage"
+                        bat "mvn org.pitest:pitest-maven:mutationCoverage"
                     }
                 }
             }
@@ -162,11 +162,11 @@ pipeline {
 //                     {
 //                         if (isUnix())
 //                         {
-//                             sh "${env.MAVEN_HOME}mvn verify -X org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=odsoft_2025_1200909_1201270 -Dsonar.token=squ_0ac5031162d837cf1ed694409e5c3d5f15dce98d -Dsonar.coverage.jacoco.xmlReportPaths=target/jacoco/jacoco.xml"
+//                             sh "mvn verify -X org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=odsoft_2025_1200909_1201270 -Dsonar.token=squ_0ac5031162d837cf1ed694409e5c3d5f15dce98d -Dsonar.coverage.jacoco.xmlReportPaths=target/jacoco/jacoco.xml"
 //                         }
 //                         else
 //                         {
-//                             bat "${env.MAVEN_HOME}mvn verify -X sonar:sonar"
+//                             bat "mvn verify -X sonar:sonar"
 //                         }
 //                     }
 //                 }

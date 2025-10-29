@@ -54,11 +54,11 @@ pipeline {
                     echo 'Cleaning workspace...'
                     if (isUnix())
                     {
-                        sh "${env.MAVEN_HOME}mvn clean compile test-compile"
+                        sh "${env.MAVEN_HOME} mvn clean compile test-compile"
                     }
                     else
                     {
-                        bat "${env.MAVEN_HOME}mvn clean compile test-compile"
+                        bat "${env.MAVEN_HOME} mvn clean compile test-compile"
                     }
                 }
             }

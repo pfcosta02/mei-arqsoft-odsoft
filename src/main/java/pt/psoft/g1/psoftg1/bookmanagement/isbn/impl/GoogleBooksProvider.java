@@ -34,6 +34,8 @@ public class GoogleBooksProvider implements IsbnProvider {
             if (body != null && body.containsKey("items")) {
                 List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("items");
 
+                if (items.size() == 1) {
+
                 for (Map<String, Object> item : items) {
                     Map<String, Object> volumeInfo = (Map<String, Object>) item.get("volumeInfo");
 
@@ -57,7 +59,16 @@ public class GoogleBooksProvider implements IsbnProvider {
                         }
                     }
                 }
+             }
+            else{
+
+//                return "Foram encontrados demasiados resultados";
+
             }
+
+            }
+
+
         } catch (Exception e) {
             System.err.println("Erro ao chamar Google Books API: " + e.getMessage());
         }

@@ -5,9 +5,9 @@ pipeline {
         githubPush()
     }
 
-//     tools {
-//         maven 'Maven 3.9.11'
-//     }
+    tools {
+        maven 'Maven 3.9.11'
+    }
 
     environment {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
@@ -44,7 +44,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo '📥 A fazer checkout do repositório...'
-                git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'testes'
+                git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'main'
             }
         }
 
@@ -129,6 +129,18 @@ pipeline {
                     }
                 }
             }
+        }
+
+        stage('SonarQube Analysis') {
+                steps {
+                    script {
+
+                        withSonarQubeEnv(installationName: 'Sonarqube') {
+                         bat 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar'
+
+                    }
+                }
+             }
         }
 
 

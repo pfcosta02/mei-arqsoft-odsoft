@@ -242,8 +242,13 @@ public class BookController {
     }
 
     @GetMapping("/external/search/{title}")
-    public ResponseEntity<Isbn> searchExternalBooks(@PathVariable("title") final String title) {
+    public ResponseEntity<?> searchExternalBooks(@PathVariable("title") final String title) {
         Isbn books = bookService.searchExternalBooks(title);
+        if (books == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Nenhum ISBN encontrado para o título: " + title);
+        }
         return ResponseEntity.ok(books);
     }
 

@@ -29,31 +29,39 @@ public class OpenLibraryProvider implements IsbnProvider {
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
             var body = response.getBody();
 
+
             if (body != null && body.containsKey("docs")) {
                 List<Map<String, Object>> docs = (List<Map<String, Object>>) body.get("docs");
 
-                // Percorrer todos os documentos devolvidos pela pesquisa
-                for (Map<String, Object> doc : docs) {
+                if (docs.size() == 1) {
 
-                    // Caso 1: campo "isbn" existe diretamente
-                    if (doc.get("isbn") instanceof List<?> isbnList && !isbnList.isEmpty()) {
-                        String isbnValue = (String) isbnList.get(0);
-                        return new Isbn(isbnValue);
-                    }
 
-                    // Caso 2: procurar dentro do campo "ia"
-                    if (doc.get("ia") instanceof List<?> iaList && !iaList.isEmpty()) {
-                        for (Object iaObj : iaList) {
-                            if (iaObj instanceof String iaString) {
-                                // Procurar padrão isbn_ seguido de 10 a 13 dígitos
-                                Matcher matcher = Pattern.compile("isbn_(\\d{10,13})").matcher(iaString);
-                                if (matcher.find()) {
-                                    String isbnValue = matcher.group(1);
-                                    return new Isbn(isbnValue);
+                    // Percorrer todos os documentos devolvidos pela pesquisa
+                    for (Map<String, Object> doc : docs) {
+
+                        // Caso 1: campo "isbn" existe diretamente
+                        if (doc.get("isbn") instanceof List<?> isbnList && !isbnList.isEmpty()) {
+                            String isbnValue = (String) isbnList.get(0);
+                            return new Isbn(isbnValue);
+                        }
+
+                        // Caso 2: procurar dentro do campo "ia"
+                        if (doc.get("ia") instanceof List<?> iaList && !iaList.isEmpty()) {
+                            for (Object iaObj : iaList) {
+                                if (iaObj instanceof String iaString) {
+                                    // Procurar padrão isbn_ seguido de 10 a 13 dígitos
+                                    Matcher matcher = Pattern.compile("isbn_(\\d{10,13})").matcher(iaString);
+                                    if (matcher.find()) {
+                                        String isbnValue = matcher.group(1);
+                                        return new Isbn(isbnValue);
+                                    }
                                 }
                             }
                         }
                     }
+                }
+                else{
+                    return null;
                 }
             }
         } catch (Exception e) {

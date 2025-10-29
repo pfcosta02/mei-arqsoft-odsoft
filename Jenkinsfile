@@ -1,97 +1,231 @@
 pipeline {
-  agent any
+    agent any
 
-
-  triggers{
-    githubPush()
-  }
-
-  tools {
-      maven 'Maven 3.9.11'
-  }
-
-  environment {
-    MVN_CMD = "mvn"
-//     SONAR_HOST_URL = "http://<seu-sonar-host>:9000"
-//     SONAR_LOGIN = credentials('sonar-token-id')  // credencial armazenada no Jenkins
-  }
-
-//   stages {
-//     stage('Checkout') {
-//       steps {
-//         checkout scm
-//       }
-//     }
-
-stages{
-stage('Checkout') {
-  steps {
-    echo '📥 A fazer checkout do repositório...'
-    git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'main'
-  }
-}
-
-    stage('Build & Compile') {
-      steps {
-          echo '🚀 A iniciar o build...'
-          bat '${MVN_CMD} clean compile -B'
-      }
+    triggers {
+        githubPush()
     }
-//
-//     stage('Run Unit Tests') {
-//       steps {
-//         bat "${MVN_CMD} test -B"
-//       }
-//       post {
-//         always {
-//           junit '**/target/surefire-reports/*.xml'
-//         }
-//       }
+
+//     tools {
+//         maven 'Maven 3.9.11'
 //     }
 
-    stage('Code Quality / SonarQube Analysis') {
+    environment {
+        MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
+    }
+
+//     environment {
+//         MVN_CMD = "mvn"
+// //     SONAR_HOST_URL = "http://<seu-sonar-host>:9000"
+// //     SONAR_LOGIN = credentials('sonar-token-id')  // credencial armazenada no Jenkins
+//     }
+
+
+    stages {
+        stage('Set Maven Home') {
             steps {
                 script {
-
-                    withSonarQubeEnv(installationName: 'Sonarqube') {
-                     bat 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar'
-
+                    if (isUnix()) {
+                        env.MAVEN_HOME = '/usr/share/maven/bin/'
+                    } else {
+                        env.MAVEN_HOME = '"C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.2.2\\plugins\\maven\\lib\\maven3\\bin\\"'
+                    }
+                    echo "MAVEN_HOME is set to: ${env.MAVEN_HOME}"
                 }
+            }
+        }
+
+//         stage('Checkout') {
+//             steps {
+//                 echo 'Checking out source code...'
+//                 checkout scm
+//             }
+//         }
+
+        stage('Checkout') {
+            steps {
+                echo '📥 A fazer checkout do repositório...'
+                git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'pipeline'
+            }
+        }
+
+        stage('Build & Compile') {
+            steps {
+                script {
+                    echo 'Cleaning workspace...'
+                    if (isUnix())
+                    {
+                        sh "${env.MAVEN_HOME}mvn clean compile test-compile"
+                    }
+                    else
+                    {
+                        bat "${env.MAVEN_HOME}mvn clean compile test-compile"
+                    }
+                }
+            }
+        }
+
+        stage('Install') {
+            steps {
+                script {
+                    echo 'Installing code...'
+                    if (isUnix())
+                    {
+                        sh "${env.MAVEN_HOME}mvn install -DskipTests"
+                    }
+                    else
+                    {
+                        bat "${env.MAVEN_HOME}mvn install -DskipTests"
+                    }
+                }
+            }
+        }
+
+// correr em parelelo os testes
+// parallel {}
+
+        stage('Unit Tests') {
+            steps {
+                script {
+                    echo 'Running unit tests...'
+                    if (isUnix())
+                    {
+                        sh "${env.MAVEN_HOME}mvn surefire:test"
+                    }
+                    else
+                    {
+                        bat "${env.MAVEN_HOME}mvn surefire:test"
+                    }
+                }
+            }
+        }
+//
+//         stage('Integration Tests') {
+//             steps {
+//                 script {
+//                     echo 'Running integration tests...'
+//                     if (isUnix())
+//                     {
+//                         sh "${env.MAVEN_HOME}mvn failsafe:integration-test failsafe:verify"
+//                     }
+//                     else
+//                     {
+//                         bat "${env.MAVEN_HOME}mvn failsafe:integration-test failsafe:verify"
+//                     }
+//                 }
+//             }
+//         }
+//
+        stage('Mutation Tests') {
+            steps {
+                script {
+                    echo 'Running mutation tests...'
+                    if (isUnix())
+                    {
+                        sh "${env.MAVEN_HOME}mvn org.pitest:pitest-maven:mutationCoverage"
+                    }
+                    else
+                    {
+                        bat "${env.MAVEN_HOME}mvn org.pitest:pitest-maven:mutationCoverage"
+                    }
+                }
+            }
+        }
+
+
+
+//         stage('SonarQube Static Code Analysis') {
+//             steps {
+//                 script {
+//                     // Define o mapa de ambientes -> servidores SonarQube
+//                     def ENVIRONMENT_2_SONARQUBE_SERVER = [
+//                         'docker': 'sonarqube_docker',
+//                         'local' : 'sonarqube_local'
+//                     ]
+//
+//                     def sonarServer = ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
+//
+//                     echo "Running SonarQube analysis using server: ${sonarServer}"
+//
+//                     withSonarQubeEnv(sonarServer)
+//                     {
+//                         if (isUnix())
+//                         {
+//                             sh "${env.MAVEN_HOME}mvn verify -X org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=odsoft_2025_1200909_1201270 -Dsonar.token=squ_0ac5031162d837cf1ed694409e5c3d5f15dce98d -Dsonar.coverage.jacoco.xmlReportPaths=target/jacoco/jacoco.xml"
+//                         }
+//                         else
+//                         {
+//                             bat "${env.MAVEN_HOME}mvn verify -X sonar:sonar"
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//
+//         stage('SonarQube Quality Gate') {
+//             steps {
+//                 timeout(time: 5, unit: 'MINUTES') {
+//                     script {
+//                         def qualityGateResult = waitForQualityGate(abortPipeline: true)
+//                         if (qualityGateResult.status == 'OK')
+//                         {
+//                             echo 'Quality gate passed. Proceeding with the pipeline.'
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//
+//
+//         stage('JaCoCo')
+//         {
+//             steps {
+//                 jacoco execPattern: '**/target/jacoco.exec',
+//                        classPattern: '**/target/classes',
+//                        sourcePattern: '**/src/main/java',
+//                        inclusionPattern: '**/*.class'
+//             }
+//         }
+
+        stage('Package') {
+            steps {
+                echo 'Building the final package...'
+                sh 'mvn package -DskipTests'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying the application...'
+                // Adiciona comandos de deploy aqui
+                // script
+                // {
+                //     sh '''
+                //     scp target/myapp.jar user@dev-server:/opt/myapp/
+                //     ssh user@dev-server "java -jar /opt/myapp/myapp.jar &"
+                //     '''
+                // }
             }
         }
     }
 
-    stage('Package') {
-      steps {
-        echo 'Gerando artefato...'
-        bat "${MVN_CMD} package -B -DskipTests"
-//         archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-      }
-    }
+    post {
+        success
+        {
+            echo 'Pipeline completed successfully.'
+            // Meter aqui o html gerado pelo Pitest
+            // archiveArtifacts artifacts: ""
+            // junit skipPublishingChecks: true,  testResults:'**/target/surefire-reports/*.xml'
+        }
 
-//     stage('Deploy to Dev') {
-//       steps {
-//         // Por exemplo via SSH ou usando docker pull + docker run no servidor
-//         sshagent(['ssh-credentials-id']) {
-//           sh """
-//             ssh user@dev-server "docker pull registry.exemplo.com/${IMAGE_NAME} && docker stop odsoft || true && docker rm odsoft || true && docker run -d --name odsoft -p 8080:8080 registry.exemplo.com/${IMAGE_NAME}"
-//           """
-//         }
-//       }
-//     }
-  }
+        failure
+        {
+            echo 'Pipeline failure'
+        }
 
-  post {
-    always {
-      echo '🏁 Pipeline terminada!'
-//       archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
-//       cleanWs()
+        always
+        {
+            echo 'Performing cleanup...'
+            // Cleanup code
+        }
     }
-    failure {
-    echo "Error na pipeline!"
-//       mail to: 'teu-email@dominio.com',
-//            subject: "Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-//            body: "Veja no Jenkins console output: ${env.BUILD_URL}"
-    }
-  }
 }

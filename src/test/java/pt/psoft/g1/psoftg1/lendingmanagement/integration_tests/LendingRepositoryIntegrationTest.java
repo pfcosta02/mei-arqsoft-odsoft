@@ -1,4 +1,4 @@
-//package pt.psoft.g1.psoftg1.lendingmanagement.integration_tests;
+//package pt.psoft.g1.psoftg1.lendingmanagement.repositories;
 //
 //import org.junit.jupiter.api.AfterEach;
 //import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +13,6 @@
 //import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 //import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 //import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
-//import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
 //import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 //import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 //import pt.psoft.g1.psoftg1.shared.services.Page;
@@ -30,7 +29,7 @@
 //
 //@Transactional
 //@SpringBootTest
-//public class LendingRepositoryIT {
+//public class LendingRepositoryIntegrationTest {
 //
 //    @Autowired
 //    private LendingRepository lendingRepository;
@@ -126,7 +125,7 @@
 //
 //    @Test
 //    public void testListByReaderNumberAndIsbn() {
-//        List<Lending> lendings = lendingRepository.listByReaderNumberAndIsbn(lending.getReaderDetails().getReaderNumber(), lending.getBook().getIsbn().getIsbn());
+//        List<Lending> lendings = lendingRepository.listByReaderNumberAndIsbn(lending.getReaderDetails().getReaderNumber(), lending.getBook().getIsbn().toString());
 //        assertThat(lendings).isNotEmpty();
 //        assertThat(lendings).contains(lending);
 //    }

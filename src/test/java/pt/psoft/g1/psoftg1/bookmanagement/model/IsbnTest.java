@@ -78,7 +78,7 @@ class IsbnTest {
     {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> new Isbn(""));
     
-        assertEquals("Isbn cannot be blank", exception.getMessage());
+        assertEquals("Invalid ISBN format or check digit.", exception.getMessage());
     }
 
     @Test

@@ -23,6 +23,7 @@ import pt.psoft.g1.psoftg1.readermanagement.services.ReaderService;
 import pt.psoft.g1.psoftg1.shared.model.Photo;
 import pt.psoft.g1.psoftg1.shared.services.ConcurrencyService;
 import pt.psoft.g1.psoftg1.shared.services.FileStorageService;
+import pt.psoft.g1.psoftg1.usermanagement.model.Librarian;
 import pt.psoft.g1.psoftg1.usermanagement.model.Role;
 import pt.psoft.g1.psoftg1.usermanagement.model.User;
 import pt.psoft.g1.psoftg1.usermanagement.services.UserService;
@@ -105,9 +106,11 @@ class ReaderControllerTest {
         // Arrange
         Set<Role> mockedRoles = mock(Set.class);
         when(mockedRoles.contains(any(Role.class))).thenReturn(true);
-        when(user.getAuthorities()).thenReturn(mockedRoles);
 
-        when(userService.getAuthenticatedUser(any(Authentication.class))).thenReturn(user);
+        Librarian librarianUser = mock(Librarian.class);
+        when(librarianUser.getAuthorities()).thenReturn(mockedRoles);
+
+        when(userService.getAuthenticatedUser(any(Authentication.class))).thenReturn(librarianUser);
         when(readerService.findAll()).thenReturn(List.of(readerDetails));
         when(readerViewMapper.toReaderView(List.of(readerDetails))).thenReturn(List.of(readerView));
 

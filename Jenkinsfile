@@ -44,7 +44,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo '📥 A fazer checkout do repositório...'
-                git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'pipeline'
+                git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'testes'
             }
         }
 

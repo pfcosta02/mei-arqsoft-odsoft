@@ -241,8 +241,8 @@ public class BookController {
         return new ListResponse<>(bookViewMapper.toBookView(bookList));
     }
 
-    @GetMapping("/external/search")
-    public ResponseEntity<Isbn> searchExternalBooks(@RequestParam String title) {
+    @GetMapping("/external/search/{title}")
+    public ResponseEntity<Isbn> searchExternalBooks(@PathVariable("title") final String title) {
         Isbn books = bookService.searchExternalBooks(title);
         return ResponseEntity.ok(books);
     }

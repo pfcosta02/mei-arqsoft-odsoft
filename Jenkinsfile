@@ -20,7 +20,7 @@ pipeline {
 //     }
 
 
-//     stages {
+    stages {
 //         stage('Set Maven Home') {
 //             steps {
 //                 script {

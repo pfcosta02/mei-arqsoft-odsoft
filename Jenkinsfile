@@ -134,9 +134,17 @@ pipeline {
         stage('SonarQube Analysis') {
                 steps {
                     script {
-
-                        withSonarQubeEnv(installationName: 'Sonarqube') {
-                         bat 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar'
+                     withSonarQubeEnv("sonarqube_local")
+                        {
+                            if (isUnix())
+                            {
+                                sh "mvn verify -X sonar:sonar"
+                            }
+                            else
+                            {
+                                bat "mvn verify -X sonar:sonar"
+                            }
+                        }
 
                     }
                 }
@@ -188,15 +196,15 @@ pipeline {
 //         }
 //
 //
-//         stage('JaCoCo')
-//         {
-//             steps {
-//                 jacoco execPattern: '**/target/jacoco.exec',
-//                        classPattern: '**/target/classes',
-//                        sourcePattern: '**/src/main/java',
-//                        inclusionPattern: '**/*.class'
-//             }
-//         }
+        stage('JaCoCo')
+        {
+            steps {
+                jacoco execPattern: '**/target/jacoco.exec',
+                       classPattern: '**/target/classes',
+                       sourcePattern: '**/src/main/java',
+                       inclusionPattern: '**/*.class'
+            }
+        }
 
         stage('Package') {
             steps {

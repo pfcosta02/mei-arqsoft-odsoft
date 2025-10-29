@@ -34,19 +34,19 @@ pipeline {
 //             }
 //         }
 
-//         stage('Checkout') {
-//             steps {
-//                 echo 'Checking out source code...'
-//                 checkout scm
-//             }
-//         }
-
         stage('Checkout') {
             steps {
                 echo '📥 A fazer checkout do repositório...'
-                git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'main'
+                checkout scm
             }
         }
+
+//         stage('Checkout') {
+//             steps {
+//                 echo '📥 A fazer checkout do repositório...'
+//                 git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'main'
+//             }
+//         }
 
         stage('Build & Compile') {
             steps {

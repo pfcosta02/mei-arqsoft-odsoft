@@ -1,5 +1,8 @@
 package pt.psoft.g1.psoftg1.readermanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDate;
 
 public class BirthDate {
@@ -14,7 +17,8 @@ public class BirthDate {
         this.birthDate = validateDate(LocalDate.of(year, month, day), DEFAULT_MINIMUM_AGE);
     }
 
-    public BirthDate(String birthDate)
+    @JsonCreator
+    public BirthDate(@JsonProperty("birthDate") String birthDate)
     {
         if (!birthDate.matches(DATE_FORMAT_REGEX))
         {

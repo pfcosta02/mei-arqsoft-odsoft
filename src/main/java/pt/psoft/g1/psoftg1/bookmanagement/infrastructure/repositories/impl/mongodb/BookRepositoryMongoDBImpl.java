@@ -4,6 +4,8 @@ import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +54,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#genre")
     public List<Book> findByGenre(@Param("genre") String genre)
     {
         List<Book> books = new ArrayList<>();
@@ -64,6 +67,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     }
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#title")
     public List<Book> findByTitle(@Param("title") String title)
     {
         List<Book> books = new ArrayList<>();
@@ -76,6 +80,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     }
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#authorName")
     public List<Book> findByAuthorName(@Param("authorName") String authorName)
     {
         List<Book> books = new ArrayList<>();
@@ -88,6 +93,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     }
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#isbn")
     public Optional<Book> findByIsbn(@Param("isbn") String isbn)
     {
         Optional<BookMongoDB> entityOpt = bookRepositoryMongoDB.findByIsbn(isbn);
@@ -102,6 +108,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     }
 
     @Override
+    @Cacheable(cacheNames = "booksTop5", key = "#oneYearAgo.toString() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
     {
         //TODO: Corrigir este
@@ -109,6 +116,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     }
 
     @Override
+    @Cacheable(cacheNames = "books", key = "#authorNumber")
     public List<Book> findBooksByAuthorNumber(String authorNumber)
     {
         List<Book> books = new ArrayList<>();
@@ -185,6 +193,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 //    }
 
     @Override
+    @CacheEvict(cacheNames = {"books", "booksTop5"}, allEntries = true)
     public Book save(Book book) {
         // Converte o modelo de domínio para documento Mongo
         BookMongoDB bookDoc = bookMapperMongoDB.toMongoDB(book);
@@ -226,6 +235,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
 
     @Override
+    @CacheEvict(cacheNames = {"books", "booksTop5"}, allEntries = true)
     public void delete(Book book) {
         bookRepositoryMongoDB.delete(bookMapperMongoDB.toMongoDB(book));
     }

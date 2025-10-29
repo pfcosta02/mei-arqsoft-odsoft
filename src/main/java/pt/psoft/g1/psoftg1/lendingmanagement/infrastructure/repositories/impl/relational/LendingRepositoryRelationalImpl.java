@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -39,6 +41,7 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     private final ReaderDetailsRepositoryRelationalImpl readerDetailsRepo;
 
     @Override
+    @Cacheable(cacheNames = "lendings", key = "#lendingNumber")
     public Optional<Lending> findByLendingNumber(String lendingNumber)
     {
         Optional<LendingEntity> entityOpt = lendingRepo.findByLendingNumber(lendingNumber);
@@ -53,6 +56,7 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     }
 
     @Override
+    @Cacheable(cacheNames = "lendings_by_reader_isbn", key = "#readerNumber + '_' + #isbn")
     public List<Lending> listByReaderNumberAndIsbn(String readerNumber, String isbn)
     {
         List<Lending> lendings = new ArrayList<>();
@@ -65,12 +69,14 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     }
 
     @Override
+    @Cacheable(cacheNames = "lendings_count", key = "'currentYear'")
     public int getCountFromCurrentYear()
     {
         return lendingRepo.getCountFromCurrentYear();
     }
 
     @Override
+    @Cacheable(cacheNames = "lendings_outstanding", key = "#readerNumber")
     public List<Lending> listOutstandingByReaderNumber(String readerNumber)
     {
         List<Lending> lendings = new ArrayList<>();
@@ -83,18 +89,21 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     }
 
     @Override
+    @Cacheable(cacheNames = "lendings_avg_duration", key = "'global'")
     public Double getAverageDuration()
     {
         return lendingRepo.getAverageDuration();
     }
 
     @Override
+    @Cacheable(cacheNames = "lendings_avg_duration_by_isbn", key = "#isbn")
     public Double getAvgLendingDurationByIsbn(String isbn)
     {
         return lendingRepo.getAvgLendingDurationByIsbn(isbn);
     }
 
     @Override
+    @Cacheable(cacheNames = "lendings_overdue")
     public List<Lending> getOverdue(Page page)
     {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -125,6 +134,10 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     }
 
     @Override
+    @Cacheable(
+            cacheNames = "lendings_search",
+            key = "#page.number + '_' + #readerNumber + '_' + #isbn + '_' + #returned + '_' + #startDate + '_' + #endDate"
+    )
     public List<Lending> searchLendings(Page page, String readerNumber, String isbn, Boolean returned, LocalDate startDate, LocalDate endDate)
     {
         final CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -182,6 +195,16 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     }
 
     @Override
+    @CacheEvict(value = {
+            "lendings",
+            "lendings_by_reader_isbn",
+            "lendings_count",
+            "lendings_outstanding",
+            "lendings_avg_duration",
+            "lendings_avg_duration_by_isbn",
+            "lendings_search",
+            "lendings_overdue"
+    }, allEntries = true)
     public Lending save(Lending lending)
     {
         // Convert the domain model (Lending) to a JPA entity (LendingEntity)
@@ -212,6 +235,16 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     }
 
     @Override
+    @CacheEvict(value = {
+            "lendings",
+            "lendings_by_reader_isbn",
+            "lendings_count",
+            "lendings_outstanding",
+            "lendings_avg_duration",
+            "lendings_avg_duration_by_isbn",
+            "lendings_search",
+            "lendings_overdue"
+    }, allEntries = true)
     public void delete(Lending lending)
     {
         lendingRepo.delete(lendingEntityMapper.toEntity(lending));

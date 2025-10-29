@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -23,6 +24,9 @@ import java.time.Duration;
 
 @Configuration
 public class RedisConfig {
+
+    @Value("${spring.cache.redis.time-to-live}")
+    private Duration timeToLive;
 
     /**
      * Single GenericJackson2JsonRedisSerializer used everywhere.
@@ -83,7 +87,7 @@ public class RedisConfig {
                 .serializeValuesWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(serializer)
                 )
-                .entryTtl(Duration.ofHours(1)); // optional TTL
+                .entryTtl(timeToLive); // optional TTL
 
         return RedisCacheManager.builder(factory)
                 .cacheDefaults(config)

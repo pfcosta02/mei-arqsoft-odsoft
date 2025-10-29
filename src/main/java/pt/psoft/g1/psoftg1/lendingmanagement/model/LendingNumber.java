@@ -1,5 +1,8 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -34,7 +37,8 @@ public class LendingNumber implements Serializable
      * <p>
      * Initialization may fail if the format is not as expected.
      */
-    public LendingNumber(String lendingNumber)
+    @JsonCreator
+    public LendingNumber(@JsonProperty("lendingNumber") String lendingNumber)
     {
         if (lendingNumber == null)
         {

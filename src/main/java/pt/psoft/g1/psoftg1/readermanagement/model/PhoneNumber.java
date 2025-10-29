@@ -9,6 +9,10 @@ public class PhoneNumber
         setPhoneNumber(phoneNumber);
     }
 
+    protected PhoneNumber() {
+        // for frameworks (Jackson, JPA, etc.)
+    }
+
     // Setter
     public void setPhoneNumber(String phoneNumber)
     {

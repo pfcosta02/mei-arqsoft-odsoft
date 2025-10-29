@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
@@ -49,7 +50,7 @@ public class UserBootstrapper implements CommandLineRunner {
         createReaders();
         createLibrarian();
         executeQueries();
-        Objects.requireNonNull(cacheManager.getCache("genres")).clear();
+        clearAllCachesAfterBootstrap();
     }
 
     private void createReaders() {
@@ -276,8 +277,12 @@ public class UserBootstrapper implements CommandLineRunner {
         }
     }
 
-    @PostConstruct
-    public void clearCachesAfterBootstrap() {
-        Objects.requireNonNull(cacheManager.getCache("genres")).clear();
+    private void clearAllCachesAfterBootstrap() {
+        cacheManager.getCacheNames().forEach(name -> {
+            Cache cache = cacheManager.getCache(name);
+            if (cache != null) {
+                cache.clear();
+            }
+        });
     }
 }

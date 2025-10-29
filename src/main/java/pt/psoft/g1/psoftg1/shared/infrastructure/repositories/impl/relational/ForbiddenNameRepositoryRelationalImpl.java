@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
@@ -31,6 +33,7 @@ public class ForbiddenNameRepositoryRelationalImpl implements ForbiddenNameRepos
     private final ForbiddenNameEntityMapper forbiddenNameEntityMapper;
 
     @Override
+    @Cacheable(cacheNames = "forbbiden_names", key = "'all'")
     public Iterable<ForbiddenName> findAll()
     {
         List<ForbiddenName> fn = new ArrayList<>();
@@ -43,6 +46,7 @@ public class ForbiddenNameRepositoryRelationalImpl implements ForbiddenNameRepos
     }
 
     @Override
+    @Cacheable(cacheNames = "forbbiden_names", key = "#pat")
     public List<ForbiddenName> findByForbiddenNameIsContained(String pat)
     {
         List<ForbiddenName> fn = new ArrayList<>();
@@ -55,12 +59,14 @@ public class ForbiddenNameRepositoryRelationalImpl implements ForbiddenNameRepos
     }
 
     @Override
+    @CacheEvict(cacheNames = "forbbiden_names", allEntries = true)
     public ForbiddenName save(ForbiddenName forbiddenName)
     {
         return forbiddenNameEntityMapper.toModel(forbiddenNameRepository.save(forbiddenNameEntityMapper.toEntity(forbiddenName)));
     }
 
     @Override
+    @Cacheable(cacheNames = "forbbiden_names", key = "#forbiddenName")
     public Optional<ForbiddenName> findByForbiddenName(String forbiddenName)
     {
         Optional<ForbiddenNameEntity> entityOpt = forbiddenNameRepository.findByForbiddenName(forbiddenName);

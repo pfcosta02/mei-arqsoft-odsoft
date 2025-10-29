@@ -5,6 +5,9 @@ import jakarta.persistence.criteria.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +40,7 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
 
 
     @Override
+    @Cacheable(value = "genres", key = "'all'")
     public Iterable<Genre> findAll()
     {
         List<Genre> genres = new ArrayList<>();
@@ -49,6 +53,7 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
     }
 
     @Override
+    @Cacheable(value = "genres", key = "#genreName")
     public Optional<Genre> findByString(String genreName)
     {
         Optional<GenreMongoDB> entityOpt = genreRepo.findByString(genreName);
@@ -63,12 +68,23 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "genres", key = "#genre.genre"),
+            @CacheEvict(cacheNames = "genres", allEntries = true, condition = "#genre.pk == null"),
+            @CacheEvict(cacheNames = "genres_top5", allEntries = true),
+            @CacheEvict(cacheNames = {
+                    "genres_lendings_per_month_last_year",
+                    "genres_lendings_avg_duration",
+                    "genres_lendings_avg_in_month"
+            }, allEntries = true)
+    })
     public Genre save(Genre genre)
     {
         return genreEntityMapper.toModel(genreRepo.save(genreEntityMapper.toMongoDB(genre)));
     }
 
     @Override
+    @Cacheable(value = "genres_top5", key = "#pageable.pageNumber")
     public List<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable)
     {
         return genreRepo.findTop5GenreByBookCount(pageable);
@@ -81,6 +97,7 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
     }
 
     @Override
+    @Cacheable(value = "genres_lendings_per_month_last_year")
     public List<GenreLendingsPerMonthDTO> getLendingsPerMonthLastYearByGenre() {
         LocalDate now = LocalDate.now();
         LocalDate twelveMonthsAgo = now.minusMonths(12);
@@ -101,6 +118,7 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
     }
 
     @Override
+    @Cacheable(value = "genres_lendings_avg_in_month", key = "#month")
     public List<GenreLendingsDTO> getAverageLendingsInMonth(LocalDate month, pt.psoft.g1.psoftg1.shared.services.Page page) {
         int daysInMonth = month.lengthOfMonth();
         LocalDate firstOfMonth = month.withDayOfMonth(1);
@@ -120,6 +138,7 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
     }
 
     @Override
+    @Cacheable(value = "genres_lendings_avg_duration", key = "{#startDate, #endDate}")
     public List<GenreLendingsPerMonthDTO> getLendingsAverageDurationPerMonth(LocalDate startDate, LocalDate endDate) {
         List<GenreLendingsDTO> rawResults =
                 genreRepo.getLendingsAverageDurationPerMonth(startDate, endDate);

@@ -28,6 +28,10 @@ public class ReaderNumber implements Serializable
         this.readerNumber = readerNumber;
     }
 
+    protected ReaderNumber() {
+        // for frameworks (Jackson, JPA, etc.)
+    }
+
     // Getter
     public String getReaderNumber()
     {

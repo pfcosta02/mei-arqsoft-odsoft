@@ -8,6 +8,8 @@ Este documento serve para toda a documentação do projeto para a unidade curric
 
 #### Nível 1
 
+Vista de implementação de nível é sememlhante à vista lógica correspondente ao mesmo nível.
+
 #### Nível 2
 ![VI_Level_2.jpg](System-as-is/Vista%20Implementa%C3%A7%C3%A3o/VI_Level_2.jpg)
 
@@ -82,6 +84,7 @@ O sistema atualmente não suporta:
 - Extensibilidade: a arquitetura atual não facilita a integração de novas funcionalidades ou módulos sem modificações significativas no código existente;
 - Configurabilidade: o sistema apresenta uma falta de flexibilidade para modificar comportamentos e parâmetros do sistema em tempo de execução;
 - Confiabilidade: faltam mecanismos robustos de tratamento de erros, monitorização e recuperação do serviço em caso de falhas.
+- Persistência de dados: O sistema atual não permite persistir dados em diferentes modelos de SGBDs.
 
 
 ### Requisitos Funcionais
@@ -92,9 +95,9 @@ O sistema atualmente não suporta:
   - Motor de pesquisa orientado a documentos (Elastic Search);
   - Armazenamento em cache (Redis):
 
-- O sistema deve conseguir ir buscar o ISBN de um Livro através do seu título usando diferentes sistemas externos (ISBNdb, Google Books API, Open Library Search API);
+- O sistema deve conseguir ir buscar o ISBN de um Livro através do seu título usando diferentes sistemas externos (Google Books API, Open Library Search API);
 
-- O sistema deve gerar IDs em diversos formatos de acordo com as especificações.
+- O sistema deve gerar IDs em diversos formatos de acordo com as especificações providenciadas.
 
 ### Requisitos Não Funcionais
 
@@ -102,3 +105,6 @@ O sistema atualmente não suporta:
 
 
 ## Attribute-driven design (ADD)
+
+### QAS-01
+[Persistir dados em diferentes SGBD.md](ADD/Persistir%20dados%20em%20diferentes%20SGBD.md)

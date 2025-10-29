@@ -132,23 +132,21 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-                steps {
-                    script {
-                     withSonarQubeEnv("sonarqube_local")
+            steps {
+                script {
+                    withSonarQubeEnv("sonarqube_local")
+                    {
+                        if (isUnix())
                         {
-                            if (isUnix())
-                            {
-                                sh "mvn verify -X sonar:sonar"
-                            }
-                            else
-                            {
-                                bat "mvn verify -X sonar:sonar"
-                            }
+                            sh "mvn verify -X sonar:sonar"
                         }
-
+                        else
+                        {
+                            bat "mvn verify -X sonar:sonar"
+                        }
                     }
                 }
-
+            }
         }
 
 

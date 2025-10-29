@@ -31,7 +31,7 @@ public class UserTestDataFactory {
         final User user = userService.create(createRequest);
 
         assertNotNull(user.getId(), "User id must not be null!");
-        assertEquals(fullName, user.getName().toString(), "User name update isn't applied!");
+        assertEquals(fullName, user.getName().getName(), "User name update isn't applied!");
 
         return userViewMapper.toUserView(user);
     }

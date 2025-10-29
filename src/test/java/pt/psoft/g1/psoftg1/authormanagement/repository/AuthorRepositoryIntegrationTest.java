@@ -33,7 +33,7 @@
 //        entityManager.flush();
 //
 //        // when
-//        List<Author> list = authorRepository.searchByNameName(alex.getName().toString());
+//        List<Author> list = authorRepository.searchByNameName(alex.getName().getName());
 //
 //        // then
 //        assertThat(list).isNotEmpty();

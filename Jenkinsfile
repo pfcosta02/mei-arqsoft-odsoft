@@ -5,9 +5,9 @@ pipeline {
         githubPush()
     }
 
-//     tools {
-//         maven 'Maven 3.9.11'
-//     }
+    tools {
+        maven 'Maven 3.9.11'
+    }
 
     environment {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
@@ -20,19 +20,19 @@ pipeline {
 //     }
 
 
-    stages {
-        stage('Set Maven Home') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        env.MAVEN_HOME = '/usr/share/maven/bin/'
-                    } else {
-                        env.MAVEN_HOME = '"C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.2.2\\plugins\\maven\\lib\\maven3\\bin\\"'
-                    }
-                    echo "MAVEN_HOME is set to: ${env.MAVEN_HOME}"
-                }
-            }
-        }
+//     stages {
+//         stage('Set Maven Home') {
+//             steps {
+//                 script {
+//                     if (isUnix()) {
+//                         env.MAVEN_HOME = '/usr/share/maven/bin/'
+//                     } else {
+//                         env.MAVEN_HOME = '"C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.2.2\\plugins\\maven\\lib\\maven3\\bin\\"'
+//                     }
+//                     echo "MAVEN_HOME is set to: ${env.MAVEN_HOME}"
+//                 }
+//             }
+//         }
 
 //         stage('Checkout') {
 //             steps {
@@ -54,11 +54,11 @@ pipeline {
                     echo 'Cleaning workspace...'
                     if (isUnix())
                     {
-                        sh "${env.MAVEN_HOME} mvn clean compile test-compile"
+                        sh "mvn clean compile test-compile"
                     }
                     else
                     {
-                        bat "${env.MAVEN_HOME} mvn clean compile test-compile"
+                        bat "mvn clean compile test-compile"
                     }
                 }
             }

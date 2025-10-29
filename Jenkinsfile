@@ -189,7 +189,14 @@ pipeline {
         stage('Package') {
             steps {
                 echo 'Building the final package...'
-                sh 'mvn package -DskipTests'
+                if (isUnix())
+                    {
+                        sh 'mvn package -DskipTests'
+                    }
+                    else
+                    {
+                        bat 'mvn package -DskipTests'
+                    }
             }
         }
 

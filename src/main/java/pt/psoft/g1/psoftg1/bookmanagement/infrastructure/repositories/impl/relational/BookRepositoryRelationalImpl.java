@@ -48,7 +48,6 @@ public class BookRepositoryRelationalImpl implements BookRepository
     private final EntityManager em;
 
     @Override
-    @Cacheable(cacheNames = "books", key = "#genre")
     public List<Book> findByGenre(@Param("genre") String genre)
     {
         List<Book> books = new ArrayList<>();
@@ -61,7 +60,6 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
-    @Cacheable(cacheNames = "books", key = "#title")
     public List<Book> findByTitle(@Param("title") String title)
     {
         List<Book> books = new ArrayList<>();
@@ -74,7 +72,6 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
-    @Cacheable(cacheNames = "books", key = "#authorName")
     public List<Book> findByAuthorName(@Param("authorName") String authorName)
     {
         List<Book> books = new ArrayList<>();
@@ -87,7 +84,6 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
-    @Cacheable(cacheNames = "books", key = "#isbn")
     public Optional<Book> findByIsbn(@Param("isbn") String isbn)
     {
         Optional<BookEntity> entityOpt = bookRepo.findByIsbn(isbn);
@@ -102,7 +98,6 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
-    @Cacheable(cacheNames = "booksTop5", key = "#oneYearAgo.toString() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
     {
         //TODO: Corrigir este
@@ -110,7 +105,6 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
-    @Cacheable(cacheNames = "books", key = "#authorNumber")
     public List<Book> findBooksByAuthorNumber(String authorNumber)
     {
         List<Book> books = new ArrayList<>();
@@ -165,7 +159,6 @@ public class BookRepositoryRelationalImpl implements BookRepository
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = {"books", "booksTop5"}, allEntries = true)
     public Book save(Book book)
     {
         // Convert the domain model (Book) to a JPA entity (BookEntity)
@@ -214,7 +207,6 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
-    @CacheEvict(cacheNames = {"books", "booksTop5"}, allEntries = true)
     public void delete(Book book)
     {
         // TODO: implement delete logic

@@ -29,7 +29,6 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     private final AuthorEntityMapper authorEntityMapper;
 
     @Override
-    @Cacheable(value = "authors", key = "#authorNumber")
     public Optional<Author> findByAuthorNumber(String authorNumber)
     {
         Optional<AuthorEntity> entityOpt = authoRepo.findByAuthorNumber(authorNumber);
@@ -44,7 +43,6 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     }
 
     @Override
-    @Cacheable(value = "authors", key = "#name")
     public List<Author> searchByNameNameStartsWith(String name)
     {
         List<Author> authors = new ArrayList<>();
@@ -57,7 +55,6 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     }
 
     @Override
-    @Cacheable(value = "authors", key = "#name")
     public List<Author> searchByNameName(String name)
     {
         List<Author> authors = new ArrayList<>();
@@ -70,18 +67,12 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     }
 
     @Override
-    @Caching(evict = {
-            @CacheEvict(cacheNames = "authors", key = "#author.name.name"),
-            @CacheEvict(cacheNames = "authors", allEntries = true, condition = "#author.authorNumber == null"),
-            @CacheEvict(cacheNames = "topAuthors", allEntries = true)
-    })
     public Author save(Author author)
     {
         return authorEntityMapper.toModel( authoRepo.save(authorEntityMapper.toEntity(author)));
     }
 
     @Override
-    @Cacheable(value = "authors", key = "'all'")
     public Iterable<Author> findAll()
     {
         List<Author> authors = new ArrayList<>();
@@ -94,10 +85,6 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     }
 
     @Override
-    @Cacheable(
-            cacheNames = "topAuthors",
-            key = "'page:' + #pageableRules.pageNumber + ':size:' + #pageableRules.pageSize"
-    )
     public List<AuthorLendingView> findTopAuthorByLendings (Pageable pageableRules)
     {
         return authoRepo.findTopAuthorByLendings(pageableRules);
@@ -110,7 +97,6 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     }
 
     @Override
-    @Cacheable(value = "authors", key = "#authorNumber")
     public List<Author> findCoAuthorsByAuthorNumber(String authorNumber)
     {
         List<Author> authors = new ArrayList<>();

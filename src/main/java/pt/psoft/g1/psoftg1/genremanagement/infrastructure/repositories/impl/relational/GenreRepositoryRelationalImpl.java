@@ -45,7 +45,6 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     private final EntityManager entityManager;
 
     @Override
-    @Cacheable(value = "genres", key = "'all'")
     public Iterable<Genre> findAll()
     {
         List<Genre> genres = new ArrayList<>();
@@ -58,7 +57,6 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     }
 
     @Override
-    @Cacheable(value = "genres", key = "#genreName")
     public Optional<Genre> findByString(String genreName)
     {
         Optional<GenreEntity> entityOpt = genreRepo.findByString(genreName);
@@ -74,16 +72,6 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = "genres", key = "#genre.genre"),
-            @CacheEvict(cacheNames = "genres", allEntries = true, condition = "#genre.pk == null"),
-            @CacheEvict(cacheNames = "genres_top5", allEntries = true),
-            @CacheEvict(cacheNames = {
-                    "genres_lendings_per_month_last_year",
-                    "genres_lendings_avg_duration",
-                    "genres_lendings_avg_in_month"
-            }, allEntries = true)
-    })
     public Genre save(Genre genre)
     {
         GenreEntity entity = genreEntityMapper.toEntity(genre);
@@ -91,7 +79,6 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     }
 
     @Override
-    @Cacheable(value = "genres_top5", key = "#pageable.pageNumber")
     public List<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable)
     {
         return genreRepo.findTop5GenreByBookCount(pageable);
@@ -104,7 +91,6 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     }
 
     @Override
-    @Cacheable(value = "genres_lendings_per_month_last_year")
     public List<GenreLendingsPerMonthDTO> getLendingsPerMonthLastYearByGenre()
     {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
@@ -154,7 +140,6 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     }
 
     @Override
-    @Cacheable(value = "genres_lendings_avg_in_month", key = "#month")
     public List<GenreLendingsDTO> getAverageLendingsInMonth(LocalDate month, pt.psoft.g1.psoftg1.shared.services.Page page)
     {
         int days = month.lengthOfMonth();
@@ -189,7 +174,6 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     }
 
     @Override
-    @Cacheable(value = "genres_lendings_avg_duration", key = "{#startDate, #endDate}")
     public List<GenreLendingsPerMonthDTO> getLendingsAverageDurationPerMonth(LocalDate startDate, LocalDate endDate)
     {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();

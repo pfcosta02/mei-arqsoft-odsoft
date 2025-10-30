@@ -48,10 +48,12 @@ Suporte à persistência de dados através de múltipos SGBD's (relacionais e de
 
 ### Technical Memo
 
-- **Problem**: Persistência de dados em diferentes modelos de dados (por exemplo, relacional, documento) e SGBD (SQL, MongoDB, Elastic Search, entre outras possibilidades)
+- **Problem**: 
+  - Persistência de dados em diferentes modelos de dados (por exemplo, relacional, documento) e SGBD (SQL, MongoDB, Elastic Search, entre outras possibilidades)
 
 
-- **Resumo da Solução**: Implementar uma solução configurável para que aplicação possa suportar diferentes tipos de modelos de dados e sistemas de gestão de banco de dados, como o SQL e MongoDB, integrando Redis nestas duas soluções, e Elastic Search.
+- **Resumo da Solução**: 
+  - Implementar uma solução configurável para que aplicação possa suportar diferentes tipos de modelos de dados e sistemas de gestão de banco de dados, como o SQL e MongoDB, integrando Redis nestas duas soluções, e Elastic Search.
 
 
 - **Fatores**:

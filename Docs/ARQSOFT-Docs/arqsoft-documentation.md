@@ -44,9 +44,9 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 ### Vistas de Processo
 
 #### Nível 1
-(Método XXXX_1)
+(Método CreateBook)
 
-![VP_Level_1_LMS.jpg](System-as-is/Vista%20Processos/VP_Level_1_LMS.jpg)
+![VP_Level_1_CreateBook.jpg](System-as-is/Vista%20Processos/Create%20Book/VP_Level_1_CreateBook.jpg)
 
 (Método XXXX_2)
 
@@ -54,9 +54,9 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 
 #### Nível 2
-(Método XXXX_1)
+(Método CreateBook)
 
-![VP_Level_2_LMS.jpg](System-as-is/Vista%20Processos/VP_Level_2_LMS.jpg)
+![VP_Level_2_CreateBook.jpg](System-as-is/Vista%20Processos/Create%20Book/VP_Level_2_CreateBook.jpg)
 
 (Método XXXX_2)
 
@@ -64,9 +64,9 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 
 #### Nível 3
-(Método XXXX_1)
+(Método CreateBook)
 
-![VP_Level_3_LMS.jpg](System-as-is/Vista%20Processos/VP_Level_3_LMS.jpg)
+![VP_Level_3_CreateBook.jpg](System-as-is/Vista%20Processos/Create%20Book/VP_Level_3_CreateBook.jpg)
 
 (Método XXXX_2)
 
@@ -101,7 +101,9 @@ O sistema atualmente não suporta:
 
 ### Requisitos Não Funcionais
 
-### Classificação dos Requisitos
+## Classificação dos Requisitos
+
+### Tabela de fatores arquiteturais
 
 
 ## Attribute-driven design (ADD)
@@ -111,3 +113,41 @@ O sistema atualmente não suporta:
 
 ### Quality Attribute Scenario - Geração de ID's
 [Geração de ID's.md](ADD/Gera%C3%A7%C3%A3o%20de%20ID%27s.md)
+
+## Tactics
+
+## Reference Architectures
+
+### Onion Architecture
+
+### Clean Architecture
+
+### Modular Monolith
+
+## Patterns
+
+## Architectural Design Alternatives and Rational
+
+## Mutation Tests
+
+### Primeiro teste de mutação
+
+O primeiro teste de mutação foi feito ao projeto base, e o resultado obtido foi o seguinte:
+
+![BaseProjectMutationTestsResult.png](assets/BaseProjectMutationTestsResult.png)
+
+Os resultados indicam que apenas 22% das mutações geradas foram mortas, o que significa que alguns defeitos podem não ser cobertos pelos testes existentes.
+
+Além disso, 33% de cobertura de linhas de código nas classes mutadas mostra que ainda existe uma parte significativa do código que continua por testar.
+
+### Segundo teste de mutação
+
+O segundo teste de mutação foi feito já ao projeto em desenvolvimento, e o resultado obtido foi o seguinte:
+
+![ARQSOFTProjectMutationTestsResults_1.png](assets/ARQSOFTProjectMutationTestsResults_1.png)
+
+Os resultados do segundo teste mostram melhorias relativamente aos resultados do projeto base. 
+
+É possivel ver que 57% das mutações geradas foram mortas, o que mostra uma melhoria considerável em relação aos resultados do primeiro teste.
+
+Em relação à cobertura de linhas de código nas classes mutadas, passamos a ter uma cobertura de 76%, ou seja, um aumento de mais de 40%.

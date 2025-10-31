@@ -19,6 +19,9 @@ public class GoogleBooksProvider implements IsbnProvider {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Value("${feature.enableSpecialCondition:false}")
+    private boolean enableSpecialCondition;
+
     @Override
     public Isbn searchByTitle(String title) {
         String url = UriComponentsBuilder
@@ -34,7 +37,7 @@ public class GoogleBooksProvider implements IsbnProvider {
             if (body != null && body.containsKey("items")) {
                 List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("items");
 
-                if (items.size() != 1) {
+                if ( enableSpecialCondition == (items.size() == 1)) {
 
                 for (Map<String, Object> item : items) {
                     Map<String, Object> volumeInfo = (Map<String, Object>) item.get("volumeInfo");

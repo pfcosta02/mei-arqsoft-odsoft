@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.isbnmanagement.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -17,6 +18,9 @@ public class OpenLibraryProvider implements IsbnProvider {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Value("${feature.enableSpecialCondition:false}")
+    private boolean enableSpecialCondition;
+
     @Override
     public Isbn searchByTitle(String title) {
         String url = UriComponentsBuilder
@@ -33,7 +37,7 @@ public class OpenLibraryProvider implements IsbnProvider {
             if (body != null && body.containsKey("docs")) {
                 List<Map<String, Object>> docs = (List<Map<String, Object>>) body.get("docs");
 
-                if (docs.size() == 1) {
+                if ( enableSpecialCondition == (docs.size() == 1)) {
 
 
                     // Percorrer todos os documentos devolvidos pela pesquisa

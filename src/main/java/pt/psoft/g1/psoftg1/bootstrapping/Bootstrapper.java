@@ -10,6 +10,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
@@ -28,10 +29,7 @@ import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
 import pt.psoft.g1.psoftg1.shared.services.ForbiddenNameService;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -41,7 +39,7 @@ import java.util.Optional;
 public class Bootstrapper implements CommandLineRunner
 {
     @Autowired
-    private CacheManager cacheManager;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Value("${lendingDurationInDays}")
     private int lendingDurationInDays;
@@ -588,12 +586,10 @@ public class Bootstrapper implements CommandLineRunner
     }
 
     private void clearAllCachesAfterBootstrap() {
-        cacheManager.getCacheNames().forEach(name -> {
-            Cache cache = cacheManager.getCache(name);
-            if (cache != null) {
-                cache.clear();
-            }
-        });
+        Set<String> keys = redisTemplate.keys("*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 }
 

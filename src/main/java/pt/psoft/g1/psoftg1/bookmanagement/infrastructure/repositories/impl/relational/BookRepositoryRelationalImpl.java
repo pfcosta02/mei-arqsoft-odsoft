@@ -20,7 +20,9 @@ import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.rel
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappers.BookEntityMapper;
+import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappers.BookRedisMapper;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
+import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.BookDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.services.SearchBooksQuery;
@@ -28,6 +30,7 @@ import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.rela
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
+import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.redis.RedisCacheRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -46,15 +49,38 @@ public class BookRepositoryRelationalImpl implements BookRepository
     private final GenreRepositoryRelationalImpl genreRepo;
     private final AuthorRepositoryRelationalImpl authorRepo;
     private final EntityManager em;
+    private final RedisCacheRepository cache;
 
     @Override
     public List<Book> findByGenre(@Param("genre") String genre)
     {
+        String cacheKey = "books:genre:" + genre.toLowerCase();
+        List<BookDTO> cachedBookDTOs = cache.findList(cacheKey, BookDTO.class).orElse(null);
+        if (cachedBookDTOs != null) {
+            return cachedBookDTOs.stream()
+                    .map(dto -> {
+                        Genre genre_ = genreRepo.findByString(dto.getgenreName())
+                                .orElseThrow(() -> new IllegalArgumentException("Genre not found: " + dto.getgenreName()));
+
+                        List<Author> authors = dto.getAuthors().stream()
+                                .map(authorRepo::findByAuthorNumber)
+                                .flatMap(Optional::stream)
+                                .toList();
+
+                        return BookRedisMapper.toModel(dto, genre_, authors);
+                    })
+                    .toList();
+        }
+
+
         List<Book> books = new ArrayList<>();
         for (BookEntity b: bookRepo.findByGenre(genre))
         {
             books.add(bookEntityMapper.toModel(b));
         }
+
+        List<BookDTO> bookDTOList = books.stream().map(BookRedisMapper::toDto).toList();
+        cache.save(cacheKey, bookDTOList);
 
         return books;
     }
@@ -62,11 +88,32 @@ public class BookRepositoryRelationalImpl implements BookRepository
     @Override
     public List<Book> findByTitle(@Param("title") String title)
     {
+        String cacheKey = "books:title:" + title.toLowerCase();
+        List<BookDTO> cachedBookDTOs = cache.findList(cacheKey, BookDTO.class).orElse(null);
+        if (cachedBookDTOs != null) {
+            return cachedBookDTOs.stream()
+                    .map(dto -> {
+                        Genre genre_ = genreRepo.findByString(dto.getgenreName())
+                                .orElseThrow(() -> new IllegalArgumentException("Genre not found: " + dto.getgenreName()));
+
+                        List<Author> authors = dto.getAuthors().stream()
+                                .map(authorRepo::findByAuthorNumber)
+                                .flatMap(Optional::stream)
+                                .toList();
+
+                        return BookRedisMapper.toModel(dto, genre_, authors);
+                    })
+                    .toList();
+        }
+
         List<Book> books = new ArrayList<>();
         for (BookEntity b: bookRepo.findByTitle(title))
         {
             books.add(bookEntityMapper.toModel(b));
         }
+
+        List<BookDTO> bookDTOList = books.stream().map(BookRedisMapper::toDto).toList();
+        cache.save(cacheKey, bookDTOList);
 
         return books;
     }
@@ -74,11 +121,32 @@ public class BookRepositoryRelationalImpl implements BookRepository
     @Override
     public List<Book> findByAuthorName(@Param("authorName") String authorName)
     {
+        String cacheKey = "books:title:" + authorName.toLowerCase();
+        List<BookDTO> cachedBookDTOs = cache.findList(cacheKey, BookDTO.class).orElse(null);
+        if (cachedBookDTOs != null) {
+            return cachedBookDTOs.stream()
+                    .map(dto -> {
+                        Genre genre_ = genreRepo.findByString(dto.getgenreName())
+                                .orElseThrow(() -> new IllegalArgumentException("Genre not found: " + dto.getgenreName()));
+
+                        List<Author> authors = dto.getAuthors().stream()
+                                .map(authorRepo::findByAuthorNumber)
+                                .flatMap(Optional::stream)
+                                .toList();
+
+                        return BookRedisMapper.toModel(dto, genre_, authors);
+                    })
+                    .toList();
+        }
+
         List<Book> books = new ArrayList<>();
         for (BookEntity b: bookRepo.findByAuthorName(authorName))
         {
             books.add(bookEntityMapper.toModel(b));
         }
+
+        List<BookDTO> bookDTOList = books.stream().map(BookRedisMapper::toDto).toList();
+        cache.save(cacheKey, bookDTOList);
 
         return books;
     }

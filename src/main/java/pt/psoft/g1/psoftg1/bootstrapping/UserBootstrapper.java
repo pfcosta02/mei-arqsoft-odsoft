@@ -8,6 +8,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,10 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -42,7 +40,7 @@ public class UserBootstrapper implements CommandLineRunner {
     private List<String> queriesToExecute = new ArrayList<>();
 
     @Autowired
-    private CacheManager cacheManager;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     @Transactional
@@ -278,11 +276,9 @@ public class UserBootstrapper implements CommandLineRunner {
     }
 
     private void clearAllCachesAfterBootstrap() {
-        cacheManager.getCacheNames().forEach(name -> {
-            Cache cache = cacheManager.getCache(name);
-            if (cache != null) {
-                cache.clear();
-            }
-        });
+        Set<String> keys = redisTemplate.keys("*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 }

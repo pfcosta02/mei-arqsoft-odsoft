@@ -26,6 +26,8 @@ import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mappers.GenreEntityMapper;
+import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mappers.GenreRedisMapper;
+import pt.psoft.g1.psoftg1.genremanagement.model.DTOs.GenreDTO;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
@@ -33,6 +35,7 @@ import pt.psoft.g1.psoftg1.genremanagement.services.GenreLendingsDTO;
 import pt.psoft.g1.psoftg1.genremanagement.services.GenreLendingsPerMonthDTO;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
+import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.redis.RedisCacheRepository;
 
 @Profile("jpa")
 @Primary
@@ -43,6 +46,7 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     private final SpringDataGenreRepository genreRepo;
     private final GenreEntityMapper genreEntityMapper;
     private final EntityManager entityManager;
+    private final RedisCacheRepository cache;
 
     @Override
     public Iterable<Genre> findAll()
@@ -59,13 +63,25 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     @Override
     public Optional<Genre> findByString(String genreName)
     {
+        String cacheKey = "genre:name:" + genreName.toLowerCase();
+        GenreDTO cachedGenreDTO = cache.find(cacheKey, GenreDTO.class).orElse(null);
+        if (cachedGenreDTO != null)
+            return Optional.ofNullable(GenreRedisMapper.toModel(cachedGenreDTO));
+
         Optional<GenreEntity> entityOpt = genreRepo.findByString(genreName);
         if (entityOpt.isPresent())
         {
-            return Optional.of(genreEntityMapper.toModel(entityOpt.get()));
+            Optional<Genre> genreOpt = Optional.of(genreEntityMapper.toModel(entityOpt.get()));
+
+            genreOpt.ifPresent(genre -> {
+                GenreDTO dto = GenreRedisMapper.toDto(genre);
+                cache.save(cacheKey, dto);
+            });
+            return genreOpt;
         }
         else
         {
+            cache.saveEmpty(cacheKey);
             return Optional.empty();
         }
     }
@@ -75,7 +91,9 @@ public class GenreRepositoryRelationalImpl implements GenreRepository
     public Genre save(Genre genre)
     {
         GenreEntity entity = genreEntityMapper.toEntity(genre);
-        return genreEntityMapper.toModel(genreRepo.save(entity));
+        Genre savedGenre = genreEntityMapper.toModel(genreRepo.save(entity));
+        cache.evictPattern("genre:" + "*");
+        return savedGenre;
     }
 
     @Override

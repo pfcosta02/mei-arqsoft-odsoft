@@ -74,23 +74,4 @@ public class RedisConfig {
         template.afterPropertiesSet();
         return template;
     }
-
-    /**
-     * Cache manager using the same serializer
-     */
-    @Bean
-    public RedisCacheManager cacheManager(
-            RedisConnectionFactory factory,
-            GenericJackson2JsonRedisSerializer serializer
-    ) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(serializer)
-                )
-                .entryTtl(timeToLive); // optional TTL
-
-        return RedisCacheManager.builder(factory)
-                .cacheDefaults(config)
-                .build();
-    }
 }

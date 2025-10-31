@@ -106,5 +106,8 @@ O sistema atualmente não suporta:
 
 ## Attribute-driven design (ADD)
 
-### QAS-01
+### Quality Attribute Scenario - Persistir dados em diferentes SGBDs
 [Persistir dados em diferentes SGBD.md](ADD/Persistir%20dados%20em%20diferentes%20SGBD.md)
+
+### Quality Attribute Scenario - Geração de ID's
+[Geração de ID's.md](ADD/Gera%C3%A7%C3%A3o%20de%20ID%27s.md)

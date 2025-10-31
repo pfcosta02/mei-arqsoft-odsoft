@@ -166,10 +166,49 @@ Novamente, para implementar esta tática, foram criadas interfaces comuns para r
 
 #### Onion Architecture
 
+O sistema apresenta características inspiradas na **Onion Architecture**, uma abordagem que organiza o código por camadas (camadas concêntricas) e direciona as dependências para o núcleo da aplicação (domínio).  
+As camadas identificadas são:
+
+- Core Domain (Camada mais interna)
+  - **Propósito**: Concentrar a lógica do negócio e as regras que representam o núcleo funcional do sistema.
+  - **Conteúdo**: Entidades de domínio, objetos de valor e regras de negócio.
+> **Nota:** Nesta implementação, o domínio inclui também elementos de persistência (como anotações JPA ou lógica relacionada com bases de dados), o que quebra parcialmente o princípio de independência total face à infraestrutura.
+
+
+- Application Services (Camada intermédia)
+  - **Propósito**: Definir os casos de uso da aplicação, orquestrando a interação entre o domínio e as camadas externas.
+  - **Conteúdo**: Serviços de aplicação, interfaces e lógica de coordenação.
+
+
+- Interface/Adapters (Camada externa)
+  - **Propósito**: Adaptar o domínio e os serviços da aplicação a diferentes interfaces externas, como a camada de apresentação ou os mecanismos de persistência.
+  - **Conteúdo**: Controladores, repositórios e adaptadores para integração com APIs externas.
+
+
+- Frameworks & Drivers (Camada mais externa)
+  - **Propósito**: Conter os elementos dependentes de frameworks e tecnologias externas que suportam a execução do sistema.
+  - **Conteúdo**: Configurações de base de dados, controladores REST, drivers, frameworks e componentes de infraestrutura.
+
+    
 #### Clean Architecture
+
+O sistema partilha diversos princípios da **Clean Architecture**, nomeadamente a separação de responsabilidades e a orientação das dependências para o domínio.  
+No entanto, a implementação **não cumpre totalmente** os princípios desta arquitetura, devido a:
+- Acoplamento entre entidades de domínio e mecanismos de persistência (ex.: uso de anotações JPA);
+- Dependências diretas entre o domínio e a infraestrutura, reduzindo a sua independência.
+
+Por este motivo, a arquitetura deve ser considerada **inspirada na Clean Architecture**, mas **não uma implementação pura** da mesma.
+
 
 #### Modular Monolith
 
+O projeto demonstra elementos de uma **Modular Monolith Architecture**, organizando o sistema em pacotes específicos de domínio que agregam componentes de negócio, serviços, controladores e repositórios relacionados.  
+Esta estrutura promove uma separação lógica entre áreas funcionais e evidencia uma intenção clara de modularização dentro de um único processo de execução.
+
+No entanto, os módulos mantêm **dependências significativas entre si**, resultando num **acoplamento notável entre componentes** e numa limitação da sua independência.  
+Adicionalmente, a presença de **lógica de persistência no domínio** reforça a ligação entre as camadas, reduzindo a aderência aos princípios de isolamento típicos de arquiteturas modulares.
+
+Deste modo, a implementação aproxima-se mais de uma **Layered Architecture tradicional**, embora mantenha **inspiração nos princípios da Onion e da Clean Architecture**.
 
 ### Patterns
 

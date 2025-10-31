@@ -1,7 +1,5 @@
-package pt.psoft.g1.psoftg1.bookmanagement.isbn.infrasctructure;
+package pt.psoft.g1.psoftg1.isbnmanagement.infrasctructure;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
-
-import java.util.List;
 
 
 public interface IsbnProvider {

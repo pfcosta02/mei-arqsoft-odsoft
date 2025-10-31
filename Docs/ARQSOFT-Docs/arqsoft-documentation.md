@@ -148,6 +148,6 @@ O segundo teste de mutação foi feito já ao projeto em desenvolvimento, e o re
 
 Os resultados do segundo teste mostram melhorias relativamente aos resultados do projeto base. 
 
-É possivel ver que 57% das mutações geradas foram mortas, o que mostra uma melhoria considerável em relação aos resultados do primeiro teste.
+É possivel ver que 57% das mutações geradas foram mortas, o que mostra um aumento de mais de 30% em relação aos resultados do primeiro teste.
 
 Em relação à cobertura de linhas de código nas classes mutadas, passamos a ter uma cobertura de 76%, ou seja, um aumento de mais de 40%.

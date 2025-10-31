@@ -35,10 +35,10 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 ### Vistas Físicas
 
 #### Nível 1
-![VF_LVL1.jpg](System-as-is/Vista%20F%C3%ADsica/VF_LVL1.jpg)
+![VF_LVL1.jpg](System-as-is/Vista%20F%C3%ADsica/VF_Level_1.jpg)
 
 #### Nível 2
-![VF_LVL2.jpg](System-as-is/Vista%20F%C3%ADsica/VF_LVL2.jpg)
+![VF_LVL2.jpg](System-as-is/Vista%20F%C3%ADsica/VF_Level_2.jpg)
 
 
 ### Vistas de Processo

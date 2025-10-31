@@ -16,7 +16,7 @@ import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
-import pt.psoft.g1.psoftg1.bookmanagement.isbn.services.IsbnProviderFactory;
+import pt.psoft.g1.psoftg1.isbnmanagement.services.IsbnProviderFactory;
 import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
@@ -46,6 +46,11 @@ public class BookServiceImpl implements BookService {
 
 	@Override
 	public Book create(CreateBookRequest request, String isbn) {
+
+        if (isbn == null) {
+            String bookTitle = request.getTitle();
+            isbn = searchExternalBooks(bookTitle).toString();
+        }
 
 		if(bookRepository.findByIsbn(isbn).isPresent()){
 			throw new ConflictException("Book with ISBN " + isbn + " already exists");
@@ -217,5 +222,4 @@ public class BookServiceImpl implements BookService {
     public Isbn searchExternalBooks(String title) {
         return isbnProviderFactory.getProvider().searchByTitle(title);
     }
-
 }

@@ -1,10 +1,10 @@
-package pt.psoft.g1.psoftg1.bookmanagement.isbn.services;
+package pt.psoft.g1.psoftg1.isbnmanagement.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.psoft.g1.psoftg1.bookmanagement.isbn.impl.GoogleBooksProvider;
-import pt.psoft.g1.psoftg1.bookmanagement.isbn.impl.OpenLibraryProvider;
-import pt.psoft.g1.psoftg1.bookmanagement.isbn.infrasctructure.IsbnProvider;
+import pt.psoft.g1.psoftg1.isbnmanagement.impl.GoogleBooksProvider;
+import pt.psoft.g1.psoftg1.isbnmanagement.impl.OpenLibraryProvider;
+import pt.psoft.g1.psoftg1.isbnmanagement.infrasctructure.IsbnProvider;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
 
 @Component

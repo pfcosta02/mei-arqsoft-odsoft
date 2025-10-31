@@ -53,10 +53,9 @@ public class BookController {
     private final BookViewMapper bookViewMapper;
 
     @Operation(summary = "Register a new Book")
-    @PutMapping(value = "/{isbn}")
+    @PutMapping(value = {"/{isbn}", ""})
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<BookView> create( CreateBookRequest resource, @PathVariable("isbn") String isbn) {
-
+    public ResponseEntity<BookView> create( CreateBookRequest resource, @PathVariable(value = "isbn", required = false) String isbn) {
 
         //Guarantee that the client doesn't provide a link on the body, null = no photo or error
         resource.setPhotoURI(null);

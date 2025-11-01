@@ -2,6 +2,9 @@ package pt.psoft.g1.psoftg1.isbnmanagement.impl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -15,6 +18,7 @@ import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -23,7 +27,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-public class OpenLibraryProviderTest {
+class OpenLibraryProviderTest {
 
     @InjectMocks
     @Autowired
@@ -41,10 +45,11 @@ public class OpenLibraryProviderTest {
         ReflectionTestUtils.setField(provider, "restTemplate", restTemplate);
     }
 
-    @Test
-    void deveRetornarIsbnQuandoCampoIsbnExiste() {
+    @ParameterizedTest
+    @MethodSource("provideIsbnCases")
+    void deveRetornarIsbnCorretamente(String fieldName, String fieldValue, String expectedIsbn) {
         Map<String, Object> doc = Map.of(
-                "isbn", List.of("9780747546290")
+                fieldName, List.of(fieldValue)
         );
         Map<String, Object> responseMap = Map.of(
                 "docs", List.of(doc)
@@ -56,61 +61,16 @@ public class OpenLibraryProviderTest {
         Isbn resultado = provider.searchByTitle("teste");
 
         assertNotNull(resultado);
-        assertEquals("9780747546290", resultado.getIsbn());
+        assertEquals(expectedIsbn, resultado.getIsbn());
     }
 
-    @Test
-    void deveRetornarIsbnQuandoCampoIsbn10Existe() {
-        Map<String, Object> doc = Map.of(
-                "isbn", List.of("123456789X")
+    private static Stream<Arguments> provideIsbnCases() {
+        return Stream.of(
+                org.junit.jupiter.params.provider.Arguments.of("isbn", "9780747546290", "9780747546290"),
+                org.junit.jupiter.params.provider.Arguments.of("isbn", "123456789X", "123456789X"),
+                org.junit.jupiter.params.provider.Arguments.of("ia", "isbn_9780747546290", "9780747546290"),
+                org.junit.jupiter.params.provider.Arguments.of("ia", "isbn_0471958697", "0471958697")
         );
-        Map<String, Object> responseMap = Map.of(
-                "docs", List.of(doc)
-        );
-        ResponseEntity<Map> responseEntity = ResponseEntity.ok(responseMap);
-
-        when(restTemplate.getForEntity(anyString(), eq(Map.class))).thenReturn(responseEntity);
-
-        Isbn resultado = provider.searchByTitle("teste");
-
-        assertNotNull(resultado);
-        assertEquals("123456789X", resultado.getIsbn());
-    }
-
-    @Test
-    void deveRetornarIsbnQuandoCampoIaTemPattern() {
-        Map<String, Object> doc = Map.of(
-                "ia", List.of("isbn_9780747546290")
-        );
-        Map<String, Object> responseMap = Map.of(
-                "docs", List.of(doc)
-        );
-        ResponseEntity<Map> responseEntity = ResponseEntity.ok(responseMap);
-
-        when(restTemplate.getForEntity(anyString(), eq(Map.class))).thenReturn(responseEntity);
-
-        Isbn resultado = provider.searchByTitle("teste");
-
-        assertNotNull(resultado);
-        assertEquals("9780747546290", resultado.getIsbn());
-    }
-
-    @Test
-    void deveRetornarIsbn10QuandoCampoIaTemPattern() {
-        Map<String, Object> doc = Map.of(
-                "ia", List.of("isbn_0471958697")
-        );
-        Map<String, Object> responseMap = Map.of(
-                "docs", List.of(doc)
-        );
-        ResponseEntity<Map> responseEntity = ResponseEntity.ok(responseMap);
-
-        when(restTemplate.getForEntity(anyString(), eq(Map.class))).thenReturn(responseEntity);
-
-        Isbn resultado = provider.searchByTitle("teste");
-
-        assertNotNull(resultado);
-        assertEquals("0471958697", resultado.getIsbn());
     }
 
     @Test

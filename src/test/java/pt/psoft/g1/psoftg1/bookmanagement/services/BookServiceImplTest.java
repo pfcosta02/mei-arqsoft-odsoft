@@ -97,7 +97,6 @@ class BookServiceImplTest {
     @Test
     void testCreateBook_SuccessWithoutIsbn() {
         // Arrange
-        //String isbn = "9789720706386";
         CreateBookRequest request = mock(CreateBookRequest.class);
         when(request.getTitle()).thenReturn("Book Title");
         when(request.getDescription()).thenReturn("Book Description");

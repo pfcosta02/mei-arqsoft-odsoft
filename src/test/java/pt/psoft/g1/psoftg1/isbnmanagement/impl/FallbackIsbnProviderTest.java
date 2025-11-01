@@ -1,17 +1,8 @@
 package pt.psoft.g1.psoftg1.isbnmanagement.impl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
-import pt.psoft.g1.psoftg1.isbnmanagement.infrastructure.IsbnProvider;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

@@ -48,9 +48,9 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 ![VP_Level_1_CreateBook.jpg](System-as-is/Vista%20Processos/Create%20Book/VP_Level_1_CreateBook.jpg)
 
-(Método XXXX_2)
+(Método CreateLending)
 
-(Método XXXX_3)
+(Método GetTop5Genres)
 
 
 #### Nível 2
@@ -58,9 +58,9 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 ![VP_Level_2_CreateBook.jpg](System-as-is/Vista%20Processos/Create%20Book/VP_Level_2_CreateBook.jpg)
 
-(Método XXXX_2)
+(Método CreateLending)
 
-(Método XXXX_3)
+(Método GetTop5Genres)
 
 
 #### Nível 3
@@ -68,9 +68,9 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 ![VP_Level_3_CreateBook.jpg](System-as-is/Vista%20Processos/Create%20Book/VP_Level_3_CreateBook.jpg)
 
-(Método XXXX_2)
+(Método CreateLending)
 
-(Método XXXX_3)
+(Método GetTop5Genres)
 
 
 ---
@@ -134,7 +134,76 @@ A classificação dos requisitos e a definição das prioridades foram realizada
 
 ### Quality Attribute Scenario - Buscar ISBN pelo título do Livro
 
+---
 
+## System-to-be
+
+No System-To-Be, apenas são apresentadas as vistas e a granularidade que consideramos haver alterações ao System-As-Is.
+
+### Vista de Implementação
+
+#### Nível 3
+
+![VI_Level_3_STB.jpg](System-to-be/Vista%20Implementa%C3%A7%C3%A3o/VI_Level_3_STB.jpg)
+
+#### Nível 4
+
+- Para packages que utilizam a base de dados 
+
+![VI_Level_4_STB.jpg](System-to-be/Vista%20Implementa%C3%A7%C3%A3o/VI_Level_4_STB.jpg)
+
+- Para o package responsável por ir buscar o ISBN à API
+
+![VI_Level_4_STB_ISBN.jpg](System-to-be/Vista%20L%C3%B3gica/VI_Level_4_STB_ISBN.jpg)
+
+Para o package responsável pela geração de ids é identico.
+
+### Vista Lógica
+
+#### Nível 1
+
+![VL_Level_1_STB.jpg](System-to-be/Vista%20L%C3%B3gica/VL_Level_1_STB.jpg)
+
+#### Nível 2
+
+![VL_Level_2_STB.jpg](System-to-be/Vista%20L%C3%B3gica/VL_Level_2_STB.jpg)
+
+#### Nível 3
+
+- Para componentes que interagem com a base de dados
+
+![VL_Level_3_STB.jpg](System-to-be/Vista%20L%C3%B3gica/VL_Level_3_STB.jpg)
+
+- Para o componente responsável por ir buscar o ISBN à API
+
+(diagrama)
+
+### Mapeamento Vista Lógica Nível 3 para Vista Implementação Nível 4
+
+![Mapper_VI_VL_STB.jpg](System-to-be/Mapper_VI_VL_STB.jpg)
+
+### Vista Física
+
+### Vista de Processos
+
+#### Nível 2
+(Método CreateBook)
+
+![VP_Level_2_CreateBook_STB.jpg](System-to-be/Vista%20Processos/Create%20Book/VP_Level_2_CreateBook_STB.jpg)
+
+(Método CreateLending)
+
+(Método GetTop5Genres)
+
+
+#### Nível 3
+(Método CreateBook)
+
+![VP_Level_3_CreateBook_STB.jpg](System-to-be/Vista%20Processos/Create%20Book/VP_Level_3_CreateBook_STB.jpg)
+
+(Método CreateLending)
+
+(Método GetTop5Genres)
 
 ---
 

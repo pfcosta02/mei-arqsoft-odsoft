@@ -30,7 +30,7 @@
 //import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 //import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 //import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
-//import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
+//import pt.psoft.g1.psoftg1.idgeneratormanagement.infrastructure.IdGenerator;
 //import pt.psoft.g1.psoftg1.shared.model.Name;
 //
 //import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;

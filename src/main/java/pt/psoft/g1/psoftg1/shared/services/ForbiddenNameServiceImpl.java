@@ -3,7 +3,7 @@ package pt.psoft.g1.psoftg1.shared.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.infrastructure.IdGenerator;
 import pt.psoft.g1.psoftg1.shared.model.ForbiddenName;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 

@@ -28,10 +28,6 @@ public class LendingMongoDB {
     @Getter
     private LendingNumberMongoDB lendingNumber;
 
-    @Field("genId")
-    @Getter @Setter
-    private String genId;
-
     @Field("book")
     @NotNull
     @Getter

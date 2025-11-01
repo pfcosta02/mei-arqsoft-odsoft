@@ -268,16 +268,6 @@ As camadas identificadas são:
   - **Propósito**: Conter os elementos dependentes de frameworks e tecnologias externas que suportam a execução do sistema.
   - **Conteúdo**: Configurações de base de dados, controladores REST, drivers, frameworks e componentes de infraestrutura.
 
-    
-### Clean Architecture
-
-O sistema partilha diversos princípios da **Clean Architecture**, nomeadamente a separação de responsabilidades e a orientação das dependências para o domínio.  
-No entanto, a implementação **não cumpre totalmente** os princípios desta arquitetura, devido a:
-- Acoplamento entre entidades de domínio e mecanismos de persistência (ex.: uso de anotações JPA);
-- Dependências diretas entre o domínio e a infraestrutura, reduzindo a sua independência.
-
-Por este motivo, a arquitetura deve ser considerada **inspirada na Clean Architecture**, mas **não uma implementação pura** da mesma.
-
 
 ### Modular Monolith
 

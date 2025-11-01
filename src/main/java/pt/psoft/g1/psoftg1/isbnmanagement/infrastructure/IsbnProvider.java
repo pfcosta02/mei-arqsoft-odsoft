@@ -1,4 +1,4 @@
-package pt.psoft.g1.psoftg1.isbnmanagement.infrasctructure;
+package pt.psoft.g1.psoftg1.isbnmanagement.infrastructure;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
 
 

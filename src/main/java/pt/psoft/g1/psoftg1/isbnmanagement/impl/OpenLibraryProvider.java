@@ -6,7 +6,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
-import pt.psoft.g1.psoftg1.isbnmanagement.infrasctructure.IsbnProvider;
+import pt.psoft.g1.psoftg1.isbnmanagement.infrastructure.IsbnProvider;
 
 import java.util.List;
 import java.util.Map;

@@ -1,4 +1,6 @@
-package pt.psoft.g1.psoftg1.idgeneratormanagement;
+package pt.psoft.g1.psoftg1.idgeneratormanagement.impl;
+
+import pt.psoft.g1.psoftg1.idgeneratormanagement.infrastructure.IdGenerator;
 
 import java.security.SecureRandom;
 

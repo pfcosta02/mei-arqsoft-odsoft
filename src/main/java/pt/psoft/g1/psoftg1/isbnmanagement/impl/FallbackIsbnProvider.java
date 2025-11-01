@@ -1,10 +1,8 @@
-package pt.psoft.g1.psoftg1.isbnmanagement.services;
+package pt.psoft.g1.psoftg1.isbnmanagement.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.psoft.g1.psoftg1.isbnmanagement.impl.GoogleBooksProvider;
-import pt.psoft.g1.psoftg1.isbnmanagement.impl.OpenLibraryProvider;
-import pt.psoft.g1.psoftg1.isbnmanagement.infrasctructure.IsbnProvider;
+import pt.psoft.g1.psoftg1.isbnmanagement.infrastructure.IsbnProvider;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
 
 @Component
@@ -33,6 +31,4 @@ public class FallbackIsbnProvider implements IsbnProvider {
             throw new RuntimeException("Falha em ambos os provedores.");
         }
     }
-
-
 }

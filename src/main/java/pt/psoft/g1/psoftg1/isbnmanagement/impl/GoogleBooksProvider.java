@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
-import pt.psoft.g1.psoftg1.isbnmanagement.infrasctructure.IsbnProvider;
+import pt.psoft.g1.psoftg1.isbnmanagement.infrastructure.IsbnProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class GoogleBooksProvider implements IsbnProvider {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${feature.enableSpecialCondition:false}")
+    @Value("${feature.enableSpecialCondition}")
     private boolean enableSpecialCondition;
 
     @Override

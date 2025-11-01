@@ -28,7 +28,7 @@
 //import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
 //import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.relational.GenreRepositoryRelationalImpl;
 //import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
-//import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
+//import pt.psoft.g1.psoftg1.idgeneratormanagement.infrastructure.IdGenerator;
 //import pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.relational.ReaderDetailsRepositoryRelationalImpl;
 //import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.relational.PhotoRepositoryRelationalImpl;
 //import pt.psoft.g1.psoftg1.shared.services.FileStorageService;

@@ -1,11 +1,12 @@
-package pt.psoft.g1.psoftg1.isbnmanagement.services;
+package pt.psoft.g1.psoftg1.isbnmanagement.factory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import pt.psoft.g1.psoftg1.isbnmanagement.impl.FallbackIsbnProvider;
 import pt.psoft.g1.psoftg1.isbnmanagement.impl.GoogleBooksProvider;
 import pt.psoft.g1.psoftg1.isbnmanagement.impl.OpenLibraryProvider;
-import pt.psoft.g1.psoftg1.isbnmanagement.infrasctructure.IsbnProvider;
+import pt.psoft.g1.psoftg1.isbnmanagement.infrastructure.IsbnProvider;
 
 @Component
 public class IsbnProviderFactory {

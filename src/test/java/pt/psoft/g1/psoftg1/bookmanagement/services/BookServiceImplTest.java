@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
@@ -18,7 +17,9 @@ import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
-import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.infrastructure.IdGenerator;
+import pt.psoft.g1.psoftg1.isbnmanagement.factory.IsbnProviderFactory;
+import pt.psoft.g1.psoftg1.isbnmanagement.infrastructure.IsbnProvider;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.model.Photo;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
@@ -87,6 +88,46 @@ class BookServiceImplTest {
 
         // Act
         Book result = bookService.create(request, isbn);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(savedBook, result);
+    }
+
+    @Test
+    void testCreateBook_SuccessWithoutIsbn() {
+        // Arrange
+        //String isbn = "9789720706386";
+        CreateBookRequest request = mock(CreateBookRequest.class);
+        when(request.getTitle()).thenReturn("Book Title");
+        when(request.getDescription()).thenReturn("Book Description");
+        when(request.getAuthors()).thenReturn(List.of("1L"));
+        when(request.getGenre()).thenReturn("Fiction");
+        when(request.getPhoto()).thenReturn(null);
+        when(request.getPhotoURI()).thenReturn(null);
+
+        IsbnProviderFactory isbnProviderFactory = mock(IsbnProviderFactory.class);
+        IsbnProvider isbnProvider = mock(IsbnProvider.class);
+        Isbn isbn = mock(Isbn.class);
+        when(isbnProviderFactory.getProvider()).thenReturn(isbnProvider);
+        when(isbnProvider.searchByTitle("Book Title")).thenReturn(isbn);
+        when(isbn.getIsbn()).thenReturn("9789720706386");
+
+        Author author = mock(Author.class);
+        when(authorRepository.findByAuthorNumber("1L")).thenReturn(Optional.of(author));
+
+        Genre genre = mock(Genre.class);
+        when(genreRepository.findByString("Fiction")).thenReturn(Optional.of(genre));
+
+        when(idGenerator.generateId()).thenReturn("123");
+
+        Book savedBook = mock(Book.class);
+        when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
+
+        when(isbn.getIsbn()).thenReturn("9789720706386");
+
+        // Act
+        Book result = bookService.create(request, isbn.getIsbn());
 
         // Assert
         assertNotNull(result);

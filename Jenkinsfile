@@ -9,6 +9,14 @@ pipeline {
         maven 'Maven 3.9.11'
     }
 
+    parameters {
+        choice(
+            name: 'Environment',
+            choices: ["docker", "local"],
+            description: 'Choose an Environment.'
+        )
+    }
+
     environment {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     }
@@ -40,13 +48,6 @@ pipeline {
                 checkout scm
             }
         }
-
-//         stage('Checkout') {
-//             steps {
-//                 echo '📥 A fazer checkout do repositório...'
-//                 git url: 'https://github.com/pfcosta02/mei-arqsoft-odsoft.git', branch: 'main'
-//             }
-//         }
 
         stage('Build & Compile') {
             steps {
@@ -115,10 +116,27 @@ pipeline {
             }
         }
 
+        stage('JaCoCo')
+        {
+            steps {
+                jacoco execPattern: '**/target/jacoco.exec',
+                       classPattern: '**/target/classes',
+                       sourcePattern: '**/src/main/java',
+                       inclusionPattern: '**/*.class'
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    withSonarQubeEnv("sonarqube_local")
+                    def ENVIRONMENT_2_SONARQUBE_SERVER = [
+                        'docker': 'sonarqube_docker',
+                        'local' : 'sonarqube_local'
+                    ]
+
+                    def sonarServer = ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
+                    echo "Running SonarQube analysis using server: ${sonarServer}"
+                    withSonarQubeEnv(sonarServer)
                     {
                         if (isUnix())
                         {
@@ -133,15 +151,13 @@ pipeline {
             }
         }
 
-//         stage('Quality Gate') {
-//             steps {
-//                 timeout(time: 3, unit: 'MINUTES') {
-//                     waitForQualityGate abortPipeline: true
-//                 }
-//             }
-//         }
-
-
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 3, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
 
 //         stage('SonarQube Static Code Analysis') {
 //             steps {
@@ -184,17 +200,7 @@ pipeline {
 //                 }
 //             }
 //         }
-//
-//
-        stage('JaCoCo')
-        {
-            steps {
-                jacoco execPattern: '**/target/jacoco.exec',
-                       classPattern: '**/target/classes',
-                       sourcePattern: '**/src/main/java',
-                       inclusionPattern: '**/*.class'
-            }
-        }
+
 
         stage('Package') {
             steps {
@@ -211,7 +217,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Install') {
             steps {

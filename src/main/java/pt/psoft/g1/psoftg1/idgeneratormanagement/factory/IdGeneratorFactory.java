@@ -3,10 +3,10 @@ package pt.psoft.g1.psoftg1.idgeneratormanagement.factory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
-import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGeneratorBase65Random;
-import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGeneratorTimestampBase65;
-import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGeneratorTimestampHex;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.infrastructure.IdGenerator;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.impl.IdGeneratorBase65Random;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.impl.IdGeneratorTimestampBase65;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.impl.IdGeneratorTimestampHex;
 
 @Configuration
 public class IdGeneratorFactory {

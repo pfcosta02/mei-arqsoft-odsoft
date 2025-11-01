@@ -137,34 +137,34 @@ A classificação dos requisitos e a definição das prioridades foram realizada
 
 
 ---
-## Architectural Design Alternatives and Rational
 
-### Tactics
+## Tactics
 
 No projeto desenvolvido, foram aplicadas táticas de modificabilidade com foco na redução do acoplamento entre componentes, para ser possível integrar novas funcionalidades ou módulos sem modificações significativas no código préviamente existente. Para isso, utilizamos três principais táticas: Encapsulamento, Uso de Intermediários e Abstração de Serviços Comuns.
 
-#### Encapsulamento
+### Encapsulamento
 
 O encapsulamento foi implementado ao desenvolver interfaces comuns, que descrevem os métodos que irão ser comuns a outras classes, sem revelar como cada implementação realiza as operações. Para esse efeito, cada classe será responsável por implementar a interface de forma independente, reduzindo o acoplamento entre componentes.
 
 Pegando num exemplo mais prático, A interface `BookRepository` define métodos como `save`, `findByIsbn`, `findByTitle`, entre outros. Estes métodos são depois implementados nos repositórios específicos das bases de dados a ser utilizada, como por exemplo, no `BookRepositoryRelationalImpl` ou no `BookRepositoryMongoDBImpl`. A mesma tática é utilizada para os restantes requisitos de gerar ID's e de pesquisar um ISBN pelo título de um livro.
 
-#### Uso de Intermediários
+### Uso de Intermediários
 
 Foi utilizado no projeto a camada de serviços como um intermediário entre as camadas superiores do projeto (camada de controladores) e as interfaces do repositório. Os serviços executam as operações das interfaces sem conhecer as implementações utilizadas. A implementação utilizada é configurada dinamicamente através de um ficheiro de configuração, permitindo assim selecionar a configuração mais adequada ao contexto do cliente. Mais uma vez, esta tática reduz o acoplamento e facilita a substituição de componentes internos sem impactar outras partes do sistema. 
 
 Pegando num exemplo mais prático, a classe `BookService` apenas interage com a interface `BookRepository` e não conhece a implementação que será utilizada. Essa será definida na configuração da aplicação.
 
 
-#### Abstração
+### Abstração
 
 A abstração de serviços comuns foi aplicada de forma a padronizar comportamentos que são comuns a várias classes, facilitando a reutilização de código e promovendo o princípio "DRY Don’t Repeat Yourself".
 Novamente, para implementar esta tática, foram criadas interfaces comuns para representar funcionalidades genéricas. Cada interface possui depois múltiplas implementações, adaptadas a diferentes requisitos.
 
+---
 
-### Reference Architectures
+## Reference Architectures
 
-#### Onion Architecture
+### Onion Architecture
 
 O sistema apresenta características inspiradas na **Onion Architecture**, uma abordagem que organiza o código por camadas (camadas concêntricas) e direciona as dependências para o núcleo da aplicação (domínio).  
 As camadas identificadas são:
@@ -190,7 +190,7 @@ As camadas identificadas são:
   - **Conteúdo**: Configurações de base de dados, controladores REST, drivers, frameworks e componentes de infraestrutura.
 
     
-#### Clean Architecture
+### Clean Architecture
 
 O sistema partilha diversos princípios da **Clean Architecture**, nomeadamente a separação de responsabilidades e a orientação das dependências para o domínio.  
 No entanto, a implementação **não cumpre totalmente** os princípios desta arquitetura, devido a:
@@ -200,7 +200,7 @@ No entanto, a implementação **não cumpre totalmente** os princípios desta ar
 Por este motivo, a arquitetura deve ser considerada **inspirada na Clean Architecture**, mas **não uma implementação pura** da mesma.
 
 
-#### Modular Monolith
+### Modular Monolith
 
 O projeto demonstra elementos de uma **Modular Monolith Architecture**, organizando o sistema em pacotes específicos de domínio que agregam componentes de negócio, serviços, controladores e repositórios relacionados.  
 Esta estrutura promove uma separação lógica entre áreas funcionais e evidencia uma intenção clara de modularização dentro de um único processo de execução.
@@ -210,31 +210,46 @@ Adicionalmente, a presença de **lógica de persistência no domínio** reforça
 
 Deste modo, a implementação aproxima-se mais de uma **Layered Architecture tradicional**, embora mantenha **inspiração nos princípios da Onion e da Clean Architecture**.
 
-### Patterns
+---
 
-### Alternatives of Design
+## Patterns
+
+### Repository Pattern
+
+O sistema segue o padrão Repository Pattern, utilizando repositórios como um intermediário entre a lógica de negocio e o armazenamento de dados.
+
+O proposito principal desde padrão é fornecer uma forma estruturada e padronizada de aceder, gerir e manipular dados, ao mesmo tempo que abstrai os detalhes das tecnologias de armazenamento de dados.
+Além disso, também promove uma separação clara de responsabilidades, tornando o projeto mais manutenível, testável e adaptavel a novas bases de dados,
+
+
+### Strategy Pattern
+
+O sistema usa o Strategy Pattern, permitindo escolher, por exemplo, qual o algoritmo de geração de ids ou qual a base de dados a utilizar.
+
+Este padrão permite definir um conjunto de algoritmos ou comportamentos, separá-los por classes e escolher qual utilizar via ficheiro de configuração. 
+
+Isto é util quando queremos ter variabilidade.
+
+### Factory Pattern
+
+No projeto é seguido o Factory Pattern, onde são utilizadas factories para a geração de ids e para a pesquisa de isbn por título.
+
+O Factory Pattern é utilizado para encapsular a lógica de criação de objetos, permitindo que o sistema escolha qual implementação instanciar em runtime.
+No caso deste projeto, usando o exemplo do IsbnProviderFactory, é utilizado este padrão para escolher dinamicamente a implementação do IsbnProvider, baseado na configuração. 
+
+Assim, permite flexibilidade e extensibilidade.
 
 ---
-## Mutation Tests
 
-### Primeiro teste de mutação
+## Alternatives of Design
 
-O primeiro teste de mutação foi feito ao projeto base, e o resultado obtido foi o seguinte:
+### Event-Driven Architecture (EDA)
+Esta é alternativa é uma arquitetura em que os componentes do sistema comunicam entre si através de eventos, em vez das habituais chamadas diretas.
+Cada componente atua como emissor (publisher) ou assinante (subscriber) de eventos, promovendo baixo acoplamento devido ao facto dos componentes não precisam conhecer diretamente uns aos outros, comunicando-se apenas através de eventos. Esta arquitetura promove também alta flexibilidade na integração de novos serviços e funcionalidades.
 
-![BaseProjectMutationTestsResult.png](assets/BaseProjectMutationTestsResult.png)
+Esta alternativa, como todas, têm também os seus desafios. Um deles pode ser a complexidade na gestão de eventos, especialmente em grandes projetos, ou projetos altamente distribuídos, pois o fluxo de eventos pode tornar-se difícil de rastrear.
 
-Os resultados indicam que apenas 22% das mutações geradas foram mortas, o que significa que alguns defeitos podem não ser cobertos pelos testes existentes.
-
-Além disso, 33% de cobertura de linhas de código nas classes mutadas mostra que ainda existe uma parte significativa do código que continua por testar.
-
-### Segundo teste de mutação
-
-O segundo teste de mutação foi feito já ao projeto em desenvolvimento, e o resultado obtido foi o seguinte:
-
-![ARQSOFTProjectMutationTestsResults_1.png](assets/ARQSOFTProjectMutationTestsResults_1.png)
-
-Os resultados do segundo teste mostram melhorias relativamente aos resultados do projeto base. 
-
-É possivel ver que 57% das mutações geradas foram mortas, o que mostra um aumento de mais de 30% em relação aos resultados do primeiro teste.
-
-Em relação à cobertura de linhas de código nas classes mutadas, passamos a ter uma cobertura de 76%, ou seja, um aumento de mais de 40%.
+A sua implementação seria a seguinte:
+- Seria implementado um barramento central de eventos (Event Bus) onde os serviços podem publicar e subscrever eventos relacionados a operações que lhes compete;
+- Um serviço de assinantes e publicadores onde cada serviço atua como assinante dos eventos relevantes ao seu domínio e publicador dos eventos que resultam das suas operações, permitindo assim comunicação assíncrona entre componentes;
+- Usando esta arquitetura também é possível ter uma configuração dinâmica onde num ficheiro de configuração é possível definir os serviços que irão estar ativos e como devem reagir a determinados eventos, permitindo assim flexibilidade no sistema.

@@ -64,22 +64,6 @@ pipeline {
             }
         }
 
-        stage('Install') {
-            steps {
-                script {
-                    echo 'Installing code...'
-                    if (isUnix())
-                    {
-                        sh "mvn install -DskipTests"
-                    }
-                    else
-                    {
-                        bat "mvn install -DskipTests"
-                    }
-                }
-            }
-        }
-
 // correr em parelelo os testes
 // parallel {}
 
@@ -149,6 +133,14 @@ pipeline {
             }
         }
 
+//         stage('Quality Gate') {
+//             steps {
+//                 timeout(time: 3, unit: 'MINUTES') {
+//                     waitForQualityGate abortPipeline: true
+//                 }
+//             }
+//         }
+
 
 
 //         stage('SonarQube Static Code Analysis') {
@@ -215,6 +207,23 @@ pipeline {
                     else
                     {
                         bat 'mvn package -DskipTests'
+                    }
+                }
+            }
+        }
+
+
+        stage('Install') {
+            steps {
+                script {
+                    echo 'Installing code...'
+                    if (isUnix())
+                    {
+                        sh "mvn install -DskipTests"
+                    }
+                    else
+                    {
+                        bat "mvn install -DskipTests"
                     }
                 }
             }

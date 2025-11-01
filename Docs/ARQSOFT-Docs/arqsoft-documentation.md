@@ -50,6 +50,8 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 (Método CreateLending)
 
+![VP_Level_1_CreateLending.jpg](System-as-is/Vista%20Processos/Create%20Lending/VP_Level_1_CreateLending.jpg)
+
 (Método GetTop5Genres)
 
 
@@ -59,6 +61,8 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 ![VP_Level_2_CreateBook.jpg](System-as-is/Vista%20Processos/Create%20Book/VP_Level_2_CreateBook.jpg)
 
 (Método CreateLending)
+
+![VP_Level_2_CreateLending.jpg](System-as-is/Vista%20Processos/Create%20Lending/VP_Level_2_CreateLending.jpg)
 
 (Método GetTop5Genres)
 
@@ -70,8 +74,10 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 (Método CreateLending)
 
-(Método GetTop5Genres)
+![VP_Level_3_CreateLending.jpg](System-as-is/Vista%20Processos/Create%20Lending/VP_Level_3_CreateLending.jpg)
 
+
+(Método GetTop5Genres)
 
 ---
 ## Architectural Software Requirements (ASR)
@@ -193,6 +199,8 @@ Para o package responsável pela geração de ids é identico.
 
 (Método CreateLending)
 
+![VP_Nivel_2_CreateLending_STB.jpg](System-to-be/Vista%20Processos/Create%20Lending/VP_Nivel_2_CreateLending_STB.jpg)
+
 (Método GetTop5Genres)
 
 
@@ -202,6 +210,8 @@ Para o package responsável pela geração de ids é identico.
 ![VP_Level_3_CreateBook_STB.jpg](System-to-be/Vista%20Processos/Create%20Book/VP_Level_3_CreateBook_STB.jpg)
 
 (Método CreateLending)
+
+![VP_Level_3_CreateLending_STB.jpg](System-to-be/Vista%20Processos/Create%20Lending/VP_Level_3_CreateLending_STB.jpg)
 
 (Método GetTop5Genres)
 

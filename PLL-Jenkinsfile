@@ -79,12 +79,10 @@ stage('Tests & Analysis') {
                     echo 'Running unit tests...'
                     if (isUnix())
                     {
-                        sh "mvn test"
                         sh "mvn surefire:test"
                     }
                     else
                     {
-                        bat "mvn test"
                         bat "mvn surefire:test"
                     }
                 }
@@ -186,12 +184,10 @@ stage('Tests & Analysis') {
                              echo 'Running integration tests...'
                              if (isUnix())
                              {
-                                 sh "mvn test"
                                  sh "mvn failsafe:integration-test failsafe:verify"
                              }
                              else
                              {
-                                 bat "mvn test"
                                  bat "mvn failsafe:integration-test failsafe:verify"
                              }
                          }

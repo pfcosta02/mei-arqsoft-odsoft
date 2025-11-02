@@ -65,6 +65,7 @@ stage('Tests & Analysis') {
             stages{
 
         stage('Unit Tests') {
+            agent { reuseNode true }
             steps {
                 script {
                     echo 'Running unit tests...'
@@ -145,6 +146,7 @@ stage('Tests & Analysis') {
 
 
         stage('Mutation Tests') {
+            agent { reuseNode true }
             steps {
                 script {
                     echo 'Running mutation tests...'
@@ -176,6 +178,7 @@ stage('Tests & Analysis') {
         }
 
         stage('SonarQube Analysis') {
+            agent { reuseNode true }
             steps {
                 script {
                     def ENVIRONMENT_2_SONARQUBE_SERVER = [

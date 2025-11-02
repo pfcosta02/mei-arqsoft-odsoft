@@ -221,11 +221,12 @@ pipeline {
 
                                     echo "📦 JAR capturado: ${jarName}"
 
+                                    // Força o valor a ser persistido globalmente
                                     env.JAR_NAME = jarName
                                     echo "📦 JAR guardado globalmente: ${env.JAR_NAME}"
 
+                                    // Confirma imediatamente
                                     bat "echo JAR_NAME=%JAR_NAME%"
-                                }
                             }
                             echo "📦 JAR gerado: ${env.JAR_NAME}"
                             echo "Setting environment JAR_NAME to ${env.JAR_NAME}"

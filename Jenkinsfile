@@ -363,9 +363,9 @@ pipeline {
 def deployDocker(environment, port) {
     def imageName = "${env.APP_NAME}:${environment}"
     def containerName = "${env.APP_NAME}-${environment}"
-    
+
     echo "🐳 Deploying ${environment} with Docker on port ${port}"
-    
+
     if (isUnix()) {
         sh """
             # Remove container antigo se existir
@@ -376,13 +376,13 @@ def deployDocker(environment, port) {
                 echo "Removing existing container..."
                 docker rm ${containerName} || true
             fi
-            
+
             # Remove imagem antiga se existir
             if docker images --format '{{.Repository}}:{{.Tag}}' | grep -q "^${imageName}\$"; then
                 echo "Removing old image..."
                 docker rmi ${imageName} || true
             fi
-            
+
             # Cria Dockerfile se não existir
             if [ ! -f Dockerfile ]; then
                 echo "Creating Dockerfile..."
@@ -478,8 +478,8 @@ def deployLocal(environment, port) {
             mkdir -p ${deployPath}
 
             # Copia o JAR
-            echo "Copying JAR to ${deployPath}..."
-            cp target/*.jar ${deployPath}/${env.JAR_NAME}
+            echo "Copying JAR ${env.JAR_NAME} to ${deployPath}..."
+            cp target/${env.JAR_NAME} ${deployPath}/${env.JAR_NAME}
 
             # Para aplicação existente
             if [ -f ${deployPath}/app.pid ]; then
@@ -526,7 +526,7 @@ def deployLocal(environment, port) {
             if not exist "${deployPath}" mkdir "${deployPath}"
 
             echo Copying JAR to ${deployPath}...
-            copy /Y target\\*.jar "${deployPath}\\${env.JAR_NAME}"
+            copy /Y target\\${env.JAR_NAME} "${deployPath}\\${env.JAR_NAME}"
             if errorlevel 1 (
                 echo ERROR: Failed to copy JAR file!
                 exit /b 1
@@ -545,6 +545,7 @@ def deployLocal(environment, port) {
             echo Waiting 5 seconds for application to start...
             ping 127.0.0.1 -n 6 > NUL
             echo Application started!
+            echo Log file: ${deployPath}\\app.log
         """
     }
 }

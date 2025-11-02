@@ -352,6 +352,8 @@ pipeline {
 def deployDocker(environment, port) {
     def imageName = "${env.APP_NAME}:${environment}"
     def containerName = "${env.APP_NAME}-${environment}"
+    def networkName = "psoft-network"
+    def redisContainerName = "redis-${environment}"
 
     echo "🐳 Deploying ${environment} with Docker on port ${port}"
 

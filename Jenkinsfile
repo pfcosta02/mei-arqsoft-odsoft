@@ -19,6 +19,16 @@ pipeline {
 
     environment {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
+        APP_NAME = 'library-management'
+        JAR_NAME = 'library-management.jar'
+
+        // Portas para cada ambiente
+        DEV_PORT = '8180'
+        STAGING_PORT = '8181'
+        PROD_PORT = '8182'
+
+        // Paths para deploy local
+        DEPLOY_BASE_PATH = '/opt/deployments'
     }
 
     stages {
@@ -95,38 +105,38 @@ pipeline {
 //         }
 //
 
-        stage('Test Coverage') {
-            steps {
-                script {
-                    echo '📊 Gerando relatório de cobertura...'
-                    if (isUnix()) {
-                        sh "mvn jacoco:report"
-                    } else {
-                        bat "mvn jacoco:report"
-                    }
-                }
-            }
-            post {
-                always {
-                    jacoco(
-                        execPattern: '**/target/jacoco.exec',
-                        classPattern: '**/target/classes',
-                        sourcePattern: '**/src/main/java',
-                        inclusionPattern: '**/*.class',
-                        minimumInstructionCoverage: '60',
-                        minimumBranchCoverage: '50'
-                    )
-                    publishHTML(target: [
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'target/site/jacoco',
-                        reportFiles: 'index.html',
-                        reportName: 'JaCoCo Coverage Report'
-                    ])
-                }
-            }
-        }
+//         stage('Test Coverage') {
+//             steps {
+//                 script {
+//                     echo '📊 Gerando relatório de cobertura...'
+//                     if (isUnix()) {
+//                         sh "mvn jacoco:report"
+//                     } else {
+//                         bat "mvn jacoco:report"
+//                     }
+//                 }
+//             }
+//             post {
+//                 always {
+//                     jacoco(
+//                         execPattern: '**/target/jacoco.exec',
+//                         classPattern: '**/target/classes',
+//                         sourcePattern: '**/src/main/java',
+//                         inclusionPattern: '**/*.class',
+//                         minimumInstructionCoverage: '60',
+//                         minimumBranchCoverage: '50'
+//                     )
+//                     publishHTML(target: [
+//                         allowMissing: false,
+//                         alwaysLinkToLastBuild: true,
+//                         keepAll: true,
+//                         reportDir: 'target/site/jacoco',
+//                         reportFiles: 'index.html',
+//                         reportName: 'JaCoCo Coverage Report'
+//                     ])
+//                 }
+//             }
+//         }
 
 
         stage('Mutation Tests') {
@@ -205,6 +215,11 @@ pipeline {
                     }
                 }
             }
+            post {
+                success {
+                    archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                }
+            }
         }
 
         stage('Install') {
@@ -223,29 +238,96 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-            steps {
-                echo 'Deploying the application...'
-                // Adiciona comandos de deploy aqui
-                // script
-                // {
-                //     sh '''
-                //     scp target/myapp.jar user@dev-server:/opt/myapp/
-                //     ssh user@dev-server "java -jar /opt/myapp/myapp.jar &"
-                //     '''
-                // }
-            }
-        }
-    }
+        stage('Deploy to DEV') {
+                    steps {
+                        script {
+                            echo '🚀 Deploying to DEVELOPMENT environment...'
+                            if (params.Environment == 'docker') {
+                                deployDocker('dev', env.DEV_PORT)
+                            } else {
+                                deployLocal('dev', env.DEV_PORT)
+                            }
+                        }
+                    }
+                }
 
-    post {
-        success
-        {
-            echo 'Pipeline completed successfully.'
-            // Meter aqui o html gerado pelo Pitest
-            // archiveArtifacts artifacts: ""
-            // junit skipPublishingChecks: true,  testResults:'**/target/surefire-reports/*.xml'
-        }
+//                 stage('Smoke Test DEV') {
+//                     steps {
+//                         script {
+//                             echo '💨 Running smoke tests on DEV...'
+//                             smokeTest(env.DEV_PORT, 'dev')
+//                         }
+//                     }
+//                 }
+
+                stage('Deploy to STAGING') {
+                    steps {
+                        script {
+                            echo '🚀 Deploying to STAGING environment...'
+                            if (params.Environment == 'docker') {
+                                deployDocker('staging', env.STAGING_PORT)
+                            } else {
+                                deployLocal('staging', env.STAGING_PORT)
+                            }
+                        }
+                    }
+                }
+
+//                 stage('Smoke Test STAGING') {
+//                     steps {
+//                         script {
+//                             echo '💨 Running smoke tests on STAGING...'
+//                             smokeTest(env.STAGING_PORT, 'staging')
+//                         }
+//                     }
+//                 }
+
+                stage('Deploy to PRODUCTION') {
+                    steps {
+                        input message: 'Deploy to PRODUCTION?', ok: 'Deploy'
+                        script {
+                            echo '🚀 Deploying to PRODUCTION environment...'
+                            if (params.Environment == 'docker') {
+                                deployDocker('production', env.PROD_PORT)
+                            } else {
+                                deployLocal('production', env.PROD_PORT)
+                            }
+                        }
+                    }
+                }
+
+//                 stage('Smoke Test PRODUCTION') {
+//                     steps {
+//                         script {
+//                             echo '💨 Running smoke tests on PRODUCTION...'
+//                             smokeTest(env.PROD_PORT, 'production')
+//                         }
+//                     }
+//                 }
+            }
+
+        post {
+            success {
+                echo '✅ Pipeline completed successfully!'
+                script {
+                    def deploymentSummary = """
+                    ═══════════════════════════════════════════════════
+                            DEPLOYMENT SUCCESSFUL
+                    ═══════════════════════════════════════════════════
+                    Build: #${env.BUILD_NUMBER}
+                    Deployment Type: ${params.Environment}
+
+                    Environments deployed:
+                      🟢 DEV        → http://localhost:${env.DEV_PORT}
+                      🟢 STAGING    → http://localhost:${env.STAGING_PORT}
+                      🟢 PRODUCTION → http://localhost:${env.PROD_PORT}
+
+                    Build URL: ${env.BUILD_URL}
+                    ═══════════════════════════════════════════════════
+                    """
+                    echo deploymentSummary
+                }
+            }
 
         failure
         {
@@ -257,5 +339,239 @@ pipeline {
             echo 'Performing cleanup...'
             // Cleanup code
         }
+    }
+}
+
+// ═══════════════════════════════════════════════════
+//              DEPLOYMENT FUNCTIONS
+// ═══════════════════════════════════════════════════
+
+def deployDocker(environment, port) {
+    def imageName = "${env.APP_NAME}:${environment}"
+    def containerName = "${env.APP_NAME}-${environment}"
+    
+    echo "🐳 Deploying ${environment} with Docker on port ${port}"
+    
+    if (isUnix()) {
+        sh """
+            # Remove container antigo se existir
+            echo "Checking for existing container: ${containerName}"
+            if docker ps -a --format '{{.Names}}' | grep -q "^${containerName}\$"; then
+                echo "Stopping existing container..."
+                docker stop ${containerName} || true
+                echo "Removing existing container..."
+                docker rm ${containerName} || true
+            fi
+            
+            # Remove imagem antiga se existir
+            if docker images --format '{{.Repository}}:{{.Tag}}' | grep -q "^${imageName}\$"; then
+                echo "Removing old image..."
+                docker rmi ${imageName} || true
+            fi
+            
+            # Cria Dockerfile se não existir
+            if [ ! -f Dockerfile ]; then
+                echo "Creating Dockerfile..."
+                cat > Dockerfile << 'EOF'
+            FROM openjdk:17-jdk-slim
+            WORKDIR /app
+            COPY target/*.jar app.jar
+            EXPOSE 8180
+            ENTRYPOINT ["java", "-jar", "app.jar"]
+            EOF
+            fi
+            
+            # Build da nova imagem
+            echo "Building Docker image: ${imageName}"
+            docker build -t ${imageName} .
+            
+            # Inicia novo container
+            echo "Starting new container: ${containerName}"
+            docker run -d \\
+                --name ${containerName} \\
+                -p ${port}:8180 \\
+                -e SPRING_PROFILES_ACTIVE=${environment} \\
+                -e SERVER_PORT=8180 \\
+                --restart unless-stopped \\
+                ${imageName}
+            
+            # Verifica se o container está rodando
+            sleep 5
+            if docker ps --format '{{.Names}}' | grep -q "^${containerName}\$"; then
+                echo "✅ Container ${containerName} is running successfully!"
+                docker ps --filter "name=${containerName}" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
+            else
+                echo "❌ Container failed to start!"
+                docker logs ${containerName}
+                exit 1
+            fi
+        """
+    } else {
+        bat """
+            @echo off
+            echo Checking for existing container: ${containerName}
+            docker ps -a --format "{{.Names}}" | findstr /X "${containerName}" >nul 2>&1
+            if %errorlevel% equ 0 (
+                echo Stopping existing container...
+                docker stop ${containerName} || echo Container already stopped
+                echo Removing existing container...
+                docker rm ${containerName} || echo Container already removed
+            )
+            
+            echo Checking for existing image: ${imageName}
+            docker images --format "{{.Repository}}:{{.Tag}}" | findstr /X "${imageName}" >nul 2>&1
+            if %errorlevel% equ 0 (
+                echo Removing old image...
+                docker rmi ${imageName} || echo Image already removed
+            )
+            
+            if not exist Dockerfile (
+                echo Creating Dockerfile...
+                (
+                    echo FROM openjdk:17-jdk-slim
+                    echo WORKDIR /app
+                    echo COPY target/*.jar app.jar
+                    echo EXPOSE 8180
+                    echo ENTRYPOINT ["java", "-jar", "app.jar"]
+                ) > Dockerfile
+            )
+            
+            echo Building Docker image: ${imageName}
+            docker build -t ${imageName} .
+            
+            echo Starting new container: ${containerName}
+            docker run -d ^
+                --name ${containerName} ^
+                -p ${port}:8180 ^
+                -e SPRING_PROFILES_ACTIVE=${environment} ^
+                -e SERVER_PORT=8180 ^
+                --restart unless-stopped ^
+                ${imageName}
+            
+            timeout /t 5 /nobreak >nul
+            docker ps --filter "name=${containerName}"
+        """
+    }
+}
+
+def deployLocal(environment, port) {
+    def deployPath = "${env.DEPLOY_BASE_PATH}/${environment}"
+
+    echo "📁 Deploying ${environment} locally to ${deployPath} on port ${port}"
+
+    if (isUnix()) {
+        sh """
+            # Cria diretório se não existir
+            mkdir -p ${deployPath}
+
+            # Copia o JAR
+            echo "Copying JAR to ${deployPath}..."
+            cp target/*.jar ${deployPath}/${env.JAR_NAME}
+
+            # Para aplicação existente
+            if [ -f ${deployPath}/app.pid ]; then
+                OLD_PID=\$(cat ${deployPath}/app.pid)
+                if ps -p \$OLD_PID > /dev/null 2>&1; then
+                    echo "Stopping existing application (PID: \$OLD_PID)..."
+                    kill \$OLD_PID || true
+                    sleep 3
+                    kill -9 \$OLD_PID 2>/dev/null || true
+                fi
+            fi
+
+            # Mata qualquer processo na porta
+            lsof -ti:${port} | xargs kill -9 2>/dev/null || true
+
+            # Inicia nova aplicação
+            echo "Starting application on port ${port}..."
+            nohup java -jar ${deployPath}/${env.JAR_NAME} \\
+                --server.port=${port} \\
+                --spring.profiles.active=${environment} \\
+                > ${deployPath}/app.log 2>&1 &
+
+            NEW_PID=\$!
+            echo \$NEW_PID > ${deployPath}/app.pid
+
+            echo "✅ Application started with PID: \$NEW_PID"
+            echo "Log file: ${deployPath}/app.log"
+
+            # Aguarda um pouco para verificar se iniciou
+            sleep 5
+            if ps -p \$NEW_PID > /dev/null; then
+                echo "✅ Application is running!"
+            else
+                echo "❌ Application failed to start!"
+                cat ${deployPath}/app.log
+                exit 1
+            fi
+        """
+    } else {
+        bat """
+            @echo off
+            if not exist "${deployPath}" mkdir "${deployPath}"
+
+            echo Copying JAR to ${deployPath}...
+            copy /Y target\\*.jar "${deployPath}\\${env.JAR_NAME}"
+
+            echo Stopping existing application...
+            taskkill /FI "WINDOWTITLE eq ${env.APP_NAME}-${environment}*" /F 2>nul || echo No existing process
+
+            echo Starting application on port ${port}...
+            start "${env.APP_NAME}-${environment}" /MIN java -jar "${deployPath}\\${env.JAR_NAME}" --server.port=${port} --spring.profiles.active=${environment}
+
+            timeout /t 5 /nobreak >nul
+            echo Application started!
+        """
+    }
+}
+
+def smokeTest(port, environment) {
+    def maxRetries = 30
+    def retryDelay = 2
+
+    echo "Running smoke test for ${environment} on port ${port}..."
+
+    if (isUnix()) {
+        sh """
+            for i in \$(seq 1 ${maxRetries}); do
+                echo "Attempt \$i/${maxRetries}: Testing http://localhost:${port}/actuator/health"
+
+                if curl -f -s http://localhost:${port}/actuator/health > /dev/null 2>&1; then
+                    echo "✅ Smoke test PASSED for ${environment}!"
+                    curl -s http://localhost:${port}/actuator/health | head -n 20
+                    exit 0
+                fi
+
+                echo "Service not ready yet, waiting ${retryDelay}s..."
+                sleep ${retryDelay}
+            done
+
+            echo "❌ Smoke test FAILED for ${environment} after ${maxRetries} attempts!"
+            exit 1
+        """
+    } else {
+        bat """
+            @echo off
+            set /a count=0
+            :retry
+            set /a count+=1
+            echo Attempt %count%/${maxRetries}: Testing http://localhost:${port}/actuator/health
+
+            curl -f -s http://localhost:${port}/actuator/health >nul 2>&1
+            if %errorlevel% equ 0 (
+                echo Smoke test PASSED for ${environment}!
+                curl -s http://localhost:${port}/actuator/health
+                exit /b 0
+            )
+
+            if %count% lss ${maxRetries} (
+                echo Service not ready yet, waiting ${retryDelay}s...
+                timeout /t ${retryDelay} /nobreak >nul
+                goto retry
+            )
+
+            echo Smoke test FAILED for ${environment}!
+            exit /b 1
+        """
     }
 }

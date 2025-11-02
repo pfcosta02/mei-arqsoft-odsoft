@@ -40,7 +40,6 @@ pipeline {
         }
 
         stage('Build & Compile') {
-        agent {label 'build'}
             steps {
                 script {
                     echo '🔨 Cleaning workspace...'

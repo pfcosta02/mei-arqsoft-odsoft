@@ -47,7 +47,6 @@ public class AuthorRepositoryRedisImpl {
         List<AuthorRedisDTO> dtoList = authors.stream()
                 .map(redisMapper::toDTO)
                 .toList();
-        ObjectMapper mapper = new ObjectMapper();
         try {
             String json = mapper.writeValueAsString(dtoList);
             redisTemplate.opsForValue().set(key, json);

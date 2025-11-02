@@ -21,39 +21,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import pt.psoft.g1.psoftg1.bookmanagement.model.redis.BookRedisDTO;
 
 @Configuration
-//@ConditionalOnProperty(name = "spring.cache.type", havingValue = "redis")
 public class RedisConfig {
-
-//    @Bean(name = "redisTemplate")
-//    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-//        RedisTemplate<String, Object> template = new RedisTemplate<>();
-//        template.setConnectionFactory(connectionFactory);
-//
-//        // 👇 Create a separate mapper only for Redis serialization
-//        ObjectMapper redisMapper = new ObjectMapper()
-//                .registerModule(new JavaTimeModule())
-//                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-//                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-//                // Keep default typing for Redis only
-//                .activateDefaultTyping(
-//                        LaissezFaireSubTypeValidator.instance,
-//                        ObjectMapper.DefaultTyping.NON_FINAL,
-//                        JsonTypeInfo.As.PROPERTY
-//                );
-//
-//        // 👇 Use this custom mapper for Redis only
-//        GenericJackson2JsonRedisSerializer redisSerializer =
-//                new GenericJackson2JsonRedisSerializer(redisMapper);
-//
-//        template.setKeySerializer(new StringRedisSerializer());
-//        template.setValueSerializer(redisSerializer);
-//        template.setHashKeySerializer(new StringRedisSerializer());
-//        template.setHashValueSerializer(redisSerializer);
-//        template.afterPropertiesSet();
-//
-//        return template;
-//    }
-
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {

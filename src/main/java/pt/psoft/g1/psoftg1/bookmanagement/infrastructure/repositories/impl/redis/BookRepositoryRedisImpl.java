@@ -5,10 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappers.BookRedisMapper;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.redis.BookRedisDTO;
@@ -50,7 +48,6 @@ public class BookRepositoryRedisImpl {
         List<BookRedisDTO> dtoList = books.stream()
                 .map(redisMapper::toDTO)
                 .toList();
-        ObjectMapper mapper = new ObjectMapper();
         try {
             String json = mapper.writeValueAsString(dtoList);
             redisTemplate.opsForValue().set(key, json);

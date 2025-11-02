@@ -49,7 +49,6 @@ public class GenreRepositoryRedisImpl {
         List<GenreRedisDTO> dtoList = genres.stream()
                 .map(redisMapper::toDTO)
                 .toList();
-        ObjectMapper mapper = new ObjectMapper();
         try {
             String json = mapper.writeValueAsString(dtoList);
             redisTemplate.opsForValue().set(key, json);
@@ -73,7 +72,6 @@ public class GenreRepositoryRedisImpl {
 
     public void cacheGenreBookCountListToRedis(String key, List<GenreBookCountDTO> genreBookCountDTOS) {
         List<GenreBookCountDTO> dtoList = genreBookCountDTOS.stream().toList();
-        ObjectMapper mapper = new ObjectMapper();
         try {
             String json = mapper.writeValueAsString(dtoList);
             redisTemplate.opsForValue().set(key, json);

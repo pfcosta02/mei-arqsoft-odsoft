@@ -67,7 +67,7 @@ stage('Tests & Analysis') {
             stages{
 
         stage('Unit Tests') {
-            agent {label 'build'}
+            
             steps {
                 script {
                     echo 'Running unit tests...'
@@ -148,7 +148,7 @@ stage('Tests & Analysis') {
 
 
         stage('Mutation Tests') {
-            agent {label 'build'}
+            
             steps {
                 script {
                     echo 'Running mutation tests...'
@@ -180,7 +180,7 @@ stage('Tests & Analysis') {
         }
 
         stage('SonarQube Analysis') {
-            agent {label 'build'}
+            
             steps {
                 script {
                     def ENVIRONMENT_2_SONARQUBE_SERVER = [

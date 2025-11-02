@@ -545,10 +545,11 @@ def deployLocal(environment, port) {
 
             echo Starting application on port ${port}...
             cd /d "${deployPath}"
+            echo "${deployPath}"
             start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} ^> app.log 2^>^&1"
 
-            echo Waiting 5 seconds for application to start...
-            ping 127.0.0.1 -n 6 > NUL
+            echo Waiting 15 seconds for application to start...
+            ping 127.0.0.1 -n 16 > NUL
             echo Application started!
             echo Log file: ${deployPath}\\app.log
         """

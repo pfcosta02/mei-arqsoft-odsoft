@@ -87,57 +87,55 @@ pipeline {
                 }
             }
         }
-//
-//         stage('Integration Tests') {
-//             steps {
-//                 script {
-//                     echo 'Running integration tests...'
-//                     if (isUnix())
-//                     {
-//                         sh "mvn failsafe:integration-test failsafe:verify"
-//                     }
-//                     else
-//                     {
-//                         bat "mvn failsafe:integration-test failsafe:verify"
-//                     }
-//                 }
-//             }
-//         }
-//
 
-//         stage('Test Coverage') {
-//             steps {
-//                 script {
-//                     echo '📊 Gerando relatório de cobertura...'
-//                     if (isUnix()) {
-//                         sh "mvn jacoco:report"
-//                     } else {
-//                         bat "mvn jacoco:report"
-//                     }
-//                 }
-//             }
-//             post {
-//                 always {
-//                     jacoco(
-//                         execPattern: '**/target/jacoco.exec',
-//                         classPattern: '**/target/classes',
-//                         sourcePattern: '**/src/main/java',
-//                         inclusionPattern: '**/*.class',
-//                         minimumInstructionCoverage: '60',
-//                         minimumBranchCoverage: '50'
-//                     )
-//                     publishHTML(target: [
-//                         allowMissing: false,
-//                         alwaysLinkToLastBuild: true,
-//                         keepAll: true,
-//                         reportDir: 'target/site/jacoco',
-//                         reportFiles: 'index.html',
-//                         reportName: 'JaCoCo Coverage Report'
-//                     ])
-//                 }
-//             }
-//         }
+        stage('Integration Tests') {
+            steps {
+                script {
+                    echo 'Running integration tests...'
+                    if (isUnix())
+                    {
+                        sh "mvn failsafe:integration-test failsafe:verify"
+                    }
+                    else
+                    {
+                        bat "mvn failsafe:integration-test failsafe:verify"
+                    }
+                }
+            }
+        }
 
+        stage('Test Coverage') {
+            steps {
+                script {
+                    echo '📊 Gerando relatório de cobertura...'
+                    if (isUnix()) {
+                        sh "mvn jacoco:report"
+                    } else {
+                        bat "mvn jacoco:report"
+                    }
+                }
+            }
+            post {
+                always {
+                    jacoco(
+                        execPattern: '**/target/jacoco.exec',
+                        classPattern: '**/target/classes',
+                        sourcePattern: '**/src/main/java',
+                        inclusionPattern: '**/*.class',
+                        minimumInstructionCoverage: '60',
+                        minimumBranchCoverage: '50'
+                    )
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo Coverage Report'
+                    ])
+                }
+            }
+        }
 
         stage('Mutation Tests') {
             steps {
@@ -192,7 +190,7 @@ pipeline {
                 }
             }
         }
-//
+
 //         stage('Quality Gate') {
 //             steps {
 //                 timeout(time: 3, unit: 'MINUTES') {

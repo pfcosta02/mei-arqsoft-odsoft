@@ -7,8 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.rel
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappers.BookEntityMapper;
+import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.redis.BookRepositoryRedisImpl;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.relational.BookRepositoryRelationalImpl;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.relational.SpringDataBookRepository;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
@@ -62,10 +62,15 @@ class BookRepositoryRelationalImplTest
     private AuthorRepositoryRelationalImpl authorRepo;
 
     @Mock
+    private BookRepositoryRedisImpl redisRepo;
+
+    @Mock
     private BookEntityMapper bookEntityMapper;
 
     @Mock
     private EntityManager em;
+
+    private static final String key = "Key";
 
     @BeforeEach
     void setUp() 
@@ -79,16 +84,20 @@ class BookRepositoryRelationalImplTest
     {
         // Arrange
         Book mockBook = mock(Book.class);
+        List<Book> cached = new ArrayList<>();
+        cached.add(mockBook);
 
         List<BookEntity> list = new ArrayList<>();
         BookEntity mockBookEntity = mock(BookEntity.class);
         list.add(mockBookEntity);
 
+        when(redisRepo.getBookListFromRedis(key)).thenReturn(cached);
         when(sqlRepo.findByGenre(anyString())).thenReturn(list);
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         List<Book> books = bookRepo.findByGenre(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(key, books);
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -100,11 +109,14 @@ class BookRepositoryRelationalImplTest
     {
         // Arrange
         List<BookEntity> list = new ArrayList<>();
+        List<Book> cached = new ArrayList<>();
 
+        when(redisRepo.getBookListFromRedis(key)).thenReturn(cached);
         when(sqlRepo.findByGenre(anyString())).thenReturn(list);
 
         // Act
         List<Book> books = bookRepo.findByGenre(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(key, books);
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -116,16 +128,20 @@ class BookRepositoryRelationalImplTest
     {
         // Arrange
         Book mockBook = mock(Book.class);
+        List<Book> cached = new ArrayList<>();
+        cached.add(mockBook);
 
         List<BookEntity> list = new ArrayList<>();
         BookEntity mockBookEntity = mock(BookEntity.class);
         list.add(mockBookEntity);
 
+        when(redisRepo.getBookListFromRedis(key)).thenReturn(cached);
         when(sqlRepo.findByTitle(anyString())).thenReturn(list);
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         List<Book> books = bookRepo.findByTitle(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(key, books);
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -137,11 +153,14 @@ class BookRepositoryRelationalImplTest
     {
         // Arrange
         List<BookEntity> list = new ArrayList<>();
+        List<Book> cached = new ArrayList<>();
 
+        when(redisRepo.getBookListFromRedis(key)).thenReturn(cached);
         when(sqlRepo.findByTitle(anyString())).thenReturn(list);
 
         // Act
         List<Book> books = bookRepo.findByTitle(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(key, books);
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -153,16 +172,20 @@ class BookRepositoryRelationalImplTest
     {
         // Arrange
         Book mockBook = mock(Book.class);
+        List<Book> cached = new ArrayList<>();
+        cached.add(mockBook);
 
         List<BookEntity> list = new ArrayList<>();
         BookEntity mockBookEntity = mock(BookEntity.class);
         list.add(mockBookEntity);
 
+        when(redisRepo.getBookListFromRedis(key)).thenReturn(cached);
         when(sqlRepo.findByAuthorName(anyString())).thenReturn(list);
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         List<Book> books = bookRepo.findByAuthorName(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(key, books);
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -174,11 +197,14 @@ class BookRepositoryRelationalImplTest
     {
         // Arrange
         List<BookEntity> list = new ArrayList<>();
+        List<Book> cached = new ArrayList<>();
 
+        when(redisRepo.getBookListFromRedis(key)).thenReturn(cached);
         when(sqlRepo.findByAuthorName(anyString())).thenReturn(list);
 
         // Act
         List<Book> books = bookRepo.findByAuthorName(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(key, books);
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -191,12 +217,15 @@ class BookRepositoryRelationalImplTest
         // Arrange
         Book mockBook = mock(Book.class);
         BookEntity mockBookEntity = mock(BookEntity.class);
+        Optional<Book> mockOptBook = Optional.of(mockBook);
 
+        when(redisRepo.getBookFromRedis(key)).thenReturn(mockOptBook);
         when(sqlRepo.findByIsbn(anyString())).thenReturn(Optional.of(mockBookEntity));
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         Optional<Book> book = bookRepo.findByIsbn(anyString());
+        doNothing().when(redisRepo).save(mockBook);
 
         // Assert
         assertNotNull(book);
@@ -207,6 +236,7 @@ class BookRepositoryRelationalImplTest
     void testFindByIsbnEmtpy()
     {
         // Arrange
+        when(redisRepo.getBookFromRedis(anyString())).thenReturn(Optional.empty());
         when(sqlRepo.findByIsbn(anyString())).thenReturn(Optional.empty());
 
         // Act
@@ -240,16 +270,20 @@ class BookRepositoryRelationalImplTest
     {
         // Arrange
         Book mockBook = mock(Book.class);
+        List<Book> cached = new ArrayList<>();
+        cached.add(mockBook);
 
         List<BookEntity> list = new ArrayList<>();
         BookEntity mockBookEntity = mock(BookEntity.class);
         list.add(mockBookEntity);
 
+        when(redisRepo.getBookListFromRedis(key)).thenReturn(cached);
         when(sqlRepo.findBooksByAuthorNumber(anyString())).thenReturn(list);
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         List<Book> books = bookRepo.findBooksByAuthorNumber(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(key, books);
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -261,11 +295,14 @@ class BookRepositoryRelationalImplTest
     {
         // Arrange
         List<BookEntity> list = new ArrayList<>();
+        List<Book> cached = new ArrayList<>();
 
+        when(redisRepo.getBookListFromRedis(key)).thenReturn(cached);
         when(sqlRepo.findBooksByAuthorNumber(anyString())).thenReturn(list);
 
         // Act
         List<Book> books = bookRepo.findBooksByAuthorNumber(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(key, books);
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -417,6 +454,7 @@ class BookRepositoryRelationalImplTest
         when(em.getReference(AuthorEntity.class, 100L)).thenReturn(mock(AuthorEntity.class));
         when(sqlRepo.save(entity)).thenReturn(savedEntity);
         when(bookEntityMapper.toModel(savedEntity)).thenReturn(book);
+        doNothing().when(redisRepo).save(book);
 
         // Act
         Book result = bookRepo.save(book);

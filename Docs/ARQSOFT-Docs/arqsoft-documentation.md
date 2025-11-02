@@ -186,9 +186,6 @@ Para o package responsável pela geração de ids é identico.
 
 ![VL_Level_3_STB.jpg](System-to-be/Vista%20L%C3%B3gica/VL_Level_3_STB.jpg)
 
-- Para o componente responsável por ir buscar o ISBN à API
-
-(diagrama)
 
 ### Mapeamento Vista Lógica Nível 3 para Vista Implementação Nível 4
 

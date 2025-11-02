@@ -23,9 +23,9 @@ pipeline {
 //         JAR_NAME = 'psoft-g1-0.0.1-SNAPSHOT.jar'
 
         // Portas para cada ambiente
-        DEV_PORT = '8080'
-        STAGING_PORT = '8081'
-        PROD_PORT = '8082'
+        DEV_PORT = '8180'
+        STAGING_PORT = '8181'
+        PROD_PORT = '8182'
 
         // Paths para deploy local
         DEPLOY_BASE_PATH = '/opt/deployments'

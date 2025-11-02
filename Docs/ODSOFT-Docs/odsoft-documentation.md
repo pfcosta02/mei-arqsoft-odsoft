@@ -22,7 +22,7 @@ O stage Unit Tests é responsável por executar os testes unitários realizados,
 
 
 ### Integration Tests
-(por realizar)
+![pipelineStages_integrationTest.png](assets/pipelineStages_integrationTest.png)
 
 
 ### Mutation Tests
@@ -45,6 +45,7 @@ A parte do Quality Gate é responsável por verificar automaticamente se o proje
 O stage Package realiza a geração do artefato do projeto (por exemplo, um arquivo JAR), garantindo que o pacote esteja pronto para implantação, mas sem executar os testes, acelerando o processo de empacotamento.
 
 
+
 ### Install
 ![pipelineStages_install.png](assets/pipelineStages_install.png)
 
@@ -52,7 +53,7 @@ O stage Install é responsável por instalar o artefato do projeto gerado no pas
 
 
 ### Deploy
-(por realizar)
+![pipelineStages_deploy.png](assets/pipelineStages_deploy.png)
 
 
 ---

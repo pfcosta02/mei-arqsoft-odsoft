@@ -20,7 +20,7 @@ pipeline {
     environment {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
         APP_NAME = 'psoft-g1'
-        JAR_NAME = ''
+        JAR_NAME = 'psoft-g1-0.0.1-SNAPSHOT.jar'
 
         // Portas para cada ambiente
         DEV_PORT = '8180'

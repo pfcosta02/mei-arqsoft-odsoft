@@ -245,14 +245,14 @@ pipeline {
            }
        }
 
-//                 stage('Smoke Test DEV') {
-//                     steps {
-//                         script {
-//                             echo '💨 Running smoke tests on DEV...'
-//                             smokeTest(env.DEV_PORT, 'dev')
-//                         }
-//                     }
-//                 }
+                stage('Smoke Test DEV') {
+                    steps {
+                        script {
+                            echo '💨 Running smoke tests on DEV...'
+                            smokeTest(env.DEV_PORT, 'dev')
+                        }
+                    }
+                }
 
                 stage('Deploy to STAGING') {
                     steps {
@@ -267,14 +267,14 @@ pipeline {
                     }
                 }
 
-//                 stage('Smoke Test STAGING') {
-//                     steps {
-//                         script {
-//                             echo '💨 Running smoke tests on STAGING...'
-//                             smokeTest(env.STAGING_PORT, 'staging')
-//                         }
-//                     }
-//                 }
+                stage('Smoke Test STAGING') {
+                    steps {
+                        script {
+                            echo '💨 Running smoke tests on STAGING...'
+                            smokeTest(env.STAGING_PORT, 'staging')
+                        }
+                    }
+                }
 
                 stage('Deploy to PRODUCTION') {
                     steps {
@@ -290,14 +290,14 @@ pipeline {
                     }
                 }
 
-//                 stage('Smoke Test PRODUCTION') {
-//                     steps {
-//                         script {
-//                             echo '💨 Running smoke tests on PRODUCTION...'
-//                             smokeTest(env.PROD_PORT, 'production')
-//                         }
-//                     }
-//                 }
+                stage('Smoke Test PRODUCTION') {
+                    steps {
+                        script {
+                            echo '💨 Running smoke tests on PRODUCTION...'
+                            smokeTest(env.PROD_PORT, 'production')
+                        }
+                    }
+                }
             }
 
         post {

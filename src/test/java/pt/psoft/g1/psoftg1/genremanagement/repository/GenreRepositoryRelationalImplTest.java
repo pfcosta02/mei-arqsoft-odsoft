@@ -31,6 +31,7 @@ import org.springframework.data.domain.Pageable;
 
 import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mappers.GenreEntityMapper;
+import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.redis.GenreRepositoryRedisImpl;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.relational.GenreRepositoryRelationalImpl;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.relational.SpringDataGenreRepository;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
@@ -42,6 +43,9 @@ class GenreRepositoryRelationalImplTest {
 
     @InjectMocks
     private GenreRepositoryRelationalImpl genreRepo;
+
+    @Mock
+    private GenreRepositoryRedisImpl redisRepo;
 
     @Mock
     private SpringDataGenreRepository springDataGenreRepo;
@@ -85,11 +89,14 @@ class GenreRepositoryRelationalImplTest {
     void testFindByStringPresent() {
         GenreEntity genreEntity = mock(GenreEntity.class);
         Genre genre = mock(Genre.class);
+        Optional<Genre> mockOptGenre = Optional.of(genre);
 
+        when(redisRepo.getGenreFromRedis(anyString())).thenReturn(mockOptGenre);
         when(springDataGenreRepo.findByString("Fiction")).thenReturn(Optional.of(genreEntity));
         when(genreEntityMapper.toModel(genreEntity)).thenReturn(genre);
 
         Optional<Genre> result = genreRepo.findByString("Fiction");
+        doNothing().when(redisRepo).save(genre);
 
         assertTrue(result.isPresent());
         assertEquals(genre, result.get());
@@ -97,6 +104,7 @@ class GenreRepositoryRelationalImplTest {
 
     @Test
     void testFindByStringEmpty() {
+        when(redisRepo.getGenreFromRedis(anyString())).thenReturn(Optional.empty());
         when(springDataGenreRepo.findByString("Unknown")).thenReturn(Optional.empty());
 
         Optional<Genre> result = genreRepo.findByString("Unknown");
@@ -114,6 +122,7 @@ class GenreRepositoryRelationalImplTest {
         when(genreEntityMapper.toModel(genreEntity)).thenReturn(genre);
 
         Genre savedGenre = genreRepo.save(genre);
+        doNothing().when(redisRepo).save(genre);
 
         assertEquals(genre, savedGenre);
     }
@@ -124,9 +133,11 @@ class GenreRepositoryRelationalImplTest {
         Pageable pageable = PageRequest.of(0, 5);
         List<GenreBookCountDTO> list = List.of(dto);
 
+        when(redisRepo.getGenreBookCountListFromRedis(anyString())).thenReturn(list);
         when(springDataGenreRepo.findTop5GenreByBookCount(pageable)).thenReturn(list);
 
         List<GenreBookCountDTO> result = genreRepo.findTop5GenreByBookCount(pageable);
+        doNothing().when(redisRepo).cacheGenreBookCountListToRedis(anyString(), eq(result));
 
         assertEquals(1, result.size());
         assertEquals(dto, result.get(0));

@@ -1,230 +1,249 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.integration_tests;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
-import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
+import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
+import pt.psoft.g1.psoftg1.bookmanagement.model.Title;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
-import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.infrastructure.IdGenerator;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
+import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
+import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
+import pt.psoft.g1.psoftg1.lendingmanagement.services.CreateLendingRequest;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
-import pt.psoft.g1.psoftg1.shared.services.Page;
-import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
-import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
+import pt.psoft.g1.psoftg1.usermanagement.model.Librarian;
+import pt.psoft.g1.psoftg1.usermanagement.model.User;
+import pt.psoft.g1.psoftg1.usermanagement.services.UserService;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-// @Transactional
-// @SpringBootTest
-// public class LendingRepositoryIntegrationTest {
 
-//     @Autowired
-//     private LendingRepository lendingRepository;
-//     @Autowired
-//     private ReaderRepository readerRepository;
-//     @Autowired
-//     private UserRepository userRepository;
-//     @Autowired
-//     private BookRepository bookRepository;
-//     @Autowired
-//     private GenreRepository genreRepository;
-//     @Autowired
-//     private AuthorRepository authorRepository;
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+public class LendingIT {
+    @Autowired
+    private MockMvc mockMvc;
 
-//     private Lending lending;
-//     private ReaderDetails readerDetails;
-//     private Reader reader;
-//     private Book book;
-//     private Author author;
-//     private Genre genre;
+    @MockBean
+    private IdGenerator idGenerator;
 
-//     @BeforeEach
-//     public void setUp() {
-//         author = new Author("Manuel Antonio Pina",
-//                 "Manuel António Pina foi um jornalista e escritor português, premiado em 2011 com o Prémio Camões",
-//                 null);
-//         authorRepository.save(author);
+    @MockBean
+    private LendingRepository lendingRepo;
 
-//         genre = new Genre("Género");
-//         genreRepository.save(genre);
+    @MockBean
+    private BookRepository bookRepo;
 
-//         List<Author> authors = List.of(author);
-//         book = new Book("9782826012092",
-//                 "O Inspetor Max",
-//                 "conhecido pastor-alemão que trabalha para a Judiciária, vai ser fundamental para resolver um importante caso de uma rede de malfeitores que quer colocar uma bomba num megaconcerto de uma ilustre cantora",
-//                 genre,
-//                 authors,
-//                 null);
-//         bookRepository.save(book);
+    @MockBean
+    private ReaderRepository readerRepo;
 
-//         reader = Reader.newReader("manuel@gmail.com", "Manuelino123!", "Manuel Sarapinto das Coives");
-//         userRepository.save(reader);
+    @MockBean
+    private UserService userService;
 
-//         readerDetails = new ReaderDetails(1,
-//                 reader,
-//                 "2000-01-01",
-//                 "919191919",
-//                 true,
-//                 true,
-//                 true,
-//                 null,
-//                 null);
-//         readerRepository.save(readerDetails);
+    @Test
+    @WithMockUser(username = "testuser", roles = {"LIBRARIAN"})
+    void shouldCreateLendingSuccessfully() throws Exception {
+        CreateLendingRequest lendingRequest = new CreateLendingRequest("9789722328296", "123456");
 
-//         // Create and save the lending
-//         lending = Lending.newBootstrappingLending(book,
-//                 readerDetails,
-//                 LocalDate.now().getYear(),
-//                 999,
-//                 LocalDate.of(LocalDate.now().getYear(), 1,1),
-//                 LocalDate.of(LocalDate.now().getYear(), 1,11),
-//                 15,
-//                 300);
-//         lendingRepository.save(lending);
-//     }
+        Isbn isbn = new Isbn("9789722328296");
+        Genre genre = new Genre("Terror");
+        Author author = new Author("Pedro", "Qualquer coisa", null);
+        author.setAuthorNumber("1000");
+        Book book = new Book(isbn.getIsbn(), "Os tres mosqueteiros", "description", genre, List.of(author), "photo.jpg");
+        ReaderDetails reader = mock(ReaderDetails.class);
+        Lending lending = new Lending(book, reader, 1, 14, 50);
+        lending.setLendingId("LEND123");
 
-//     @AfterEach
-//     public void tearDown(){
-//         lendingRepository.delete(lending);
-//         readerRepository.delete(readerDetails);
-//         userRepository.delete(reader);
-//         bookRepository.delete(book);
-//         genreRepository.delete(genre);
-//         authorRepository.delete(author);
-//     }
+        when(bookRepo.findByIsbn(isbn.getIsbn())).thenReturn(Optional.of(book));
+        when(readerRepo.findByReaderNumber("123456")).thenReturn(Optional.of(reader));
+        when(lendingRepo.getCountFromCurrentYear()).thenReturn(0);
+        when(idGenerator.generateId()).thenReturn("LEND123");
+        when(lendingRepo.save(any())).thenReturn(lending);
 
-//     @Test
-//     public void testSave() {
-//         Lending newLending = new Lending(lending.getBook(), lending.getReaderDetails(), 2, 14, 50);
-//         Lending savedLending = lendingRepository.save(newLending);
-//         assertThat(savedLending).isNotNull();
-//         assertThat(savedLending.getLendingNumber()).isEqualTo(newLending.getLendingNumber());
-//         lendingRepository.delete(savedLending);
-//     }
 
-//     @Test
-//     public void testFindByLendingNumber() {
-//         String ln = lending.getLendingNumber();
-//         Optional<Lending> found = lendingRepository.findByLendingNumber(ln);
-//         assertThat(found).isPresent();
-//         assertThat(found.get().getLendingNumber()).isEqualTo(ln);
-//     }
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/lendings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+            {
+                "isbn": "9789722328296",
+                "readerNumber": "123456"
+            }
+        """)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"))
+                .andExpect(jsonPath("$.lendingId").value(idGenerator.generateId()))
+                .andExpect(jsonPath("$.bookTitle").value(lending.getBook().getTitle().getTitle()));
+    }
 
-//     @Test
-//     public void testListByReaderNumberAndIsbn() {
-//         List<Lending> lendings = lendingRepository.listByReaderNumberAndIsbn(lending.getReaderDetails().getReaderNumber(), lending.getBook().getIsbn().toString());
-//         assertThat(lendings).isNotEmpty();
-//         assertThat(lendings).contains(lending);
-//     }
+    @Test
+    @WithMockUser(username = "testuser", roles = {"LIBRARIAN"})
+    void shouldGetLendingByLendingNumberSuccessfully() throws Exception {
+        Book book = mock(Book.class);
+        when(book.getTitle()).thenReturn(new Title("Os tres mosqueteiros"));
+        when(book.getIsbn()).thenReturn(new Isbn("9789722328296"));
+        ReaderDetails reader = mock(ReaderDetails.class);
 
-//     @Test
-//     public void testGetCountFromCurrentYear() {
-//         int count = lendingRepository.getCountFromCurrentYear();
-//         assertThat(count).isEqualTo(1);
-//         var lending2 = Lending.newBootstrappingLending(book,
-//                 readerDetails,
-//                 LocalDate.now().getYear(),
-//                 998,
-//                 LocalDate.of(LocalDate.now().getYear(), 5,31),
-//                 null,
-//                 15,
-//                 300);
-//         lendingRepository.save(lending2);
-//         count = lendingRepository.getCountFromCurrentYear();
-//         assertThat(count).isEqualTo(2);
-//     }
+        Lending lending = mock(Lending.class);
+        when(lending.getLendingNumber()).thenReturn("2025/1");
+        when(lending.getVersion()).thenReturn(0L);
 
-//     @Test
-//     public void testListOutstandingByReaderNumber() {
-//         var lending2 = Lending.newBootstrappingLending(book,
-//                 readerDetails,
-//                 2025,
-//                 998,
-//                 LocalDate.of(2025, 5,31),
-//                 null,
-//                 15,
-//                 300);
-//         lendingRepository.save(lending2);
-//         List<Lending> outstandingLendings = lendingRepository.listOutstandingByReaderNumber(lending.getReaderDetails().getReaderNumber());
-//         assertThat(outstandingLendings).contains(lending2);
-//     }
+        when(lending.getReaderDetails()).thenReturn(reader);
+        when(lending.getBook()).thenReturn(book);
 
-//     @Test
-//     public void testGetAverageDuration() {
-//         double lendingDuration1 = ChronoUnit.DAYS.between(lending.getStartDate(), lending.getReturnedDate());
-//         Double averageDuration = lendingRepository.getAverageDuration();
-//         assertNotNull(averageDuration);
-//         assertEquals(lendingDuration1, lendingRepository.getAverageDuration(), 0.001);
 
-//         var lending2 = lendingRepository.save(Lending.newBootstrappingLending(book,
-//                 readerDetails,
-//                 2025,
-//                 998,
-//                 LocalDate.of(2025, 2,1),
-//                 LocalDate.of(2025, 4,4),
-//                 15,
-//                 300));
-//         double lendingDuration2 = ChronoUnit.DAYS.between(lending2.getStartDate(), lending2.getReturnedDate());
-//         double expectedAvg = (lendingDuration1 + lendingDuration2) / 2 ;
-//         assertEquals(expectedAvg, lendingRepository.getAverageDuration(), 0.001);
+        Librarian librarian = mock(Librarian.class);
+        when(userService.getAuthenticatedUser(any())).thenReturn(librarian);
 
-//         var lending3 = lendingRepository.save(Lending.newBootstrappingLending(book,
-//                 readerDetails,
-//                 2025,
-//                 997,
-//                 LocalDate.of(2025, 3,1),
-//                 LocalDate.of(2025, 4,2025),
-//                 15,
-//                 300));
-//         double lendingDuration3 = ChronoUnit.DAYS.between(lending3.getStartDate(), lending3.getReturnedDate());
-//         expectedAvg = (lendingDuration1 + lendingDuration2 + lendingDuration3) / 3 ;
-//         assertEquals(expectedAvg, lendingRepository.getAverageDuration(), 0.001);
+        when(lendingRepo.findByLendingNumber("2025/1")).thenReturn(Optional.of(lending));
 
-//     }
+        mockMvc.perform(get("/api/lendings/2025/1")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("ETag", "\"0\""))
+                .andExpect(jsonPath("$.lendingNumber").value("2025/1"));
+    }
 
-//     @Test
-//     public void testGetOverdue() {
-//         var returnedLateLending = lendingRepository.save(Lending.newBootstrappingLending(book,
-//                 readerDetails,
-//                 2025,
-//                 998,
-//                 LocalDate.of(2025, 1,1),
-//                 LocalDate.of(2025, 2,1),
-//                 15,
-//                 300));
-//         var notReturnedLending = lendingRepository.save(Lending.newBootstrappingLending(book,
-//                 readerDetails,
-//                 2025,
-//                 997,
-//                 LocalDate.of(2025, 3,1),
-//                 null,
-//                 15,
-//                 300));
-//         var notReturnedAndNotOverdueLending = lendingRepository.save(Lending.newBootstrappingLending(book,
-//                 readerDetails,
-//                 2025,
-//                 996,
-//                 LocalDate.of(LocalDate.now().getYear(), LocalDate.now().getMonth(),LocalDate.now().getDayOfMonth()),
-//                 null,
-//                 15,
-//                 300));
-//         Page page = new Page(1, 10);
-//         List<Lending> overdueLendings = lendingRepository.getOverdue(page);
-//         assertThat(overdueLendings).doesNotContain(returnedLateLending);
-//         assertThat(overdueLendings).contains(notReturnedLending);
-//         assertThat(overdueLendings).doesNotContain(notReturnedAndNotOverdueLending);
-//     }
-// }
+    @Test
+    @WithMockUser(username = "testuser", roles = {"READER"})
+    void shouldSetLendingAsReturnedSuccessfully() throws Exception {
+        ReaderDetails readerDetails = mock(ReaderDetails.class);
+        when(readerDetails.getReaderNumber()).thenReturn("123456");
+
+        Book book = mock(Book.class);
+        when(book.getTitle()).thenReturn(new Title("Os tres mosqueteiros"));
+        when(book.getIsbn()).thenReturn(new Isbn("9789722328296"));
+
+        Lending lending = mock(Lending.class);
+        when(lending.getLendingNumber()).thenReturn("2025/1");
+        when(lending.getVersion()).thenReturn(1L);
+        when(lending.getReaderDetails()).thenReturn(readerDetails);
+        when(lending.getBook()).thenReturn(book);
+
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn("testuser");
+
+
+        when(userService.getAuthenticatedUser(any())).thenReturn(user);
+        when(readerRepo.findByUsername("testuser")).thenReturn(Optional.of(readerDetails));
+        when(lendingRepo.findByLendingNumber("2025/1")).thenReturn(Optional.of(lending));
+        when(lendingRepo.save(any())).thenReturn(lending);
+
+        mockMvc.perform(patch("/api/lendings/2025/1")
+                        .header("If-Match", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "commentary": "Returned in good condition"
+                }
+            """)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("ETag", "\"1\""));
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = {"LIBRARIAN"})
+    void shouldReturnAverageLendingDuration() throws Exception {
+        when(lendingRepo.getAverageDuration()).thenReturn(5.0);
+
+        mockMvc.perform(get("/api/lendings/avgDuration")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lendingsAverageDuration").value(5.0));
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = {"LIBRARIAN"})
+    void shouldReturnOverdueLendings() throws Exception {
+        ReaderDetails readerDetails = mock(ReaderDetails.class);
+        when(readerDetails.getReaderNumber()).thenReturn("123456");
+
+        Book book = mock(Book.class);
+        when(book.getTitle()).thenReturn(new Title("Os tres mosqueteiros"));
+        when(book.getIsbn()).thenReturn(new Isbn("9789722328296"));
+
+        Lending lending = mock(Lending.class);
+        when(lending.getLendingNumber()).thenReturn("2025/1");
+        when(lending.getVersion()).thenReturn(1L);
+        when(lending.getReaderDetails()).thenReturn(readerDetails);
+        when(lending.getBook()).thenReturn(book);
+
+        when(lendingRepo.getOverdue(any())).thenReturn(List.of(lending));
+
+        mockMvc.perform(get("/api/lendings/overdue")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "page": 0,
+                    "size": 10
+                }
+            """)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = {"LIBRARIAN"})
+    void shouldSearchLendingsSuccessfully() throws Exception {
+        ReaderDetails readerDetails = mock(ReaderDetails.class);
+        when(readerDetails.getReaderNumber()).thenReturn("123456");
+
+        Book book = mock(Book.class);
+        when(book.getTitle()).thenReturn(new Title("Os tres mosqueteiros"));
+        when(book.getIsbn()).thenReturn(new Isbn("9789722328296"));
+
+        Lending lending = mock(Lending.class);
+        when(lending.getLendingNumber()).thenReturn("2025/1");
+        when(lending.getVersion()).thenReturn(1L);
+        when(lending.getReaderDetails()).thenReturn(readerDetails);
+        when(lending.getBook()).thenReturn(book);
+
+        when(lendingRepo.searchLendings(any(), any(), any(), any(), any(), any()))
+                .thenReturn(List.of(lending));
+
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/lendings/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+            {                
+                "query": {
+                    "readerNumber": "123456",
+                    "isbn": "9789722328296",
+                    "returned": false,
+                    "startDate": "2025-10-01",
+                    "endDate": "2025-11-01"
+                },
+                "page": {
+                    "page": 0,
+                    "size": 10
+                }                            
+            }
+        """)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+    }
+}

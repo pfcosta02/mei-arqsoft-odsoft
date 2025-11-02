@@ -23,9 +23,9 @@ pipeline {
 //         JAR_NAME = 'psoft-g1-0.0.1-SNAPSHOT.jar'
 
         // Portas para cada ambiente
-        DEV_PORT = '8180'
-        STAGING_PORT = '8181'
-        PROD_PORT = '8182'
+        DEV_PORT = '8080'
+        STAGING_PORT = '8081'
+        PROD_PORT = '8082'
 
         // Paths para deploy local
         DEPLOY_BASE_PATH = '/opt/deployments'
@@ -464,6 +464,27 @@ EOF
                 --restart unless-stopped ^
                 ${imageName}
 
+
+            # Aguarda e verifica se o container está rodando
+            echo "Waiting for container to start..."
+            sleep 10
+
+            if docker ps --format '{{.Names}}' | grep -q "^${containerName}\$"; then
+                echo "✅ Container ${containerName} is running!"
+                docker ps --filter "name=${containerName}" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
+                echo ""
+                echo "📋 Container logs (last 50 lines):"
+                docker logs --tail 50 ${containerName}
+            else
+                echo "❌ Container failed to start or stopped!"
+                echo "📋 Full container logs:"
+                docker logs ${containerName}
+                echo ""
+                echo "💡 Container status:"
+                docker ps -a --filter "name=${containerName}"
+                exit 1
+            fi
+
             timeout /t 5 /nobreak >nul
             docker ps --filter "name=${containerName}"
         """
@@ -527,12 +548,21 @@ def deployLocal(environment, port) {
             @echo off
             if not exist "${deployPath}" mkdir "${deployPath}"
 
+            echo JAR to deploy: ${env.JAR_NAME}
+            echo Checking if JAR exists...
+            if not exist "target\\${env.JAR_NAME}" (
+                echo ERROR: JAR file not found: target\\${env.JAR_NAME}
+                dir target\\*.jar
+                exit /b 1
+            )
+
             echo Copying JAR to ${deployPath}...
-            copy /Y target\\${env.JAR_NAME} "${deployPath}\\${env.JAR_NAME}"
+            copy /Y "target\\${env.JAR_NAME}" "${deployPath}\\${env.JAR_NAME}"
             if errorlevel 1 (
                 echo ERROR: Failed to copy JAR file!
                 exit /b 1
             )
+            echo JAR copied successfully!
 
             echo Stopping existing application on port ${port}...
             for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${port}') do taskkill /F /PID %%a 2^>NUL

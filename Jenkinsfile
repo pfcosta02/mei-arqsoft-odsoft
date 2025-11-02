@@ -213,16 +213,13 @@ pipeline {
                             } else {
                                 bat 'mvn package -DskipTests'
                                 // Captura o nome do JAR no Windows
-//                                 def jarName = bat(script: '@echo off && dir /b target\\*.jar', returnStdout: true).trim()
 
                                 bat 'dir /b target\\*.jar > jarname.txt'
                                 def jarName = readFile('jarname.txt').trim()
-                                echo "📦 JAR capturado: ${jarName}"
                                 env.JAR_NAME = jarName
 
                             }
                             echo "📦 JAR gerado: ${env.JAR_NAME}"
-                            echo "Setting environment JAR_NAME to ${env.JAR_NAME}"
                             currentBuild.displayName = "#${env.BUILD_NUMBER} - ${env.JAR_NAME}"
 
                         }
@@ -294,7 +291,7 @@ pipeline {
 
                 stage('Deploy to PRODUCTION') {
                     steps {
-                        input message: 'Deploy to PRODUCTION?', ok: 'Deploy'
+//                         input message: 'Deploy to PRODUCTION?', ok: 'Deploy'
                         script {
                             echo '🚀 Deploying to PRODUCTION environment...'
                             if (params.Environment == 'docker') {

@@ -40,6 +40,7 @@ pipeline {
         }
 
         stage('Build & Compile') {
+        agent {label 'build'}
             steps {
                 script {
                     echo '🔨 Cleaning workspace...'
@@ -67,7 +68,7 @@ stage('Tests & Analysis') {
             stages{
 
         stage('Unit Tests') {
-            unstash 'compiled'
+            agent {label 'build'}
             steps {
                 script {
                     echo 'Running unit tests...'
@@ -148,7 +149,7 @@ stage('Tests & Analysis') {
 
 
         stage('Mutation Tests') {
-            unstash 'compiled'
+            agent {label 'build'}
             steps {
                 script {
                     echo 'Running mutation tests...'
@@ -180,7 +181,7 @@ stage('Tests & Analysis') {
         }
 
         stage('SonarQube Analysis') {
-            unstash 'compiled'
+            agent {label 'build'}
             steps {
                 script {
                     def ENVIRONMENT_2_SONARQUBE_SERVER = [

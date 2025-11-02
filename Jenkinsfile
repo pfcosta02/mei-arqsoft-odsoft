@@ -23,9 +23,9 @@ pipeline {
 //         JAR_NAME = 'psoft-g1-0.0.1-SNAPSHOT.jar'
 
         // Portas para cada ambiente
-        DEV_PORT = '8180'
-        STAGING_PORT = '8181'
-        PROD_PORT = '8182'
+        DEV_PORT = '8080'
+        STAGING_PORT = '8081'
+        PROD_PORT = '8082'
 
         // Paths para deploy local
         DEPLOY_BASE_PATH = '/opt/deployments'
@@ -213,16 +213,13 @@ pipeline {
                             } else {
                                 bat 'mvn package -DskipTests'
                                 // Captura o nome do JAR no Windows
-//                                 def jarName = bat(script: '@echo off && dir /b target\\*.jar', returnStdout: true).trim()
 
                                 bat 'dir /b target\\*.jar > jarname.txt'
                                 def jarName = readFile('jarname.txt').trim()
-                                echo "📦 JAR capturado: ${jarName}"
                                 env.JAR_NAME = jarName
 
                             }
                             echo "📦 JAR gerado: ${env.JAR_NAME}"
-                            echo "Setting environment JAR_NAME to ${env.JAR_NAME}"
                             currentBuild.displayName = "#${env.BUILD_NUMBER} - ${env.JAR_NAME}"
 
                         }
@@ -233,19 +230,6 @@ pipeline {
                         }
                     }
                 }
-
-        stage('Debug JAR') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        sh 'ls -la target/*.jar'
-                    } else {
-                        bat 'dir target\\*.jar'
-                        bat 'echo JAR_NAME=%JAR_NAME%'
-                    }
-                }
-            }
-        }
 
        stage('Deploy to DEV') {
            steps {
@@ -294,7 +278,7 @@ pipeline {
 
                 stage('Deploy to PRODUCTION') {
                     steps {
-                        input message: 'Deploy to PRODUCTION?', ok: 'Deploy'
+//                         input message: 'Deploy to PRODUCTION?', ok: 'Deploy'
                         script {
                             echo '🚀 Deploying to PRODUCTION environment...'
                             if (params.Environment == 'docker') {
@@ -392,12 +376,13 @@ def deployDocker(environment, port) {
             if [ ! -f Dockerfile ]; then
                 echo "Creating Dockerfile..."
                 cat > Dockerfile << 'EOF'
-FROM openjdk:17-jdk-slim
-WORKDIR /app
-COPY target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-EOF
+            FROM openjdk:17-jdk-slim
+            WORKDIR /app
+            COPY target/*.jar app.jar
+            EXPOSE 8080
+            ENV JAVA_OPTS=""
+            ENTRYPOINT ["java", "-jar", "app.jar"]
+            EOF
             fi
 
             # Build da nova imagem
@@ -411,17 +396,25 @@ EOF
                 -p ${port}:8080 \\
                 -e SPRING_PROFILES_ACTIVE=${environment} \\
                 -e SERVER_PORT=8080 \\
-                --restart unless-stopped \\
                 ${imageName}
 
-            # Verifica se o container está rodando
-            sleep 5
+            # Aguarda e verifica se o container está rodando
+            echo "Waiting for container to start..."
+            sleep 10
+
             if docker ps --format '{{.Names}}' | grep -q "^${containerName}\$"; then
-                echo "✅ Container ${containerName} is running successfully!"
+                echo "✅ Container ${containerName} is running!"
                 docker ps --filter "name=${containerName}" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
+                echo ""
+                echo "📋 Container logs (last 50 lines):"
+                docker logs --tail 50 ${containerName}
             else
-                echo "❌ Container failed to start!"
+                echo "❌ Container failed to start or stopped!"
+                echo "📋 Full container logs:"
                 docker logs ${containerName}
+                echo ""
+                echo "💡 Container status:"
+                docker ps -a --filter "name=${containerName}"
                 exit 1
             fi
         """
@@ -530,12 +523,21 @@ def deployLocal(environment, port) {
             @echo off
             if not exist "${deployPath}" mkdir "${deployPath}"
 
+            echo JAR to deploy: ${env.JAR_NAME}
+            echo Checking if JAR exists...
+            if not exist "target\\${env.JAR_NAME}" (
+                echo ERROR: JAR file not found: target\\${env.JAR_NAME}
+                dir target\\*.jar
+                exit /b 1
+            )
+
             echo Copying JAR to ${deployPath}...
-            copy /Y target\\${env.JAR_NAME} "${deployPath}\\${env.JAR_NAME}"
+            copy /Y "target\\${env.JAR_NAME}" "${deployPath}\\${env.JAR_NAME}"
             if errorlevel 1 (
                 echo ERROR: Failed to copy JAR file!
                 exit /b 1
             )
+            echo JAR copied successfully!
 
             echo Stopping existing application on port ${port}...
             for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${port}') do taskkill /F /PID %%a 2^>NUL

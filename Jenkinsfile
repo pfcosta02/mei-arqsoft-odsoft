@@ -20,7 +20,7 @@ pipeline {
     environment {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
         APP_NAME = 'psoft-g1'
-        JAR_NAME = 'psoft-g1-0.0.1-SNAPSHOT.jar'
+//         JAR_NAME = 'psoft-g1-0.0.1-SNAPSHOT.jar'
 
         // Portas para cada ambiente
         DEV_PORT = '8180'
@@ -213,15 +213,13 @@ pipeline {
                             } else {
                                 bat 'mvn package -DskipTests'
                                 // Captura o nome do JAR no Windows
-                                def jarName = bat(script: '@echo off && dir /b target\\*.jar', returnStdout: true).trim()
-                                echo "📦 JAR capturado: ${jarName}"
+//                                 def jarName = bat(script: '@echo off && dir /b target\\*.jar', returnStdout: true).trim()
 
+                                bat 'dir /b target\\*.jar > jarname.txt'
+                                def jarName = readFile('jarname.txt').trim()
+                                echo "📦 JAR capturado: ${jarName}"
                                 env.JAR_NAME = jarName
 
-                                echo "📦 JAR guardado globalmente: ${env.JAR_NAME}"
-
-                                // Confirma imediatamente
-                                bat "echo JAR_NAME=%JAR_NAME%"
                             }
                             echo "📦 JAR gerado: ${env.JAR_NAME}"
                             echo "Setting environment JAR_NAME to ${env.JAR_NAME}"

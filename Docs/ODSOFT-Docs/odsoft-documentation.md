@@ -23,6 +23,8 @@ O stage Unit Tests é responsável por executar os testes unitários realizados,
 
 ### Integration Tests
 ![pipelineStages_integrationTest.png](assets/pipelineStages_integrationTest.png)
+O stage Integration Tests é responsável por executar os testes de integração, que verificam a interação entre diferentes módulos do sistema, garantindo que as partes do código funcionem corretamente quando integradas.
+É utilizado o plugin Maven Failsafe para executar os testes. Se algum teste falhar, o Failsafe reporta o erro e o pipeline é interrompido, impedindo que as próximas etapas sejam executadas.
 
 
 ### Mutation Tests
@@ -42,7 +44,7 @@ A parte do Quality Gate é responsável por verificar automaticamente se o proje
 ### Package
 ![pipelineStages_package.png](assets/pipelineStages_package.png)
 
-O stage Package realiza a geração do artefato do projeto (por exemplo, um arquivo JAR), garantindo que o pacote esteja pronto para implantação, mas sem executar os testes, acelerando o processo de empacotamento.
+O stage Package realiza a geração do artefato do projeto (por exemplo, um arquivo JAR), garantindo que o pacote esteja pronto para implantação, mas sem executar os testes, acelerando o processo de empacotamento. Depois de realizar a geração do artefato, é armazenado o nome do ficheiro que será usado nos stages de Deploy.
 
 
 
@@ -55,6 +57,53 @@ O stage Install é responsável por instalar o artefato do projeto gerado no pas
 ### Deploy
 ![pipelineStages_deploy.png](assets/pipelineStages_deploy.png)
 
+Após a construção e testes, a pipeline realiza deploy sequencial em três ambientes:
+
+| Ambiente   | Porta  | Objetivo        |
+| ---------- |--------| --------------- |
+| DEV        | `8180` | Testes iniciais |
+| STAGING    | `8181` | Pré-produção    |
+| PRODUCTION | `8182` | Produção final  |
+
+
+Cada deploy é seguido de smoke tests automáticos para validar se a aplicação está acessível via http://localhost:<porta>/swagger-ui/index.html
+
+## Deploy com Docker (Environment = docker)
+
+Quando selecionado docker, a pipeline cria uma rede Docker chamada **psoft-network**, verifica ou inicia um container Redis (redis-<ambiente>).
+Removendo de seguida containers e imagens antigas da aplicação, gerando assim dinamicamente um Docker
+
+```
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+```
+Logo depois, cria uma nova imagem e inicia um container:
+
+```
+docker build -t psoft-g1:<ambiente> .
+docker run -d --name psoft-g1-<ambiente> \
+  --network psoft-network \
+  -p <porta>:8080 \
+  -e SPRING_DATA_REDIS_HOST=redis-<ambiente> \
+  -e SPRING_DATA_REDIS_PORT=6379 \
+  psoft-g1:<ambiente>
+```
+
+## Deploy Local (Environment = local)
+
+No modo local, o JAR é copiado para uma pasta de deploy:
+
+- **Linux**: /opt/deployments/<ambiente>
+
+- **Windows**: C:\deployments\<ambiente>
+
+Posteriormente, mata qualquer processo existente na porta do ambiente para conseguir iniciar um novo processo na porta desejada:
+
+```java -jar <jar> --server.port=<port> > app.log 2>&1 &```
 
 ---
 ## Critical analysis of the pipeline

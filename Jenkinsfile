@@ -455,19 +455,18 @@ def deployDocker(environment, port) {
 }
 
 def deployLocal(environment, port) {
-    def deployPath = "${env.DEPLOY_BASE_PATH}/${environment}"
-
-    echo "📁 Deploying ${environment} locally to ${deployPath} on port ${port}"
-
+    echo "📁 Deploying ${environment} locally on port ${port}"
+    
     if (isUnix()) {
+        def deployPath = "${env.DEPLOY_BASE_PATH}/${environment}"
         sh """
             # Cria diretório se não existir
             mkdir -p ${deployPath}
-
+            
             # Copia o JAR
             echo "Copying JAR to ${deployPath}..."
             cp target/*.jar ${deployPath}/${env.JAR_NAME}
-
+            
             # Para aplicação existente
             if [ -f ${deployPath}/app.pid ]; then
                 OLD_PID=\$(cat ${deployPath}/app.pid)
@@ -478,23 +477,23 @@ def deployLocal(environment, port) {
                     kill -9 \$OLD_PID 2>/dev/null || true
                 fi
             fi
-
+            
             # Mata qualquer processo na porta
             lsof -ti:${port} | xargs kill -9 2>/dev/null || true
-
+            
             # Inicia nova aplicação
             echo "Starting application on port ${port}..."
             nohup java -jar ${deployPath}/${env.JAR_NAME} \\
                 --server.port=${port} \\
                 --spring.profiles.active=${environment} \\
                 > ${deployPath}/app.log 2>&1 &
-
+            
             NEW_PID=\$!
             echo \$NEW_PID > ${deployPath}/app.pid
-
+            
             echo "✅ Application started with PID: \$NEW_PID"
             echo "Log file: ${deployPath}/app.log"
-
+            
             # Aguarda um pouco para verificar se iniciou
             sleep 5
             if ps -p \$NEW_PID > /dev/null; then
@@ -506,19 +505,27 @@ def deployLocal(environment, port) {
             fi
         """
     } else {
+        // Windows deployment
+        def deployPath = "C:\\deployments\\${environment}"
         bat """
-            @echo off
             if not exist "${deployPath}" mkdir "${deployPath}"
-
+            
             echo Copying JAR to ${deployPath}...
             copy /Y target\\*.jar "${deployPath}\\${env.JAR_NAME}"
-
-            echo Stopping existing application...
-            taskkill /FI "WINDOWTITLE eq ${env.APP_NAME}-${environment}*" /F 2>nul || echo No existing process
-
+            if errorlevel 1 (
+                echo ERROR: Failed to copy JAR file!
+                exit /b 1
+            )
+            
+            echo Stopping existing application on port ${port}...
+            for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${port}') do taskkill /F /PID %%a 2>nul
+            
+            timeout /t 2 /nobreak >nul
+            
             echo Starting application on port ${port}...
-            start "${env.APP_NAME}-${environment}" /MIN java -jar "${deployPath}\\${env.JAR_NAME}" --server.port=${port} --spring.profiles.active=${environment}
-
+            cd "${deployPath}"
+            start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} --spring.profiles.active=${environment} > app.log 2>&1"
+            
             timeout /t 5 /nobreak >nul
             echo Application started!
         """
@@ -528,48 +535,50 @@ def deployLocal(environment, port) {
 def smokeTest(port, environment) {
     def maxRetries = 30
     def retryDelay = 2
-
+    
     echo "Running smoke test for ${environment} on port ${port}..."
-
+    
     if (isUnix()) {
         sh """
             for i in \$(seq 1 ${maxRetries}); do
                 echo "Attempt \$i/${maxRetries}: Testing http://localhost:${port}/actuator/health"
-
+                
                 if curl -f -s http://localhost:${port}/actuator/health > /dev/null 2>&1; then
                     echo "✅ Smoke test PASSED for ${environment}!"
                     curl -s http://localhost:${port}/actuator/health | head -n 20
                     exit 0
                 fi
-
+                
                 echo "Service not ready yet, waiting ${retryDelay}s..."
                 sleep ${retryDelay}
             done
-
+            
             echo "❌ Smoke test FAILED for ${environment} after ${maxRetries} attempts!"
             exit 1
         """
     } else {
         bat """
             @echo off
-            set /a count=0
+            setlocal enabledelayedexpansion
+            set count=0
+            
             :retry
             set /a count+=1
-            echo Attempt %count%/${maxRetries}: Testing http://localhost:${port}/actuator/health
-
-            curl -f -s http://localhost:${port}/actuator/health >nul 2>&1
-            if %errorlevel% equ 0 (
+            echo Attempt !count!/${maxRetries}: Testing http://localhost:${port}/actuator/health
+            
+            curl -f -s -o nul http://localhost:${port}/actuator/health
+            if !errorlevel! equ 0 (
                 echo Smoke test PASSED for ${environment}!
                 curl -s http://localhost:${port}/actuator/health
                 exit /b 0
             )
-
-            if %count% lss ${maxRetries} (
+            
+            if !count! lss ${maxRetries} (
                 echo Service not ready yet, waiting ${retryDelay}s...
                 timeout /t ${retryDelay} /nobreak >nul
                 goto retry
             )
-
+            
             echo Smoke test FAILED for ${environment}!
             exit /b 1
         """

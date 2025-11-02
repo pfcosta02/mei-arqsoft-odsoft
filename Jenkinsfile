@@ -444,8 +444,7 @@ def deployDocker(environment, port) {
                     echo WORKDIR /app
                     echo COPY target/*.jar app.jar
                     echo EXPOSE 8080
-                    echo ENV JAVA_OPTS=""
-                    echo ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+                    echo ENTRYPOINT ["java", "-jar", "app.jar"]
                 ) > Dockerfile
             )
 

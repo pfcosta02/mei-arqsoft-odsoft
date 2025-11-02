@@ -107,6 +107,38 @@ Posteriormente, mata qualquer processo existente na porta do ambiente para conse
 
 ---
 ## Critical analysis of the pipeline
+### Evolução da Pipeline
+![#1 Pipeline - Unit-Mut Testes.png](assets/%231%20Pipeline%20-%20Unit-Mut%20Testes.png)
+
+Numa primeira versão funcional da pipeline, esta demorou 4 minutos, tendo apenas alguns testes unitários e os testes de mutação.
+
+![#2 Pipeline com Jacoco e SonarQube.png](assets/%232%20Pipeline%20com%20Jacoco%20e%20SonarQube.png)
+
+Numa segunda versão funcional da pipeline, juntou-se uma análise de SonarQube e de JaCoCo. Esta versão teve um aumento de duração de 2 minutos.
+
+![#3 Pipeline com Quality Gate Sonar qube.png](assets/%233%20Pipeline%20com%20Quality%20Gate%20Sonar%20qube.png)
+
+Numa terceira versão, juntou a realização de um Quality gate também do sonarQube. Demorou 8 minutos a ser realizada.
+
+![#3 Pipeline com Integration tests and deploy.png](assets/%233%20Pipeline%20com%20Integration%20tests%20and%20deploy.png)
+
+Completando os passos a realizar da pipeline, juntando testes de integração e processos de deploy, foi quando vimos um maior aumento de duração da pipeline. A partir daqui tentamos alguns processos para tentar melhorar a sua performance como correr os testes em paralelo e juntando threads ao processo de forma a tentar acelerar. No entanto, estes processos ou faziam com que a pipeline falhasse ou não se visualizavam melhorias significantes.
+
+### Unit Tests
+#### Projeto Base
+![BaseProjectUnitTests.png](assets/BaseProjectUnitTests.png)
+
+Como se pode ver, no projeto base existiam um total de 102 testes unitário, todos funcionais. O objetivo ao longo das implementações dos vários requisitos foi adicionando testes unitários de forma a aumentar a cobertura dos testes.
+
+#### Projeto Atual
+![Unit tests.png](assets/Unit%20tests.png)
+
+Atualmente o projeto conta com 516 testes unitários, também todos funcionais, o que mostra uma melhoria significativa.
+
+![currentCoverage.png](assets/currentCoverage.png)
+
+Como se pode ver, a atual cobertura de testes não é ideal, ficando-se pelos 47,7%. No entanto, como se pode ver na imagem a seguir, a cobertura era consideravelmente maior até à inserção do código de redis e elastic search na branch principal.
+![coverageChange.png](assets/coverageChange.png)
 
 ### Mutation Tests
 #### Primeiro teste de mutação
@@ -129,4 +161,12 @@ Os resultados do segundo teste mostram melhorias relativamente aos resultados do
 
 É possivel ver que 57% das mutações geradas foram mortas, o que mostra um aumento de mais de 30% em relação aos resultados do primeiro teste.
 
-Em relação à cobertura de linhas de código nas classes mutadas, passamos a ter uma cobertura de 76%, ou seja, um aumento de mais de 40%.
+Relativamente à cobertura de linhas de código nas classes mutadas, passamos a ter uma cobertura de 76%, ou seja, um aumento de mais de 40%.
+
+
+#### Terceiro teste de mutação
+![#3MutationTest.png](assets/%233MutationTest.png)
+
+Os terceiros resultados dos testes de mutação mostram um descida nos resultados em geral. Isto deve-se, como referido anteriormente, à introdução no sistema da implementação do Elastic Search e do Redis, aos quais não foram feitos testes.
+
+Contudo, é possível ver que ainda assim se vê uma melhoria relativamente ao projeto base.

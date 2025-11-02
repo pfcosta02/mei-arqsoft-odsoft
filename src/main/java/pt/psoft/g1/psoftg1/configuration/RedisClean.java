@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Component // Only runs when 'redis' profile is active
+//@Profile("!es")
 @Order(1) // Executes first
 public class RedisClean implements CommandLineRunner {
 

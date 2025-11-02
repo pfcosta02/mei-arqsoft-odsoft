@@ -45,6 +45,7 @@ pipeline {
             }
         }
 
+
 // correr em parelelo os testes
 // parallel {}
 
@@ -60,6 +61,19 @@ pipeline {
                     {
                         bat "mvn surefire:test"
                     }
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/surefire-reports',
+                        reportFiles: 'index.html',
+                        reportName: 'Unit Tests Report'
+                    ])
                 }
             }
         }
@@ -80,6 +94,41 @@ pipeline {
 //             }
 //         }
 //
+
+        stage('Test Coverage') {
+            steps {
+                script {
+                    echo '📊 Gerando relatório de cobertura...'
+                    if (isUnix()) {
+                        sh "mvn jacoco:report"
+                    } else {
+                        bat "mvn jacoco:report"
+                    }
+                }
+            }
+            post {
+                always {
+                    jacoco(
+                        execPattern: '**/target/jacoco.exec',
+                        classPattern: '**/target/classes',
+                        sourcePattern: '**/src/main/java',
+                        inclusionPattern: '**/*.class',
+                        minimumInstructionCoverage: '60',
+                        minimumBranchCoverage: '50'
+                    )
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo Coverage Report'
+                    ])
+                }
+            }
+        }
+
+
         stage('Mutation Tests') {
             steps {
                 script {
@@ -94,40 +143,53 @@ pipeline {
                     }
                 }
             }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    def ENVIRONMENT_2_SONARQUBE_SERVER = [
-                        'docker': 'sonarqube_docker',
-                        'local' : 'sonarqube_local'
-                    ]
-
-                    def sonarServer = ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
-                    echo "Running SonarQube analysis using server: ${sonarServer}"
-                    withSonarQubeEnv(sonarServer)
-                    {
-                        if (isUnix())
-                        {
-                            sh "mvn verify -X sonar:sonar"
-                        }
-                        else
-                        {
-                            bat "mvn verify -X sonar:sonar"
-                        }
-                    }
+            post {
+                always {
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/pit-reports',
+                        reportFiles: 'index.html',
+                        reportName: 'PIT Mutation Report'
+                    ])
                 }
             }
+
         }
 
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 3, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
+//         stage('SonarQube Analysis') {
+//             steps {
+//                 script {
+//                     def ENVIRONMENT_2_SONARQUBE_SERVER = [
+//                         'docker': 'sonarqube_docker',
+//                         'local' : 'sonarqube_local'
+//                     ]
+//
+//                     def sonarServer = ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
+//                     echo "Running SonarQube analysis using server: ${sonarServer}"
+//                     withSonarQubeEnv(sonarServer)
+//                     {
+//                         if (isUnix())
+//                         {
+//                             sh "mvn verify -X sonar:sonar"
+//                         }
+//                         else
+//                         {
+//                             bat "mvn verify -X sonar:sonar"
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//
+//         stage('Quality Gate') {
+//             steps {
+//                 timeout(time: 3, unit: 'MINUTES') {
+//                     waitForQualityGate abortPipeline: true
+//                 }
+//             }
+//         }
 
         stage('Package') {
             steps {

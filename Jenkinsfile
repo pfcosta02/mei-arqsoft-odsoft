@@ -62,14 +62,25 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 script {
-                    echo 'Running unit tests...'
-                    if (isUnix())
-                    {
-                        sh "mvn surefire:test"
-                    }
-                    else
-                    {
-                        bat "mvn surefire:test"
+                    echo '🏎️ Running unit tests in parallel using Parallel Test Executor...'
+
+                    // Divide os testes em 3 grupos (ajusta conforme os recursos do Jenkins)
+                    def splits = splitTests(
+                        parallelism: 3,  // número de executores paralelos
+                        testPattern: 'src/test/java/**/*.java',
+                        testReportFiles: '**/target/surefire-reports/*.xml',
+                        generateInclusionsFile: true
+                    )
+
+                    // Executa os grupos de testes em paralelo
+                    parallel splits.collectEntries { split ->
+                        ["${split.name}" : {
+                            if (isUnix()) {
+                                sh "mvn test -Dsurefire.includesFile=${split.includesFile}"
+                            } else {
+                                bat "mvn test -Dsurefire.includesFile=${split.includesFile}"
+                            }
+                        }]
                     }
                 }
             }

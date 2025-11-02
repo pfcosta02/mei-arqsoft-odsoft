@@ -373,28 +373,28 @@ def deployDocker(environment, port) {
             if [ ! -f Dockerfile ]; then
                 echo "Creating Dockerfile..."
                 cat > Dockerfile << 'EOF'
-            FROM openjdk:17-jdk-slim
-            WORKDIR /app
-            COPY target/*.jar app.jar
-            EXPOSE 8180
-            ENTRYPOINT ["java", "-jar", "app.jar"]
-            EOF
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+EOF
             fi
-            
+
             # Build da nova imagem
             echo "Building Docker image: ${imageName}"
             docker build -t ${imageName} .
-            
+
             # Inicia novo container
             echo "Starting new container: ${containerName}"
             docker run -d \\
                 --name ${containerName} \\
-                -p ${port}:8180 \\
+                -p ${port}:8080 \\
                 -e SPRING_PROFILES_ACTIVE=${environment} \\
-                -e SERVER_PORT=8180 \\
+                -e SERVER_PORT=8080 \\
                 --restart unless-stopped \\
                 ${imageName}
-            
+
             # Verifica se o container está rodando
             sleep 5
             if docker ps --format '{{.Names}}' | grep -q "^${containerName}\$"; then
@@ -417,37 +417,37 @@ def deployDocker(environment, port) {
                 echo Removing existing container...
                 docker rm ${containerName} || echo Container already removed
             )
-            
+
             echo Checking for existing image: ${imageName}
             docker images --format "{{.Repository}}:{{.Tag}}" | findstr /X "${imageName}" >nul 2>&1
             if %errorlevel% equ 0 (
                 echo Removing old image...
                 docker rmi ${imageName} || echo Image already removed
             )
-            
+
             if not exist Dockerfile (
                 echo Creating Dockerfile...
                 (
                     echo FROM openjdk:17-jdk-slim
                     echo WORKDIR /app
                     echo COPY target/*.jar app.jar
-                    echo EXPOSE 8180
+                    echo EXPOSE 8080
                     echo ENTRYPOINT ["java", "-jar", "app.jar"]
                 ) > Dockerfile
             )
-            
+
             echo Building Docker image: ${imageName}
             docker build -t ${imageName} .
-            
+
             echo Starting new container: ${containerName}
             docker run -d ^
                 --name ${containerName} ^
-                -p ${port}:8180 ^
+                -p ${port}:8080 ^
                 -e SPRING_PROFILES_ACTIVE=${environment} ^
-                -e SERVER_PORT=8180 ^
+                -e SERVER_PORT=8080 ^
                 --restart unless-stopped ^
                 ${imageName}
-            
+
             timeout /t 5 /nobreak >nul
             docker ps --filter "name=${containerName}"
         """
@@ -456,17 +456,17 @@ def deployDocker(environment, port) {
 
 def deployLocal(environment, port) {
     echo "📁 Deploying ${environment} locally on port ${port}"
-    
+
     if (isUnix()) {
         def deployPath = "${env.DEPLOY_BASE_PATH}/${environment}"
         sh """
             # Cria diretório se não existir
             mkdir -p ${deployPath}
-            
+
             # Copia o JAR
             echo "Copying JAR to ${deployPath}..."
             cp target/*.jar ${deployPath}/${env.JAR_NAME}
-            
+
             # Para aplicação existente
             if [ -f ${deployPath}/app.pid ]; then
                 OLD_PID=\$(cat ${deployPath}/app.pid)
@@ -477,23 +477,23 @@ def deployLocal(environment, port) {
                     kill -9 \$OLD_PID 2>/dev/null || true
                 fi
             fi
-            
+
             # Mata qualquer processo na porta
             lsof -ti:${port} | xargs kill -9 2>/dev/null || true
-            
+
             # Inicia nova aplicação
             echo "Starting application on port ${port}..."
             nohup java -jar ${deployPath}/${env.JAR_NAME} \\
                 --server.port=${port} \\
                 --spring.profiles.active=${environment} \\
                 > ${deployPath}/app.log 2>&1 &
-            
+
             NEW_PID=\$!
             echo \$NEW_PID > ${deployPath}/app.pid
-            
+
             echo "✅ Application started with PID: \$NEW_PID"
             echo "Log file: ${deployPath}/app.log"
-            
+
             # Aguarda um pouco para verificar se iniciou
             sleep 5
             if ps -p \$NEW_PID > /dev/null; then
@@ -508,25 +508,28 @@ def deployLocal(environment, port) {
         // Windows deployment
         def deployPath = "C:\\deployments\\${environment}"
         bat """
+            @echo off
             if not exist "${deployPath}" mkdir "${deployPath}"
-            
+
             echo Copying JAR to ${deployPath}...
             copy /Y target\\*.jar "${deployPath}\\${env.JAR_NAME}"
             if errorlevel 1 (
                 echo ERROR: Failed to copy JAR file!
                 exit /b 1
             )
-            
+
             echo Stopping existing application on port ${port}...
-            for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${port}') do taskkill /F /PID %%a 2>nul
-            
-            timeout /t 2 /nobreak >nul
-            
+            for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${port}') do taskkill /F /PID %%a 2^>NUL
+
+            echo Waiting 2 seconds...
+            ping 127.0.0.1 -n 3 > NUL
+
             echo Starting application on port ${port}...
-            cd "${deployPath}"
-            start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} --spring.profiles.active=${environment} > app.log 2>&1"
-            
-            timeout /t 5 /nobreak >nul
+            cd /d "${deployPath}"
+            start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} --spring.profiles.active=${environment} ^> app.log 2^>^&1"
+
+            echo Waiting 5 seconds for application to start...
+            ping 127.0.0.1 -n 6 > NUL
             echo Application started!
         """
     }
@@ -535,24 +538,24 @@ def deployLocal(environment, port) {
 def smokeTest(port, environment) {
     def maxRetries = 30
     def retryDelay = 2
-    
+
     echo "Running smoke test for ${environment} on port ${port}..."
-    
+
     if (isUnix()) {
         sh """
             for i in \$(seq 1 ${maxRetries}); do
                 echo "Attempt \$i/${maxRetries}: Testing http://localhost:${port}/actuator/health"
-                
+
                 if curl -f -s http://localhost:${port}/actuator/health > /dev/null 2>&1; then
                     echo "✅ Smoke test PASSED for ${environment}!"
                     curl -s http://localhost:${port}/actuator/health | head -n 20
                     exit 0
                 fi
-                
+
                 echo "Service not ready yet, waiting ${retryDelay}s..."
                 sleep ${retryDelay}
             done
-            
+
             echo "❌ Smoke test FAILED for ${environment} after ${maxRetries} attempts!"
             exit 1
         """
@@ -561,21 +564,21 @@ def smokeTest(port, environment) {
             @echo off
             setlocal enabledelayedexpansion
             set count=0
-            
+
             :retry
             set /a count+=1
             echo Attempt !count!/${maxRetries}: Testing http://localhost:${port}/actuator/health
-            
-            curl -f -s -o nul http://localhost:${port}/actuator/health
+
+            curl -f -s -o NUL http://localhost:${port}/actuator/health
             if !errorlevel! equ 0 (
                 echo Smoke test PASSED for ${environment}!
                 curl -s http://localhost:${port}/actuator/health
                 exit /b 0
             )
-            
+
             if !count! lss ${maxRetries} (
                 echo Service not ready yet, waiting ${retryDelay}s...
-                timeout /t ${retryDelay} /nobreak >nul
+                ping 127.0.0.1 -n 3 > NUL
                 goto retry
             )
             

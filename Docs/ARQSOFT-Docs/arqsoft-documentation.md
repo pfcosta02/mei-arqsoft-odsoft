@@ -207,6 +207,7 @@ Para o package responsável pela geração de ids é identico.
 
 (Método GetTop5Genres)
 
+![VP_Level_2_GetTop5Genres_STB.svg](System-to-be/Vista%20Processos/Get%20Top%205%20Genres/VP_Level_2_GetTop5Genres_STB.svg)
 
 #### Nível 3
 (Método CreateBook)
@@ -218,6 +219,8 @@ Para o package responsável pela geração de ids é identico.
 ![VP_Level_3_CreateLending_STB.jpg](System-to-be/Vista%20Processos/Create%20Lending/VP_Level_3_CreateLending_STB.jpg)
 
 (Método GetTop5Genres)
+
+![VP_Level_3_GetTop5Genres_STB.svg](System-to-be/Vista%20Processos/Get%20Top%205%20Genres/VP_Level_3_GetTop5Genres_STB.svg)
 
 ---
 

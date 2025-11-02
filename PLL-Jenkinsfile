@@ -53,6 +53,9 @@ pipeline {
                         bat "mvn clean compile test-compile"
                         stash includes: 'target/**', name: 'compiled'
                     }
+
+                    echo '📦 Stashing compiled classes...'
+                    stash includes: 'target/classes/**, target/test-classes/**, pom.xml', name: 'compiled-classes'
                 }
             }
         }
@@ -70,6 +73,8 @@ stage('Tests & Analysis') {
             
             steps {
                 script {
+
+                    unstash 'compiled-classes'
 
                     echo 'Running unit tests...'
                     if (isUnix())
@@ -139,6 +144,7 @@ stage('Tests & Analysis') {
             
             steps {
                 script {
+                    unstash 'compiled-classes'
                     echo 'Running mutation tests...'
                     if (isUnix())
                     {
@@ -175,6 +181,8 @@ stage('Tests & Analysis') {
                  stage('Integration Tests') {
                      steps {
                          script {
+
+                            unstash 'compiled-classes'
                              echo 'Running integration tests...'
                              if (isUnix())
                              {
@@ -194,6 +202,9 @@ stage('Tests & Analysis') {
 
                     steps {
                         script {
+
+                            unstash 'compiled-classes'
+
                             def ENVIRONMENT_2_SONARQUBE_SERVER = [
                                 'docker': 'sonarqube_docker',
                                 'local' : 'sonarqube_local'

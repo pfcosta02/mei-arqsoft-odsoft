@@ -54,6 +54,7 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 (Método GetTop5Genres)
 
+![VP_Level_1_GetTop5Genres.svg](System-as-is/Vista%20Processos/Get%20Top%205%20Genres/VP_Level_1_GetTop5Genres.svg)
 
 #### Nível 2
 (Método CreateBook)
@@ -66,6 +67,7 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 (Método GetTop5Genres)
 
+![VP_Level_2_GetTop5Genres.svg](System-as-is/Vista%20Processos/Get%20Top%205%20Genres/VP_Level_2_GetTop5Genres.svg)
 
 #### Nível 3
 (Método CreateBook)
@@ -78,6 +80,8 @@ Vista de implementação de nível é sememlhante à vista lógica correspondent
 
 
 (Método GetTop5Genres)
+
+![VP_Level_3_GetTop5Genres.svg](System-as-is/Vista%20Processos/Get%20Top%205%20Genres/VP_Level_3_GetTop5Genres.svg)
 
 ---
 ## Architectural Software Requirements (ASR)

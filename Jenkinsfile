@@ -213,10 +213,19 @@ pipeline {
                             } else {
                                 bat 'mvn package -DskipTests'
                                 // Captura o nome do JAR no Windows
-                                def jarName = bat(script: '@echo off && dir /b target\\*.jar', returnStdout: true).trim()
-                                echo "📦 JAR capturado: ${jarName}"
+                                // Captura o JAR gerado
+                                    def jarName = bat(
+                                        script: '@echo off && for /f "delims=" %i in (\'dir /b target\\*.jar\') do @echo %i',
+                                        returnStdout: true
+                                    ).trim()
 
-                                env.JAR_NAME = jarName.split('\n')[0].trim()
+                                    echo "📦 JAR capturado: ${jarName}"
+
+                                    env.JAR_NAME = jarName
+                                    echo "📦 JAR guardado globalmente: ${env.JAR_NAME}"
+
+                                    bat "echo JAR_NAME=%JAR_NAME%"
+                                }
                             }
                             echo "📦 JAR gerado: ${env.JAR_NAME}"
                             echo "Setting environment JAR_NAME to ${env.JAR_NAME}"

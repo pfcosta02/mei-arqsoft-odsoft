@@ -357,6 +357,31 @@ def deployDocker(environment, port) {
 
     if (isUnix()) {
         sh """
+            # Cria rede Docker se não existir
+            if ! docker network inspect ${networkName} > /dev/null 2>&1; then
+                echo "Creating Docker network: ${networkName}"
+                docker network create ${networkName}
+            else
+                echo "Docker network ${networkName} already exists"
+            fi
+
+            # Verifica/inicia Redis
+            if ! docker ps --format '{{.Names}}' | grep -q "^${redisContainerName}\$"; then
+                echo "Starting Redis container for ${environment}..."
+                docker stop ${redisContainerName} 2>/dev/null || true
+                docker rm ${redisContainerName} 2>/dev/null || true
+
+                docker run -d \\
+                    --name ${redisContainerName} \\
+                    --network ${networkName} \\
+                    redis:latest
+
+                echo "Waiting for Redis to be ready..."
+                sleep 5
+            else
+                echo "Redis container ${redisContainerName} already running"
+            fi
+
             # Remove container antigo se existir
             echo "Checking for existing container: ${containerName}"
             if docker ps -a --format '{{.Names}}' | grep -q "^${containerName}\$"; then
@@ -393,9 +418,13 @@ def deployDocker(environment, port) {
             echo "Starting new container: ${containerName}"
             docker run -d \\
                 --name ${containerName} \\
+                --network ${networkName} \\
                 -p ${port}:8080 \\
                 -e SERVER_PORT=8080 \\
+                -e SPRING_DATA_REDIS_HOST=${redisContainerName} \\
+                -e SPRING_DATA_REDIS_PORT=6379 \\
                 ${imageName}
+
 
             # Aguarda e verifica se o container está rodando
             echo "Waiting for container to start..."
@@ -420,6 +449,34 @@ def deployDocker(environment, port) {
     } else {
         bat """
             @echo off
+
+            REM Cria rede Docker se não existir
+            docker network inspect ${networkName} >nul 2>&1
+            if errorlevel 1 (
+                echo Creating Docker network: ${networkName}
+                docker network create ${networkName}
+            ) else (
+                echo Docker network ${networkName} already exists
+            )
+
+            REM Verifica/inicia Redis
+            docker ps --format "{{.Names}}" | findstr /X "${redisContainerName}" >nul 2>&1
+            if errorlevel 1 (
+                echo Starting Redis container for ${environment}...
+                docker stop ${redisContainerName} 2>nul
+                docker rm ${redisContainerName} 2>nul
+
+                docker run -d ^
+                    --name ${redisContainerName} ^
+                    --network ${networkName} ^
+                    redis:latest
+
+                echo Waiting for Redis to be ready...
+                ping 127.0.0.1 -n 6 > NUL
+            ) else (
+                echo Redis container ${redisContainerName} already running
+            )
+
             echo Checking for existing container: ${containerName}
             docker ps -a --format "{{.Names}}" | findstr /X "${containerName}" >nul 2>&1
             if %errorlevel% equ 0 (
@@ -453,8 +510,11 @@ def deployDocker(environment, port) {
             echo Starting new container: ${containerName}
             docker run -d ^
                 --name ${containerName} ^
+                --network ${networkName} ^
                 -p ${port}:8080 ^
                 -e SERVER_PORT=8080 ^
+                -e SPRING_DATA_REDIS_HOST=${redisContainerName} ^
+                -e SPRING_DATA_REDIS_PORT=6379 ^
                 --restart unless-stopped ^
                 ${imageName}
 
@@ -548,10 +608,19 @@ def deployLocal(environment, port) {
             echo "${deployPath}"
             start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} ^> app.log 2^>^&1"
 
-            echo Waiting 15 seconds for application to start...
-            ping 127.0.0.1 -n 16 > NUL
-            echo Application started!
-            echo Log file: ${deployPath}\\app.log
+            echo Waiting 10 seconds for application to start...
+            ping 127.0.0.1 -n 11 > NUL
+
+            echo Checking if application is running...
+            netstat -ano | findstr :${port}
+            if errorlevel 1 (
+                echo WARNING: No process listening on port ${port}
+                echo Showing last 30 lines of log:
+                powershell -Command "Get-Content '${deployPath}\\app.log' -Tail 30"
+            ) else (
+                echo Application appears to be running on port ${port}
+            )
+
         """
     }
 }

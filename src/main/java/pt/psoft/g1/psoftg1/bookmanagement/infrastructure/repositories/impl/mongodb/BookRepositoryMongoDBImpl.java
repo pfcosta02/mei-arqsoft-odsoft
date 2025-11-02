@@ -123,7 +123,6 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     @Override
     public List<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable)
     {
-        //TODO: Corrigir este
         return bookRepositoryMongoDB.findTop5BooksLent(oneYearAgo, pageable);
     }
 
@@ -150,102 +149,61 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
         Query mongoQuery = new Query();
 
-        // Título
         if (title != null && !title.isEmpty()) {
             mongoQuery.addCriteria(Criteria.where("title.title").regex("^" + title, "i"));
         }
 
-        // Gênero
         if (genre != null && !genre.isEmpty()) {
             mongoQuery.addCriteria(Criteria.where("genre.genre").regex("^" + genre, "i"));
         }
 
-        // Nome do autor
         if (authorName != null && !authorName.isEmpty()) {
             mongoQuery.addCriteria(Criteria.where("authors.name.name").regex("^" + authorName, "i"));
         }
 
-        // Paginação
         Pageable pageable = PageRequest.of(page.getNumber() - 1, page.getLimit());
         mongoQuery.with(pageable);
 
-        // Ordenação pelo título
         mongoQuery.with(Sort.by(Sort.Direction.ASC, "title.title"));
 
-        // Buscar no MongoDB
         List<BookMongoDB> bookEntities = mongoTemplate.find(mongoQuery, BookMongoDB.class);
 
-        // Mapear para o modelo de domínio
         return bookEntities.stream()
                 .map(bookMapperMongoDB::toModel)
                 .toList();
     }
 
-//    @Override
-//    public Book save(Book book) {
-//        BookMongoDB bookMongoDB = bookMapperMongoDB.toMongoDB(book);
-//
-//        List<AuthorMongoDB> authors = bookMongoDB.getAuthors().stream()
-//                .map(author -> authorRepositoryMongoDB
-//                        .searchByNameName(author.getName().getName().toString())
-//                        .stream()
-//                        .findFirst()
-//                        .orElseGet(() -> authorRepositoryMongoDB.save(author)))
-//                .toList();
-//
-//        bookMongoDB.setAuthors(authors);
-//
-//        if (bookMongoDB.getGenre() != null) {
-//            GenreMongoDB existingGenre = genreRepositoryMongoDB
-//                    .findByString(bookMongoDB.getGenre().getGenre())
-//                    .orElseGet(() -> genreRepositoryMongoDB.save(bookMongoDB.getGenre()));
-//            bookMongoDB.setGenre(existingGenre);
-//        }
-//
-//        BookMongoDB savedEntity = bookRepositoryMongoDB.save(bookMongoDB);
-//        return bookMapperMongoDB.toModel(savedEntity);
-//    }
-
     @Override
     public Book save(Book book) {
-        // Converte o modelo de domínio para documento Mongo
         BookMongoDB bookDoc = bookMapperMongoDB.toMongoDB(book);
 
-        // Verifica se o gênero existe
         Genre genreDoc = genreRepo.findByString(book.getGenre().getGenre())
                 .orElseThrow(() -> new RuntimeException("Genre not found"));
 
         GenreMongoDB genreMongoDB = genreMapperMongoDB.toMongoDB(genreDoc);
 
-        // Associa o gênero existente ao documento do livro
         bookDoc.setGenre(genreMongoDB);
 
-        // Cria uma lista de autores existentes
         List<AuthorMongoDB> authors = new ArrayList<>();
 
         for (var author : book.getAuthors()) {
-            // Busca o autor pelo nome
-            // (em MongoDB geralmente retornamos lista, como antes)
             List<AuthorMongoDB> matches = authorRepositoryMongoDB.searchByNameName(author.getName().getName());
             if (matches.isEmpty()) {
                 throw new RuntimeException("Author not found");
             }
 
-            // Escolhe o primeiro autor encontrado (ou aplica outra lógica)
             AuthorMongoDB existingAuthor = matches.get(0);
             authors.add(existingAuthor);
         }
 
-        // Associa os autores existentes
         bookDoc.setAuthors(authors);
 
-        // Salva o documento no MongoDB
         BookMongoDB savedDoc = bookRepositoryMongoDB.save(bookDoc);
+
         redisRepo.save(bookMapperMongoDB.toModel(savedDoc));
         // Retorna o modelo de domínio convertido de volta
         return bookMapperMongoDB.toModel(savedDoc);
     }
-
 
     @Override
     public void delete(Book book) {

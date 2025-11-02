@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Profile("mongodb")
-@Qualifier("mongoDbRepo")
 @Repository
 @RequiredArgsConstructor
 public class ReaderDetailsRepositoryMongoDBImpl implements ReaderRepository {

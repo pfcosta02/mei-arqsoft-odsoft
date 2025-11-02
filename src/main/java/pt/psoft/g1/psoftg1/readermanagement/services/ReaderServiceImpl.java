@@ -49,21 +49,6 @@ public class ReaderServiceImpl implements ReaderService {
 
         List<String> stringInterestList = request.getInterestList();
         List<Genre> interestList = this.getGenreListFromStringList(stringInterestList);
-        /*if(stringInterestList != null && !stringInterestList.isEmpty()) {
-            request.setInterestList(this.getGenreListFromStringList(stringInterestList));
-        }*/
-
-        /*
-         * Since photos can be null (no photo uploaded) that means the URI can be null as well.
-         * To avoid the client sending false data, photoURI has to be set to any value / null
-         * according to the MultipartFile photo object
-         *
-         * That means:
-         * - photo = null && photoURI = null -> photo is removed
-         * - photo = null && photoURI = validString -> ignored
-         * - photo = validFile && photoURI = null -> ignored
-         * - photo = validFile && photoURI = validString -> photo is set
-         * */
 
         MultipartFile photo = request.getPhoto();
         if(photo == null && photoURI != null || photo != null && photoURI == null) {
@@ -96,17 +81,6 @@ public class ReaderServiceImpl implements ReaderService {
         List<String> stringInterestList = request.getInterestList();
         List<Genre> interestList = this.getGenreListFromStringList(stringInterestList);
 
-         /*
-         * Since photos can be null (no photo uploaded) that means the URI can be null as well.
-         * To avoid the client sending false data, photoURI has to be set to any value / null
-         * according to the MultipartFile photo object
-         *
-         * That means:
-         * - photo = null && photoURI = null -> photo is removed
-         * - photo = null && photoURI = validString -> ignored
-         * - photo = validFile && photoURI = null -> ignored
-         * - photo = validFile && photoURI = validString -> photo is set
-         * */
 
         MultipartFile photo = request.getPhoto();
         if(photo == null && photoURI != null || photo != null && photoURI == null) {

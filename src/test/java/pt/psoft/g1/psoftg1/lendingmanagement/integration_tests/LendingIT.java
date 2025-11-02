@@ -3,6 +3,8 @@ package pt.psoft.g1.psoftg1.lendingmanagement.integration_tests;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -13,12 +15,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
+import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Isbn;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Title;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
+import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
+import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.idgeneratormanagement.infrastructure.IdGenerator;
+import pt.psoft.g1.psoftg1.isbnmanagement.factory.IsbnProviderFactory;
+import pt.psoft.g1.psoftg1.isbnmanagement.infrastructure.IsbnProvider;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
@@ -26,7 +33,9 @@ import pt.psoft.g1.psoftg1.lendingmanagement.services.CreateLendingRequest;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.usermanagement.model.Librarian;
+import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.usermanagement.model.User;
+import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 import pt.psoft.g1.psoftg1.usermanagement.services.UserService;
 
 import java.util.List;
@@ -61,7 +70,20 @@ public class LendingIT {
     private ReaderRepository readerRepo;
 
     @MockBean
+    private AuthorRepository authorRepo;
+
+    @MockBean
+    private GenreRepository genreRepo;
+
+    @MockBean
+    private IsbnProviderFactory isbnProviderFactory;
+
+    @MockBean
+    private UserRepository userRepo;
+
+    @MockBean
     private UserService userService;
+
 
     @Test
     @WithMockUser(username = "testuser", roles = {"LIBRARIAN"})

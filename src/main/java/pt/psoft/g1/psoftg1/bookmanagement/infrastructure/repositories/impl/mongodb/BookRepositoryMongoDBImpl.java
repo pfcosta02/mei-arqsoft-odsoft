@@ -15,6 +15,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mongodb.SpringDataAuthorRepositoryMongoDB;
 import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
+import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.redis.BookRepositoryRedisImpl;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappers.BookMapperMongoDB;
@@ -47,6 +48,10 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     private final GenreRepositoryMongoDBImpl genreRepo;
     private final GenreMapperMongoDB genreMapperMongoDB;
 
+    private final BookRepositoryRedisImpl redisRepo;
+
+    private static final String PREFIX = "books:";
+
     @Autowired
     private MongoTemplate mongoTemplate;
 
@@ -54,46 +59,60 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     @Override
     public List<Book> findByGenre(@Param("genre") String genre)
     {
+        List<Book> cached = redisRepo.getBookListFromRedis(PREFIX + "genre:" + genre);
+        if (!cached.isEmpty()) return cached;
+
         List<Book> books = new ArrayList<>();
         for (BookMongoDB b: bookRepositoryMongoDB.findByGenre(genre))
         {
             books.add(bookMapperMongoDB.toModel(b));
         }
-
+        redisRepo.cacheBookListToRedis(PREFIX + "genre:" + genre, books);
         return books;
     }
 
     @Override
     public List<Book> findByTitle(@Param("title") String title)
     {
+        List<Book> cached = redisRepo.getBookListFromRedis(PREFIX + "title:" + title);
+        if (!cached.isEmpty()) return cached;
+
         List<Book> books = new ArrayList<>();
         for (BookMongoDB b: bookRepositoryMongoDB.findByTitle(title))
         {
             books.add(bookMapperMongoDB.toModel(b));
         }
-
+        redisRepo.cacheBookListToRedis(PREFIX + "title:" + title, books);
         return books;
     }
 
     @Override
     public List<Book> findByAuthorName(@Param("authorName") String authorName)
     {
+        List<Book> cached = redisRepo.getBookListFromRedis(PREFIX + "authorName:" + authorName);
+        if (!cached.isEmpty()) return cached;
+
         List<Book> books = new ArrayList<>();
         for (BookMongoDB b: bookRepositoryMongoDB.findByAuthorName(authorName))
         {
             books.add(bookMapperMongoDB.toModel(b));
         }
-
+        redisRepo.cacheBookListToRedis(PREFIX + "authorName:" + authorName, books);
         return books;
     }
 
     @Override
     public Optional<Book> findByIsbn(@Param("isbn") String isbn)
     {
+        Optional<Book> cached = redisRepo.getBookFromRedis(PREFIX + "isbn:" + isbn);
+        if (cached.isPresent()) return cached;
+
         Optional<BookMongoDB> entityOpt = bookRepositoryMongoDB.findByIsbn(isbn);
         if(entityOpt.isPresent())
         {
-            return Optional.of(bookMapperMongoDB.toModel(entityOpt.get()));
+            Book book = bookMapperMongoDB.toModel(entityOpt.get());
+            redisRepo.save(book);
+            return Optional.of(book);
         }
         else
         {
@@ -111,12 +130,15 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
     @Override
     public List<Book> findBooksByAuthorNumber(String authorNumber)
     {
+        List<Book> cached = redisRepo.getBookListFromRedis(PREFIX + "authorNumber:" + authorNumber);
+        if (!cached.isEmpty()) return cached;
+
         List<Book> books = new ArrayList<>();
         for (BookMongoDB b: bookRepositoryMongoDB.findBooksByAuthorNumber(authorNumber))
         {
             books.add(bookMapperMongoDB.toModel(b));
         }
-
+        redisRepo.cacheBookListToRedis(PREFIX + "authorNumber:" + authorNumber, books);
         return books;
     }
 
@@ -219,7 +241,7 @@ public class BookRepositoryMongoDBImpl implements BookRepository {
 
         // Salva o documento no MongoDB
         BookMongoDB savedDoc = bookRepositoryMongoDB.save(bookDoc);
-
+        redisRepo.save(bookMapperMongoDB.toModel(savedDoc));
         // Retorna o modelo de domínio convertido de volta
         return bookMapperMongoDB.toModel(savedDoc);
     }

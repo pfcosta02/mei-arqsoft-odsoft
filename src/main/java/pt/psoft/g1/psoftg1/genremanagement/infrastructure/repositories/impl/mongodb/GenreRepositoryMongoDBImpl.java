@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
+import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.redis.GenreRepositoryRedisImpl;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
@@ -30,11 +31,13 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
 
     private final SpringDataGenreRepositoryMongoDB genreRepo;
     private final GenreMapperMongoDB genreEntityMapper;
+    private final GenreRepositoryRedisImpl redisRepo;
 
     private MongoTemplate mongoTemplate;
     private final MongoClient mongoClient;
     private final MongoClient mongo;
 
+    private static final String PREFIX = "genres:";
 
     @Override
     public Iterable<Genre> findAll()
@@ -51,9 +54,13 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
     @Override
     public Optional<Genre> findByString(String genreName)
     {
+        Optional<Genre> cached = redisRepo.getGenreFromRedis(PREFIX + "genre:" + genreName);
+        if (cached.isPresent()) return cached;
+
         Optional<GenreMongoDB> entityOpt = genreRepo.findByString(genreName);
         if (entityOpt.isPresent())
         {
+            redisRepo.save(genreEntityMapper.toModel(entityOpt.get()));
             return Optional.of(genreEntityMapper.toModel(entityOpt.get()));
         }
         else
@@ -65,12 +72,19 @@ public class GenreRepositoryMongoDBImpl implements GenreRepository {
     @Override
     public Genre save(Genre genre)
     {
-        return genreEntityMapper.toModel(genreRepo.save(genreEntityMapper.toMongoDB(genre)));
+        GenreMongoDB saved = genreRepo.save(genreEntityMapper.toMongoDB(genre));
+        redisRepo.save(genreEntityMapper.toModel(saved));
+        return genreEntityMapper.toModel(saved);
     }
 
     @Override
     public List<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable)
     {
+        List<GenreBookCountDTO> cached = redisRepo.getGenreBookCountListFromRedis(PREFIX + "top5");
+        if (!cached.isEmpty()) return cached;
+
+        List<GenreBookCountDTO> genreBookCountDTOS = genreRepo.findTop5GenreByBookCount(pageable);
+        redisRepo.cacheGenreBookCountListToRedis(PREFIX + "top5", genreBookCountDTOS);
         return genreRepo.findTop5GenreByBookCount(pageable);
     }
 

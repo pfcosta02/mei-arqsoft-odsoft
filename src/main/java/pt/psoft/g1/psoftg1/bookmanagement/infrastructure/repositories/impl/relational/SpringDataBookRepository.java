@@ -41,7 +41,7 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
     @Query(value =
             "SELECT b.* " +
                     "FROM Book b " +
-                    "JOIN BOOK_AUTHORS on b.pk = BOOK_AUTHORS.BOOK_PK " +
+                    "JOIN BOOK_AUTHORS on b.book_id = BOOK_AUTHORS.BOOK_PK " +
                     "JOIN AUTHOR a on BOOK_AUTHORS.AUTHORS_AUTHOR_NUMBER = a.AUTHOR_NUMBER " +
                     "WHERE a.NAME LIKE :authorName"
             , nativeQuery = true)
@@ -50,7 +50,7 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
     @Query(value =
             "SELECT b.* " +
                     "FROM Book b " +
-                    "JOIN BOOK_AUTHORS on b.pk = BOOK_AUTHORS.BOOK_PK " +
+                    "JOIN BOOK_AUTHORS on b.book_id = BOOK_AUTHORS.BOOK_PK " +
                     "JOIN AUTHOR a on BOOK_AUTHORS.AUTHORS_AUTHOR_NUMBER = a.AUTHOR_NUMBER " +
                     "WHERE a.AUTHOR_NUMBER = :authorNumber "
             , nativeQuery = true)

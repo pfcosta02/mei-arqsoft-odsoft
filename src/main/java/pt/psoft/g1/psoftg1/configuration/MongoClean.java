@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("mongodb")
-@Order(1) // executa primeiro
+@Order(2) // executa primeiro
 public class MongoClean implements CommandLineRunner {
 
     private final MongoTemplate mongoTemplate;

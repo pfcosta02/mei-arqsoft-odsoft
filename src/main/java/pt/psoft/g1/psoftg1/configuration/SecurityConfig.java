@@ -105,12 +105,19 @@ public class SecurityConfig {
         http = http.exceptionHandling(
                 exceptions -> exceptions.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                         .accessDeniedHandler(new BearerTokenAccessDeniedHandler()));
+        http
+            // CSRF e frameOptions para H2 Console
+            .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
-        // Set permissions on endpoints
-        http.authorizeHttpRequests()
+                // Autorização de endpoints
+                .authorizeHttpRequests(auth -> auth
                 // Swagger endpoints must be publicly accessible
                 .requestMatchers("/").permitAll().requestMatchers(format("%s/**", restApiDocPath)).permitAll()
                 .requestMatchers(format("%s/**", swaggerPath)).permitAll()
+                // H2 Console
+                .requestMatchers("/h2-console/**").permitAll()
                 // Our public endpoints
                 .requestMatchers("/api/public/**").permitAll() // public assets & end-points
                 .requestMatchers(HttpMethod.POST, "/api/readers").permitAll() //unregistered should be able to register
@@ -171,8 +178,15 @@ public class SecurityConfig {
                 // Admin has access to all endpoints
                 .requestMatchers("/**").hasRole(Role.ADMIN)
                 .anyRequest().authenticated()
-                // Set up oauth2 resource server
-                .and().httpBasic(Customizer.withDefaults()).oauth2ResourceServer().jwt();
+                )
+
+                // HTTP Basic
+                .httpBasic(Customizer.withDefaults())
+
+                // OAuth2 Resource Server
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
+                    // Opcional: customizar JWT Decoder ou JWT authentication converter aqui
+                }));
 
         return http.build();
     }

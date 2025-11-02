@@ -214,6 +214,8 @@ pipeline {
                                 bat 'mvn package -DskipTests'
                                 // Captura o nome do JAR no Windows
                                 def jarName = bat(script: '@echo off && dir /b target\\*.jar', returnStdout: true).trim()
+                                echo "📦 JAR capturado: ${jarName}"
+
                                 env.JAR_NAME = jarName.split('\n')[0].trim()
                             }
                             echo "📦 JAR gerado: ${env.JAR_NAME}"

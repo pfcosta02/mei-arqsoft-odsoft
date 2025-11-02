@@ -199,7 +199,7 @@ Para o package responsável pela geração de ids é identico.
 
 (Método CreateLending)
 
-![VP_Nivel_2_CreateLending_STB.jpg](System-to-be/Vista%20Processos/Create%20Lending/VP_Nivel_2_CreateLending_STB.jpg)
+![VP_Level_2_CreateLending_STB.jpg](System-to-be/Vista%20Processos/Create%20Lending/VP_Level_2_CreateLending_STB.jpg)
 
 (Método GetTop5Genres)
 

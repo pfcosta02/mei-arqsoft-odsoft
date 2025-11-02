@@ -394,7 +394,6 @@ def deployDocker(environment, port) {
             docker run -d \\
                 --name ${containerName} \\
                 -p ${port}:8080 \\
-                -e SPRING_PROFILES_ACTIVE=${environment} \\
                 -e SERVER_PORT=8080 \\
                 ${imageName}
 
@@ -455,7 +454,6 @@ def deployDocker(environment, port) {
             docker run -d ^
                 --name ${containerName} ^
                 -p ${port}:8080 ^
-                -e SPRING_PROFILES_ACTIVE=${environment} ^
                 -e SERVER_PORT=8080 ^
                 --restart unless-stopped ^
                 ${imageName}
@@ -547,7 +545,7 @@ def deployLocal(environment, port) {
 
             echo Starting application on port ${port}...
             cd /d "${deployPath}"
-            start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} --spring.profiles.active=${environment} ^> app.log 2^>^&1"
+            start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} ^> app.log 2^>^&1"
 
             echo Waiting 5 seconds for application to start...
             ping 127.0.0.1 -n 6 > NUL

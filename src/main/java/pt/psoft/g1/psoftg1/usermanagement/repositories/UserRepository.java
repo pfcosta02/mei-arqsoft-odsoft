@@ -29,7 +29,6 @@ import pt.psoft.g1.psoftg1.usermanagement.model.User;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 import pt.psoft.g1.psoftg1.usermanagement.services.SearchUsersQuery;
 
-@Repository
 public interface UserRepository {
 
 	<S extends User> List<S> saveAll(Iterable<S> entities);

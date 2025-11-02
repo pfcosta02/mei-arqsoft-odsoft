@@ -26,7 +26,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-@Profile("jpa")
+@Profile({"jpa", "es"})
 @Order(2)
 public class UserBootstrapper implements CommandLineRunner {
 

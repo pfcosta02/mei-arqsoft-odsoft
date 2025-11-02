@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public abstract class BookViewMapper extends MapperInterface {
+    @Mapping(target = "bookId", source = "bookId")
     @Mapping(target = "genre", source = "genre")
     @Mapping(target = "isbn", source = "isbn")
     @Mapping(target = "description", source = "description")

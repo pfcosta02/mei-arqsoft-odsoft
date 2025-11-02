@@ -19,6 +19,7 @@ import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappers.BookMapperMongoDB;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mongodb.BookRepositoryMongoDBImpl;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mongodb.SpringDataBookRepositoryMongoDB;
+import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.redis.BookRepositoryRedisImpl;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.mongodb.BookMongoDB;
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
@@ -40,8 +41,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class BookRepositoryMongoDBImplTest {
     @InjectMocks
@@ -55,6 +55,9 @@ public class BookRepositoryMongoDBImplTest {
 
     @Mock
     private AuthorRepositoryMongoDBImpl authorRepo;
+
+    @Mock
+    private BookRepositoryRedisImpl redisRepo;
 
     @Mock
     private BookMapperMongoDB bookEntityMapper;
@@ -81,17 +84,20 @@ public class BookRepositoryMongoDBImplTest {
     {
         // Arrange
         Book mockBook = mock(Book.class);
+        List<Book> cached = new ArrayList<>();
+        cached.add(mockBook);
 
         List<BookMongoDB> list = new ArrayList<>();
         BookMongoDB mockBookEntity = mock(BookMongoDB.class);
         list.add(mockBookEntity);
 
+        when(redisRepo.getBookListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findByGenre(anyString())).thenReturn(list);
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         List<Book> books = bookRepo.findByGenre(anyString());
-
+        doNothing().when(redisRepo).cacheBookListToRedis(anyString(), eq(books));
         // Assert
         assertEquals(list.size(), books.size());
         assertTrue(books.contains(mockBook));
@@ -102,11 +108,14 @@ public class BookRepositoryMongoDBImplTest {
     {
         // Arrange
         List<BookMongoDB> list = new ArrayList<>();
+        List<Book> cached = new ArrayList<>();
 
+        when(redisRepo.getBookListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findByGenre(anyString())).thenReturn(list);
 
         // Act
         List<Book> books = bookRepo.findByGenre(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(anyString(), eq(books));
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -118,16 +127,20 @@ public class BookRepositoryMongoDBImplTest {
     {
         // Arrange
         Book mockBook = mock(Book.class);
+        List<Book> cached = new ArrayList<>();
+        cached.add(mockBook);
 
         List<BookMongoDB> list = new ArrayList<>();
         BookMongoDB mockBookEntity = mock(BookMongoDB.class);
         list.add(mockBookEntity);
 
+        when(redisRepo.getBookListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findByTitle(anyString())).thenReturn(list);
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         List<Book> books = bookRepo.findByTitle(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(anyString(), eq(books));
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -139,11 +152,14 @@ public class BookRepositoryMongoDBImplTest {
     {
         // Arrange
         List<BookMongoDB> list = new ArrayList<>();
+        List<Book> cached = new ArrayList<>();
 
+        when(redisRepo.getBookListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findByTitle(anyString())).thenReturn(list);
 
         // Act
         List<Book> books = bookRepo.findByTitle(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(anyString(), eq(books));
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -155,16 +171,20 @@ public class BookRepositoryMongoDBImplTest {
     {
         // Arrange
         Book mockBook = mock(Book.class);
+        List<Book> cached = new ArrayList<>();
+        cached.add(mockBook);
 
         List<BookMongoDB> list = new ArrayList<>();
         BookMongoDB mockBookEntity = mock(BookMongoDB.class);
         list.add(mockBookEntity);
 
+        when(redisRepo.getBookListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findByAuthorName(anyString())).thenReturn(list);
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         List<Book> books = bookRepo.findByAuthorName(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(anyString(), eq(books));
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -176,11 +196,14 @@ public class BookRepositoryMongoDBImplTest {
     {
         // Arrange
         List<BookMongoDB> list = new ArrayList<>();
+        List<Book> cached = new ArrayList<>();
 
+        when(redisRepo.getBookListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findByAuthorName(anyString())).thenReturn(list);
 
         // Act
         List<Book> books = bookRepo.findByAuthorName(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(anyString(), eq(books));
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -193,12 +216,15 @@ public class BookRepositoryMongoDBImplTest {
         // Arrange
         Book mockBook = mock(Book.class);
         BookMongoDB mockBookEntity = mock(BookMongoDB.class);
+        Optional<Book> mockOptBook = Optional.of(mockBook);
 
+        when(redisRepo.getBookFromRedis(anyString())).thenReturn(mockOptBook);
         when(mongoRepo.findByIsbn(anyString())).thenReturn(Optional.of(mockBookEntity));
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         Optional<Book> book = bookRepo.findByIsbn(anyString());
+        doNothing().when(redisRepo).save(mockBook);
 
         // Assert
         assertNotNull(book);
@@ -209,6 +235,7 @@ public class BookRepositoryMongoDBImplTest {
     void testFindByIsbnEmtpy()
     {
         // Arrange
+        when(redisRepo.getBookFromRedis(anyString())).thenReturn(Optional.empty());
         when(mongoRepo.findByIsbn(anyString())).thenReturn(Optional.empty());
 
         // Act
@@ -242,16 +269,20 @@ public class BookRepositoryMongoDBImplTest {
     {
         // Arrange
         Book mockBook = mock(Book.class);
+        List<Book> cached = new ArrayList<>();
+        cached.add(mockBook);
 
         List<BookMongoDB> list = new ArrayList<>();
         BookMongoDB mockBookEntity = mock(BookMongoDB.class);
         list.add(mockBookEntity);
 
+        when(redisRepo.getBookListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findBooksByAuthorNumber(anyString())).thenReturn(list);
         when(bookEntityMapper.toModel(mockBookEntity)).thenReturn(mockBook);
 
         // Act
         List<Book> books = bookRepo.findBooksByAuthorNumber(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(anyString(), eq(books));
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -263,11 +294,14 @@ public class BookRepositoryMongoDBImplTest {
     {
         // Arrange
         List<BookMongoDB> list = new ArrayList<>();
+        List<Book> cached = new ArrayList<>();
 
+        when(redisRepo.getBookListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findBooksByAuthorNumber(anyString())).thenReturn(list);
 
         // Act
         List<Book> books = bookRepo.findBooksByAuthorNumber(anyString());
+        doNothing().when(redisRepo).cacheBookListToRedis(anyString(), eq(books));
 
         // Assert
         assertEquals(list.size(), books.size());
@@ -352,6 +386,7 @@ public class BookRepositoryMongoDBImplTest {
         when(authorRepo.searchByNameName("Rowling")).thenReturn(List.of(author));
         when(mongoRepo.save(bookDoc)).thenReturn(savedDoc);
         when(bookEntityMapper.toModel(savedDoc)).thenReturn(book);
+        doNothing().when(redisRepo).save(book);
 
         // Act
         Book result = bookRepo.save(book);

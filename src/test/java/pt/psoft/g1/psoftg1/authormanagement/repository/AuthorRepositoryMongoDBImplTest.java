@@ -10,6 +10,7 @@ import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mappers.AuthorMapperMongoDB;
 import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mongodb.AuthorRepositoryMongoDBImpl;
 import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mongodb.SpringDataAuthorRepositoryMongoDB;
+import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.redis.AuthorRepositoryRedisImpl;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.mongodb.AuthorMongoDB;
 import java.util.ArrayList;
@@ -21,8 +22,7 @@ import java.util.stream.StreamSupport;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /* Teste Unitario, opaque-box do AuthorRepositoryMongoDBImpl */
 public class AuthorRepositoryMongoDBImplTest {
@@ -31,6 +31,9 @@ public class AuthorRepositoryMongoDBImplTest {
 
     @Mock
     private SpringDataAuthorRepositoryMongoDB mongoRepo;
+
+    @Mock
+    private AuthorRepositoryRedisImpl redisRepo;
 
     @Mock
     private AuthorMapperMongoDB authorEntityMapper;
@@ -47,13 +50,16 @@ public class AuthorRepositoryMongoDBImplTest {
     {
         // Arrange
         Author mockAuthor = mock(Author.class);
+        Optional<Author> mockOptAuthor = Optional.of(mockAuthor);
 
         AuthorMongoDB authorEntity = mock(AuthorMongoDB.class);
+        when(redisRepo.getAuthorFromRedis(anyString())).thenReturn(mockOptAuthor);
         when(mongoRepo.findByAuthorNumber(anyString())).thenReturn(Optional.of(authorEntity));
         when(authorEntityMapper.toModel(authorEntity)).thenReturn(mockAuthor);
 
         // Act
         Optional<Author> aut = authoRepo.findByAuthorNumber(anyString());
+        doNothing().when(redisRepo).save(mockAuthor);
 
         // Assert
         assertEquals(mockAuthor, aut.get());
@@ -63,12 +69,15 @@ public class AuthorRepositoryMongoDBImplTest {
     void testFindByInvalidAuthorNumber()
     {
         // Arrange
+        when(redisRepo.getAuthorFromRedis(anyString())).thenReturn(Optional.empty());
         when(mongoRepo.findByAuthorNumber(anyString())).thenReturn( Optional.empty());
 
         // Act
+        Optional<Author> autRedis = redisRepo.getAuthorFromRedis(anyString());
         Optional<Author> aut = authoRepo.findByAuthorNumber(anyString());
 
         // Assert
+        assertEquals(Optional.empty(), autRedis);
         assertEquals(Optional.empty(), aut);
     }
 
@@ -76,10 +85,15 @@ public class AuthorRepositoryMongoDBImplTest {
     void testSearchByNameNameStartsWith()
     {
         // Arrange
+        Author mockAuthorCache = mock(Author.class);
+        List<Author> cached = new ArrayList<>();
+        cached.add(mockAuthorCache);
+
         List<AuthorMongoDB> list = new ArrayList<>();
         AuthorMongoDB mockAuthorEntity = mock(AuthorMongoDB.class);
         list.add(mockAuthorEntity);
 
+        when(redisRepo.getAuthorListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.searchByNameNameStartsWith(anyString())).thenReturn(list);
 
         Author mockAuthor = mock(Author.class);
@@ -87,6 +101,7 @@ public class AuthorRepositoryMongoDBImplTest {
 
         // Act
         List<Author> aut = authoRepo.searchByNameNameStartsWith(anyString());
+        doNothing().when(redisRepo).cacheAuthorListToRedis(anyString(), eq(aut));
 
         // Assert
         assertEquals(list.size(), aut.size());
@@ -96,12 +111,15 @@ public class AuthorRepositoryMongoDBImplTest {
     void testSearchByInvalidNameNameStartsWith()
     {
         // Arrange
+        List<Author> list_ = new ArrayList<>();
         List<AuthorMongoDB> list = new ArrayList<>();
 
+        when(redisRepo.getAuthorListFromRedis(anyString())).thenReturn(list_);
         when(mongoRepo.searchByNameNameStartsWith(anyString())).thenReturn(list);
 
         // Act
         List<Author> aut = authoRepo.searchByNameNameStartsWith(anyString());
+        doNothing().when(redisRepo).cacheAuthorListToRedis(anyString(), eq(aut));
 
         // Assert
         assertEquals(list.size(), aut.size());
@@ -111,10 +129,15 @@ public class AuthorRepositoryMongoDBImplTest {
     void testSearchByName()
     {
         // Arrange
+        Author mockAuthorCache = mock(Author.class);
+        List<Author> cached = new ArrayList<>();
+        cached.add(mockAuthorCache);
+
         List<AuthorMongoDB> list = new ArrayList<>();
         AuthorMongoDB mockAuthorEntity = mock(AuthorMongoDB.class);
         list.add(mockAuthorEntity);
 
+        when(redisRepo.getAuthorListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.searchByNameName(anyString())).thenReturn(list);
 
         Author mockAuthor = mock(Author.class);
@@ -122,24 +145,31 @@ public class AuthorRepositoryMongoDBImplTest {
 
         // Act
         List<Author> aut = authoRepo.searchByNameName(anyString());
+        List<Author> autcache = redisRepo.getAuthorListFromRedis(anyString());
+        doNothing().when(redisRepo).cacheAuthorListToRedis(anyString(), eq(autcache));
 
         // Assert
         assertEquals(list.size(), aut.size());
+        assertEquals(cached.size(), autcache.size());
     }
 
     @org.junit.jupiter.api.Test
     void testSearchByInvalidName()
     {
         // Arrange
+        List<Author> cached = new ArrayList<>();
         List<AuthorMongoDB> list = new ArrayList<>();
 
+        when(redisRepo.getAuthorListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.searchByNameName(anyString())).thenReturn(list);
 
         // Act
         List<Author> aut = authoRepo.searchByNameName(anyString());
+        List<Author> autcache = redisRepo.getAuthorListFromRedis(anyString());
 
         // Assert
         assertEquals(list.size(), aut.size());
+        assertEquals(cached.size(), autcache.size());
     }
 
     @org.junit.jupiter.api.Test
@@ -207,10 +237,15 @@ public class AuthorRepositoryMongoDBImplTest {
     void testFindCoAuthorsByAuthorNumber()
     {
         // Arrange
+        Author mockAuthorCache = mock(Author.class);
+        List<Author> cached = new ArrayList<>();
+        cached.add(mockAuthorCache);
+
         List<AuthorMongoDB> list = new ArrayList<>();
         AuthorMongoDB mockAuthorEntity = mock(AuthorMongoDB.class);
         list.add(mockAuthorEntity);
 
+        when(redisRepo.getAuthorListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findCoAuthorsByAuthorNumber(anyString())).thenReturn(list);
 
         Author mockAuthor = mock(Author.class);
@@ -218,25 +253,32 @@ public class AuthorRepositoryMongoDBImplTest {
 
         // Act
         List<Author> aut = authoRepo.findCoAuthorsByAuthorNumber(anyString());
+        List<Author> autcache = redisRepo.getAuthorListFromRedis(anyString());
+        doNothing().when(redisRepo).cacheAuthorListToRedis(anyString(), eq(autcache));
 
         // Assert
         assertEquals(list.size(), aut.size());
-        assertTrue(aut.contains(mockAuthor));
+        assertEquals(cached.size(), autcache.size());
+        assertTrue(aut.contains(mockAuthorCache));
     }
 
     @org.junit.jupiter.api.Test
     void testFindCoAuthorsByAuthorNumberEmpty()
     {
         // Arrange
+        List<Author> cached = new ArrayList<>();
         List<AuthorMongoDB> list = new ArrayList<>();
 
+        when(redisRepo.getAuthorListFromRedis(anyString())).thenReturn(cached);
         when(mongoRepo.findCoAuthorsByAuthorNumber(anyString())).thenReturn(list);
 
         // Act
         List<Author> aut = authoRepo.findCoAuthorsByAuthorNumber(anyString());
+        List<Author> autcache = redisRepo.getAuthorListFromRedis(anyString());
 
         // Assert
         assertEquals(list.size(), aut.size());
+        assertEquals(cached.size(), autcache.size());
         assertTrue(aut.isEmpty());
     }
 
@@ -252,6 +294,7 @@ public class AuthorRepositoryMongoDBImplTest {
         when(mongoRepo.save(mockAuthorEntity)).thenReturn(mockAuthorEntity);
 
         when(authorEntityMapper.toModel(mockAuthorEntity)).thenReturn(mockAuthor);
+        doNothing().when(redisRepo).save(mockAuthor);
 
         // Act
         Author auto = authoRepo.save(mockAuthor);

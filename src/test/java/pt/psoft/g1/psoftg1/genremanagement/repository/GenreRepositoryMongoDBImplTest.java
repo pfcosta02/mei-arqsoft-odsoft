@@ -15,6 +15,7 @@ import pt.psoft.g1.psoftg1.bookmanagement.services.GenreBookCountDTO;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mappers.GenreMapperMongoDB;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mongodb.GenreRepositoryMongoDBImpl;
 import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mongodb.SpringDataGenreRepositoryMongoDB;
+import pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.redis.GenreRepositoryRedisImpl;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.model.mongodb.GenreMongoDB;
 import pt.psoft.g1.psoftg1.genremanagement.services.GenreLendingsDTO;
@@ -30,6 +31,9 @@ import static org.mockito.Mockito.*;
 public class GenreRepositoryMongoDBImplTest {
     @InjectMocks
     private GenreRepositoryMongoDBImpl genreRepo;
+
+    @Mock
+    private GenreRepositoryRedisImpl redisRepo;
 
     @Mock
     private SpringDataGenreRepositoryMongoDB springDataGenreRepo;
@@ -77,11 +81,14 @@ public class GenreRepositoryMongoDBImplTest {
     void testFindByStringPresent() {
         GenreMongoDB genreEntity = mock(GenreMongoDB.class);
         Genre genre = mock(Genre.class);
+        Optional<Genre> mockOptGenre = Optional.of(genre);
 
+        when(redisRepo.getGenreFromRedis(anyString())).thenReturn(mockOptGenre);
         when(springDataGenreRepo.findByString("Fiction")).thenReturn(Optional.of(genreEntity));
         when(genreEntityMapper.toModel(genreEntity)).thenReturn(genre);
 
         Optional<Genre> result = genreRepo.findByString("Fiction");
+        doNothing().when(redisRepo).save(genre);
 
         assertTrue(result.isPresent());
         assertEquals(genre, result.get());
@@ -89,6 +96,7 @@ public class GenreRepositoryMongoDBImplTest {
 
     @Test
     void testFindByStringEmpty() {
+        when(redisRepo.getGenreFromRedis(anyString())).thenReturn(Optional.empty());
         when(springDataGenreRepo.findByString("Unknown")).thenReturn(Optional.empty());
 
         Optional<Genre> result = genreRepo.findByString("Unknown");
@@ -106,6 +114,7 @@ public class GenreRepositoryMongoDBImplTest {
         when(genreEntityMapper.toModel(genreEntity)).thenReturn(genre);
 
         Genre savedGenre = genreRepo.save(genre);
+        doNothing().when(redisRepo).save(genre);
 
         assertEquals(genre, savedGenre);
     }
@@ -116,9 +125,11 @@ public class GenreRepositoryMongoDBImplTest {
         Pageable pageable = PageRequest.of(0, 5);
         List<GenreBookCountDTO> list = List.of(dto);
 
+        when(redisRepo.getGenreBookCountListFromRedis(anyString())).thenReturn(list);
         when(springDataGenreRepo.findTop5GenreByBookCount(pageable)).thenReturn(list);
 
         List<GenreBookCountDTO> result = genreRepo.findTop5GenreByBookCount(pageable);
+        doNothing().when(redisRepo).cacheGenreBookCountListToRedis(anyString(), eq(result));
 
         assertEquals(1, result.size());
         assertEquals(dto, result.get(0));

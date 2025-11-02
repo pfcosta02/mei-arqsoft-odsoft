@@ -59,34 +59,34 @@ pipeline {
 // correr em parelelo os testes
 // parallel {}
 
-//         stage('Unit Tests') {
-//             steps {
-//                 script {
-//                     echo 'Running unit tests...'
-//                     if (isUnix())
-//                     {
-//                         sh "mvn surefire:test"
-//                     }
-//                     else
-//                     {
-//                         bat "mvn surefire:test"
-//                     }
-//                 }
-//             }
-//             post {
-//                 always {
-//                     junit '**/target/surefire-reports/*.xml'
-//                     publishHTML(target: [
-//                         allowMissing: false,
-//                         alwaysLinkToLastBuild: true,
-//                         keepAll: true,
-//                         reportDir: 'target/surefire-reports',
-//                         reportFiles: 'index.html',
-//                         reportName: 'Unit Tests Report'
-//                     ])
-//                 }
-//             }
-//         }
+        stage('Unit Tests') {
+            steps {
+                script {
+                    echo 'Running unit tests...'
+                    if (isUnix())
+                    {
+                        sh "mvn surefire:test"
+                    }
+                    else
+                    {
+                        bat "mvn surefire:test"
+                    }
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/surefire-reports',
+                        reportFiles: 'index.html',
+                        reportName: 'Unit Tests Report'
+                    ])
+                }
+            }
+        }
 //
 //         stage('Integration Tests') {
 //             steps {
@@ -139,59 +139,59 @@ pipeline {
 //         }
 
 
-//         stage('Mutation Tests') {
-//             steps {
-//                 script {
-//                     echo 'Running mutation tests...'
-//                     if (isUnix())
-//                     {
-//                         sh "mvn org.pitest:pitest-maven:mutationCoverage"
-//                     }
-//                     else
-//                     {
-//                         bat "mvn org.pitest:pitest-maven:mutationCoverage"
-//                     }
-//                 }
-//             }
-//             post {
-//                 always {
-//                     publishHTML(target: [
-//                         allowMissing: false,
-//                         alwaysLinkToLastBuild: true,
-//                         keepAll: true,
-//                         reportDir: 'target/pit-reports',
-//                         reportFiles: 'index.html',
-//                         reportName: 'PIT Mutation Report'
-//                     ])
-//                 }
-//             }
-//
-//         }
-//
-//         stage('SonarQube Analysis') {
-//             steps {
-//                 script {
-//                     def ENVIRONMENT_2_SONARQUBE_SERVER = [
-//                         'docker': 'sonarqube_docker',
-//                         'local' : 'sonarqube_local'
-//                     ]
-//
-//                     def sonarServer = ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
-//                     echo "Running SonarQube analysis using server: ${sonarServer}"
-//                     withSonarQubeEnv(sonarServer)
-//                     {
-//                         if (isUnix())
-//                         {
-//                             sh "mvn verify -X sonar:sonar"
-//                         }
-//                         else
-//                         {
-//                             bat "mvn verify -X sonar:sonar"
-//                         }
-//                     }
-//                 }
-//             }
-//         }
+        stage('Mutation Tests') {
+            steps {
+                script {
+                    echo 'Running mutation tests...'
+                    if (isUnix())
+                    {
+                        sh "mvn org.pitest:pitest-maven:mutationCoverage"
+                    }
+                    else
+                    {
+                        bat "mvn org.pitest:pitest-maven:mutationCoverage"
+                    }
+                }
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/pit-reports',
+                        reportFiles: 'index.html',
+                        reportName: 'PIT Mutation Report'
+                    ])
+                }
+            }
+
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def ENVIRONMENT_2_SONARQUBE_SERVER = [
+                        'docker': 'sonarqube_docker',
+                        'local' : 'sonarqube_local'
+                    ]
+
+                    def sonarServer = ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
+                    echo "Running SonarQube analysis using server: ${sonarServer}"
+                    withSonarQubeEnv(sonarServer)
+                    {
+                        if (isUnix())
+                        {
+                            sh "mvn verify -X sonar:sonar"
+                        }
+                        else
+                        {
+                            bat "mvn verify -X sonar:sonar"
+                        }
+                    }
+                }
+            }
+        }
 //
 //         stage('Quality Gate') {
 //             steps {

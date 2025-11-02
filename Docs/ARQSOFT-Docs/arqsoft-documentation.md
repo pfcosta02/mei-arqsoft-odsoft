@@ -144,6 +144,8 @@ A classificação dos requisitos e a definição das prioridades foram realizada
 
 ### Quality Attribute Scenario - Buscar ISBN pelo título do Livro
 
+[Buscar ISBN por Titulo.md](ADD/Buscar%20ISBN%20por%20Titulo.md)
+
 ---
 
 ## System-to-be

@@ -167,7 +167,7 @@ pipeline {
 //             }
 //
 //         }
-
+//
 //         stage('SonarQube Analysis') {
 //             steps {
 //                 script {
@@ -231,19 +231,19 @@ pipeline {
                     }
                 }
 
-       stage('Deploy to DEV') {
-           steps {
-               script {
-                   echo '🚀 Deploying to DEVELOPMENT environment...'
-                   echo "📦 Using JAR: ${env.JAR_NAME}"
-                   if (params.Environment == 'docker') {
-                       deployDocker('dev', env.DEV_PORT)
-                   } else {
-                       deployLocal('dev', env.DEV_PORT)
+               stage('Deploy to DEV') {
+                   steps {
+                       script {
+                           echo '🚀 Deploying to DEVELOPMENT environment...'
+                           echo "📦 Using JAR: ${env.JAR_NAME}"
+                           if (params.Environment == 'docker') {
+                               deployDocker('dev', env.DEV_PORT)
+                           } else {
+                               deployLocal('dev', env.DEV_PORT)
+                           }
+                       }
                    }
                }
-           }
-       }
 
                 stage('Smoke Test DEV') {
                     steps {
@@ -611,19 +611,19 @@ def deployLocal(environment, port) {
             start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} ^> app.log 2^>^&1"
 
             echo Waiting 10 seconds for application to start...
-            ping 127.0.0.1 -n 11 > NUL
+            ping 127.0.0.1 -n 16 > NUL
 
-            echo Checking if application is running...
-            netstat -ano | findstr :${port}
-            if errorlevel 1 (
-                echo WARNING: No process listening on port ${port}
-                echo Showing last 30 lines of log:
-                powershell -Command "Get-Content '${deployPath}\\app.log' -Tail 30"
-            ) else (
-                echo Application appears to be running on port ${port}
-            )
+
 
         """
+
+//         echo Checking if application is running...
+//         netstat -ano | findstr :${port}
+//         if errorlevel 1 (
+//             echo WARNING: No process listening on port ${port}
+//         ) else (
+//             echo Application appears to be running on port ${port}
+//         )
     }
 }
 

@@ -393,7 +393,8 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENV JAVA_OPTS=""
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 EOF
             fi
 
@@ -408,17 +409,25 @@ EOF
                 -p ${port}:8080 \\
                 -e SPRING_PROFILES_ACTIVE=${environment} \\
                 -e SERVER_PORT=8080 \\
-                --restart unless-stopped \\
                 ${imageName}
 
-            # Verifica se o container está rodando
-            sleep 5
+            # Aguarda e verifica se o container está rodando
+            echo "Waiting for container to start..."
+            sleep 10
+
             if docker ps --format '{{.Names}}' | grep -q "^${containerName}\$"; then
-                echo "✅ Container ${containerName} is running successfully!"
+                echo "✅ Container ${containerName} is running!"
                 docker ps --filter "name=${containerName}" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
+                echo ""
+                echo "📋 Container logs (last 50 lines):"
+                docker logs --tail 50 ${containerName}
             else
-                echo "❌ Container failed to start!"
+                echo "❌ Container failed to start or stopped!"
+                echo "📋 Full container logs:"
                 docker logs ${containerName}
+                echo ""
+                echo "💡 Container status:"
+                docker ps -a --filter "name=${containerName}"
                 exit 1
             fi
         """
@@ -448,7 +457,8 @@ EOF
                     echo WORKDIR /app
                     echo COPY target/*.jar app.jar
                     echo EXPOSE 8080
-                    echo ENTRYPOINT ["java", "-jar", "app.jar"]
+                    echo ENV JAVA_OPTS=""
+                    echo ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
                 ) > Dockerfile
             )
 
@@ -463,27 +473,6 @@ EOF
                 -e SERVER_PORT=8080 ^
                 --restart unless-stopped ^
                 ${imageName}
-
-
-            # Aguarda e verifica se o container está rodando
-            echo "Waiting for container to start..."
-            sleep 10
-
-            if docker ps --format '{{.Names}}' | grep -q "^${containerName}\$"; then
-                echo "✅ Container ${containerName} is running!"
-                docker ps --filter "name=${containerName}" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
-                echo ""
-                echo "📋 Container logs (last 50 lines):"
-                docker logs --tail 50 ${containerName}
-            else
-                echo "❌ Container failed to start or stopped!"
-                echo "📋 Full container logs:"
-                docker logs ${containerName}
-                echo ""
-                echo "💡 Container status:"
-                docker ps -a --filter "name=${containerName}"
-                exit 1
-            fi
 
             timeout /t 5 /nobreak >nul
             docker ps --filter "name=${containerName}"

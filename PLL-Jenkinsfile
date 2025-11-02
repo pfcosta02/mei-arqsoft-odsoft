@@ -74,12 +74,12 @@ stage('Tests & Analysis') {
                     echo 'Running unit tests...'
                     if (isUnix())
                     {
-
+                        sh "mvn test"
                         sh "mvn surefire:test"
                     }
                     else
                     {
-
+                        bat "mvn test"
                         bat "mvn surefire:test"
                     }
                 }

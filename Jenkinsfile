@@ -202,30 +202,29 @@ pipeline {
 //         }
 
         stage('Package') {
-            steps {
-                script {
-                    echo '📦 Building the final package...'
-                    if (isUnix()) {
-                        sh 'mvn package -DskipTests'
-                    } else {
-                        bat 'mvn package -DskipTests'
+                    steps {
+                        script {
+                            echo '📦 Building the final package...'
+                            if (isUnix()) {
+                                sh 'mvn package -DskipTests'
+                                // Captura o nome do JAR
+                                def jarPath = sh(script: "find target -name '*.jar' -type f | head -1", returnStdout: true).trim()
+                                env.JAR_NAME = sh(script: "basename ${jarPath}", returnStdout: true).trim()
+                            } else {
+                                bat 'mvn package -DskipTests'
+                                // Captura o nome do JAR no Windows
+                                def jarName = bat(script: '@echo off && dir /b target\\*.jar', returnStdout: true).trim()
+                                env.JAR_NAME = jarName.split('\n')[0].trim()
+                            }
+                            echo "📦 JAR gerado: ${env.JAR_NAME}"
+                        }
                     }
-
-                    // Descobre o nome do JAR gerado
-                    if (isUnix()) {
-                        env.JAR_NAME = sh(script: "ls target/*.jar | head -1 | xargs basename", returnStdout: true).trim()
-                    } else {
-                        env.JAR_NAME = bat(script: "@echo off && for %%F in (target\\*.jar) do @echo %%~nxF", returnStdout: true).trim()
+                    post {
+                        success {
+                            archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                        }
                     }
-                    echo "JAR gerado: ${env.JAR_NAME}"
                 }
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
-                }
-            }
-        }
 
         stage('Install') {
             steps {
@@ -243,18 +242,32 @@ pipeline {
             }
         }
 
-        stage('Deploy to DEV') {
-                    steps {
-                        script {
-                            echo '🚀 Deploying to DEVELOPMENT environment...'
-                            if (params.Environment == 'docker') {
-                                deployDocker('dev', env.DEV_PORT)
-                            } else {
-                                deployLocal('dev', env.DEV_PORT)
-                            }
-                        }
+        stage('Debug JAR') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh 'ls -la target/*.jar'
+                    } else {
+                        bat 'dir target\\*.jar'
+                        bat 'echo JAR_NAME=%JAR_NAME%'
                     }
                 }
+            }
+        }
+
+       stage('Deploy to DEV') {
+           steps {
+               script {
+                   echo '🚀 Deploying to DEVELOPMENT environment...'
+                   echo "📦 Using JAR: ${env.JAR_NAME}"
+                   if (params.Environment == 'docker') {
+                       deployDocker('dev', env.DEV_PORT)
+                   } else {
+                       deployLocal('dev', env.DEV_PORT)
+                   }
+               }
+           }
+       }
 
 //                 stage('Smoke Test DEV') {
 //                     steps {

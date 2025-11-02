@@ -65,11 +65,11 @@ pipeline {
                     echo 'Running unit tests...'
                     if (isUnix())
                     {
-                        sh "mvn surefire:test"
+                        sh "mvn -T 4 surefire:test"
                     }
                     else
                     {
-                        bat "mvn surefire:test"
+                        bat "mvn -T 4 surefire:test"
                     }
                 }
             }

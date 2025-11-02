@@ -19,8 +19,8 @@ pipeline {
 
     environment {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
-        APP_NAME = 'library-management'
-        JAR_NAME = 'library-management.jar'
+        APP_NAME = 'psoft-g1'
+        JAR_NAME = ''
 
         // Portas para cada ambiente
         DEV_PORT = '8180'
@@ -219,6 +219,9 @@ pipeline {
                                 env.JAR_NAME = jarName.split('\n')[0].trim()
                             }
                             echo "📦 JAR gerado: ${env.JAR_NAME}"
+                            echo "Setting environment JAR_NAME to ${env.JAR_NAME}"
+                            currentBuild.displayName = "#${env.BUILD_NUMBER} - ${env.JAR_NAME}"
+
                         }
                     }
                     post {

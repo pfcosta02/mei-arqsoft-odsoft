@@ -226,22 +226,6 @@ pipeline {
                     }
                 }
 
-        stage('Install') {
-            steps {
-                script {
-                    echo 'Installing code...'
-                    if (isUnix())
-                    {
-                        sh "mvn install -DskipTests"
-                    }
-                    else
-                    {
-                        bat "mvn install -DskipTests"
-                    }
-                }
-            }
-        }
-
         stage('Debug JAR') {
             steps {
                 script {

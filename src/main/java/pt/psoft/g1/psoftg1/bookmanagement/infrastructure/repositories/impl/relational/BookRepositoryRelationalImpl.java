@@ -17,7 +17,9 @@ import pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.rel
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappers.BookEntityMapper;
+import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.redis.BookRepositoryRedisImpl;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
+import pt.psoft.g1.psoftg1.bookmanagement.model.redis.BookRedisDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookCountDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.services.SearchBooksQuery;
@@ -43,55 +45,71 @@ public class BookRepositoryRelationalImpl implements BookRepository
     private final GenreRepositoryRelationalImpl genreRepo;
     private final AuthorRepositoryRelationalImpl authorRepo;
     private final EntityManager em;
+    private final BookRepositoryRedisImpl redisRepo;
+
+    private static final String PREFIX = "books:";
 
     @Override
     public List<Book> findByGenre(@Param("genre") String genre)
     {
+        List<Book> cached = redisRepo.getBookListFromRedis(PREFIX + "genre:" + genre);
+        if (!cached.isEmpty()) return cached;
+
         List<Book> books = new ArrayList<>();
         for (BookEntity b: bookRepo.findByGenre(genre))
         {
             books.add(bookEntityMapper.toModel(b));
         }
-
+        redisRepo.cacheBookListToRedis(PREFIX + "genre:" + genre, books);
         return books;
     }
 
     @Override
     public List<Book> findByTitle(@Param("title") String title)
     {
+        List<Book> cached = redisRepo.getBookListFromRedis(PREFIX + "title:" + title);
+        if (!cached.isEmpty()) return cached;
+
         List<Book> books = new ArrayList<>();
         for (BookEntity b: bookRepo.findByTitle(title))
         {
             books.add(bookEntityMapper.toModel(b));
         }
-
+        redisRepo.cacheBookListToRedis(PREFIX + "title:" + title, books);
         return books;
     }
 
     @Override
     public List<Book> findByAuthorName(@Param("authorName") String authorName)
     {
+        List<Book> cached = redisRepo.getBookListFromRedis(PREFIX + "authorName:" + authorName);
+        if (!cached.isEmpty()) return cached;
+
         List<Book> books = new ArrayList<>();
         for (BookEntity b: bookRepo.findByAuthorName(authorName))
         {
             books.add(bookEntityMapper.toModel(b));
         }
-
+        redisRepo.cacheBookListToRedis(PREFIX + "authorName:" + authorName, books);
         return books;
     }
 
     @Override
     public Optional<Book> findByIsbn(@Param("isbn") String isbn)
     {
+        // Primeiro tenta no Redis
+        Optional<Book> cached = redisRepo.getBookFromRedis(PREFIX + "isbn:" + isbn);
+        if (cached.isPresent()) return cached;
+
         Optional<BookEntity> entityOpt = bookRepo.findByIsbn(isbn);
-        if(entityOpt.isPresent())
-        {
-            return Optional.of(bookEntityMapper.toModel(entityOpt.get()));
-        }
-        else
-        {
+        if (entityOpt.isPresent()) {
+            Book book = bookEntityMapper.toModel(entityOpt.get());
+            redisRepo.save(book);
+            return Optional.of(book);
+        } else {
             return Optional.empty();
         }
+
     }
 
     @Override
@@ -104,12 +122,15 @@ public class BookRepositoryRelationalImpl implements BookRepository
     @Override
     public List<Book> findBooksByAuthorNumber(String authorNumber)
     {
+        List<Book> cached = redisRepo.getBookListFromRedis(PREFIX + "authorNumber:" + authorNumber);
+        if (!cached.isEmpty()) return cached;
+
         List<Book> books = new ArrayList<>();
         for (BookEntity b: bookRepo.findBooksByAuthorNumber(authorNumber))
         {
             books.add(bookEntityMapper.toModel(b));
         }
-
+        redisRepo.cacheBookListToRedis(PREFIX + "authorNumber:" + authorNumber, books);
         return books;
     }
 
@@ -199,6 +220,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
 
         // Persist the BookEntity and return the saved Book as a domain model
         BookEntity saved = bookRepo.save(entity);
+        redisRepo.save(bookEntityMapper.toModel(saved));
         return bookEntityMapper.toModel(saved);
     }
 

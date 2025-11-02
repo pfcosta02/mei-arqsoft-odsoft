@@ -204,15 +204,20 @@ pipeline {
         stage('Package') {
             steps {
                 script {
-                echo 'Building the final package...'
-                if (isUnix())
-                    {
+                    echo '📦 Building the final package...'
+                    if (isUnix()) {
                         sh 'mvn package -DskipTests'
-                    }
-                    else
-                    {
+                    } else {
                         bat 'mvn package -DskipTests'
                     }
+
+                    // Descobre o nome do JAR gerado
+                    if (isUnix()) {
+                        env.JAR_NAME = sh(script: "ls target/*.jar | head -1 | xargs basename", returnStdout: true).trim()
+                    } else {
+                        env.JAR_NAME = bat(script: "@echo off && for %%F in (target\\*.jar) do @echo %%~nxF", returnStdout: true).trim()
+                    }
+                    echo "JAR gerado: ${env.JAR_NAME}"
                 }
             }
             post {
@@ -329,9 +334,18 @@ pipeline {
                 }
             }
 
-        failure
-        {
-            echo 'Pipeline failure'
+        failure {
+            echo '❌ Pipeline failed!'
+            script {
+                echo """
+                ═══════════════════════════════════════════════════
+                        PIPELINE FAILED
+                ═══════════════════════════════════════════════════
+                Build: #${env.BUILD_NUMBER}
+                Check the logs at: ${env.BUILD_URL}console
+                ═══════════════════════════════════════════════════
+                """
+            }
         }
 
         always

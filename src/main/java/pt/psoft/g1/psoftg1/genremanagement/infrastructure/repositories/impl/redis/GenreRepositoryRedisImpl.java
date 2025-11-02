@@ -94,7 +94,7 @@ public class GenreRepositoryRedisImpl {
     }
 
     private void invalidateCacheForGenre() {
-        deleteKeysByPattern(PREFIX + "genre:*");
+        deleteKeysByPattern(PREFIX + "*");
     }
 
     private void deleteKeysByPattern(String pattern) {

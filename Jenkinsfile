@@ -167,7 +167,7 @@ pipeline {
 //             }
 //
 //         }
-
+//
 //         stage('SonarQube Analysis') {
 //             steps {
 //                 script {
@@ -231,28 +231,28 @@ pipeline {
                     }
                 }
 
-       stage('Deploy to DEV') {
-           steps {
-               script {
-                   echo '🚀 Deploying to DEVELOPMENT environment...'
-                   echo "📦 Using JAR: ${env.JAR_NAME}"
-                   if (params.Environment == 'docker') {
-                       deployDocker('dev', env.DEV_PORT)
-                   } else {
-                       deployLocal('dev', env.DEV_PORT)
+               stage('Deploy to DEV') {
+                   steps {
+                       script {
+                           echo '🚀 Deploying to DEVELOPMENT environment...'
+                           echo "📦 Using JAR: ${env.JAR_NAME}"
+                           if (params.Environment == 'docker') {
+                               deployDocker('dev', env.DEV_PORT)
+                           } else {
+                               deployLocal('dev', env.DEV_PORT)
+                           }
+                       }
                    }
                }
-           }
-       }
 
-//                 stage('Smoke Test DEV') {
-//                     steps {
-//                         script {
-//                             echo '💨 Running smoke tests on DEV...'
-//                             smokeTest(env.DEV_PORT, 'dev')
-//                         }
-//                     }
-//                 }
+                stage('Smoke Test DEV') {
+                    steps {
+                        script {
+                            echo '💨 Running smoke tests on DEV...'
+                            smokeTest(env.DEV_PORT, 'dev')
+                        }
+                    }
+                }
 
                 stage('Deploy to STAGING') {
                     steps {
@@ -267,14 +267,14 @@ pipeline {
                     }
                 }
 
-//                 stage('Smoke Test STAGING') {
-//                     steps {
-//                         script {
-//                             echo '💨 Running smoke tests on STAGING...'
-//                             smokeTest(env.STAGING_PORT, 'staging')
-//                         }
-//                     }
-//                 }
+                stage('Smoke Test STAGING') {
+                    steps {
+                        script {
+                            echo '💨 Running smoke tests on STAGING...'
+                            smokeTest(env.STAGING_PORT, 'staging')
+                        }
+                    }
+                }
 
                 stage('Deploy to PRODUCTION') {
                     steps {
@@ -290,14 +290,14 @@ pipeline {
                     }
                 }
 
-//                 stage('Smoke Test PRODUCTION') {
-//                     steps {
-//                         script {
-//                             echo '💨 Running smoke tests on PRODUCTION...'
-//                             smokeTest(env.PROD_PORT, 'production')
-//                         }
-//                     }
-//                 }
+                stage('Smoke Test PRODUCTION') {
+                    steps {
+                        script {
+                            echo '💨 Running smoke tests on PRODUCTION...'
+                            smokeTest(env.PROD_PORT, 'production')
+                        }
+                    }
+                }
             }
 
         post {
@@ -352,11 +352,38 @@ pipeline {
 def deployDocker(environment, port) {
     def imageName = "${env.APP_NAME}:${environment}"
     def containerName = "${env.APP_NAME}-${environment}"
+    def networkName = "psoft-network"
+    def redisContainerName = "redis-${environment}"
 
     echo "🐳 Deploying ${environment} with Docker on port ${port}"
 
     if (isUnix()) {
         sh """
+            # Cria rede Docker se não existir
+            if ! docker network inspect ${networkName} > /dev/null 2>&1; then
+                echo "Creating Docker network: ${networkName}"
+                docker network create ${networkName}
+            else
+                echo "Docker network ${networkName} already exists"
+            fi
+
+            # Verifica/inicia Redis
+            if ! docker ps --format '{{.Names}}' | grep -q "^${redisContainerName}\$"; then
+                echo "Starting Redis container for ${environment}..."
+                docker stop ${redisContainerName} 2>/dev/null || true
+                docker rm ${redisContainerName} 2>/dev/null || true
+
+                docker run -d \\
+                    --name ${redisContainerName} \\
+                    --network ${networkName} \\
+                    redis:latest
+
+                echo "Waiting for Redis to be ready..."
+                sleep 5
+            else
+                echo "Redis container ${redisContainerName} already running"
+            fi
+
             # Remove container antigo se existir
             echo "Checking for existing container: ${containerName}"
             if docker ps -a --format '{{.Names}}' | grep -q "^${containerName}\$"; then
@@ -393,10 +420,13 @@ def deployDocker(environment, port) {
             echo "Starting new container: ${containerName}"
             docker run -d \\
                 --name ${containerName} \\
+                --network ${networkName} \\
                 -p ${port}:8080 \\
-                -e SPRING_PROFILES_ACTIVE=${environment} \\
                 -e SERVER_PORT=8080 \\
+                -e SPRING_DATA_REDIS_HOST=${redisContainerName} \\
+                -e SPRING_DATA_REDIS_PORT=6379 \\
                 ${imageName}
+
 
             # Aguarda e verifica se o container está rodando
             echo "Waiting for container to start..."
@@ -421,6 +451,34 @@ def deployDocker(environment, port) {
     } else {
         bat """
             @echo off
+
+            REM Cria rede Docker se não existir
+            docker network inspect ${networkName} >nul 2>&1
+            if errorlevel 1 (
+                echo Creating Docker network: ${networkName}
+                docker network create ${networkName}
+            ) else (
+                echo Docker network ${networkName} already exists
+            )
+
+            REM Verifica/inicia Redis
+            docker ps --format "{{.Names}}" | findstr /X "${redisContainerName}" >nul 2>&1
+            if errorlevel 1 (
+                echo Starting Redis container for ${environment}...
+                docker stop ${redisContainerName} 2>nul
+                docker rm ${redisContainerName} 2>nul
+
+                docker run -d ^
+                    --name ${redisContainerName} ^
+                    --network ${networkName} ^
+                    redis:latest
+
+                echo Waiting for Redis to be ready...
+                ping 127.0.0.1 -n 6 > NUL
+            ) else (
+                echo Redis container ${redisContainerName} already running
+            )
+
             echo Checking for existing container: ${containerName}
             docker ps -a --format "{{.Names}}" | findstr /X "${containerName}" >nul 2>&1
             if %errorlevel% equ 0 (
@@ -454,9 +512,11 @@ def deployDocker(environment, port) {
             echo Starting new container: ${containerName}
             docker run -d ^
                 --name ${containerName} ^
+                --network ${networkName} ^
                 -p ${port}:8080 ^
-                -e SPRING_PROFILES_ACTIVE=${environment} ^
                 -e SERVER_PORT=8080 ^
+                -e SPRING_DATA_REDIS_HOST=${redisContainerName} ^
+                -e SPRING_DATA_REDIS_PORT=6379 ^
                 --restart unless-stopped ^
                 ${imageName}
 
@@ -547,13 +607,23 @@ def deployLocal(environment, port) {
 
             echo Starting application on port ${port}...
             cd /d "${deployPath}"
-            start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} --spring.profiles.active=${environment} ^> app.log 2^>^&1"
+            echo "${deployPath}"
+            start "${env.APP_NAME}-${environment}" /MIN cmd /c "java -jar ${env.JAR_NAME} --server.port=${port} ^> app.log 2^>^&1"
 
-            echo Waiting 5 seconds for application to start...
-            ping 127.0.0.1 -n 6 > NUL
-            echo Application started!
-            echo Log file: ${deployPath}\\app.log
+            echo Waiting 10 seconds for application to start...
+            ping 127.0.0.1 -n 16 > NUL
+
+
+
         """
+
+//         echo Checking if application is running...
+//         netstat -ano | findstr :${port}
+//         if errorlevel 1 (
+//             echo WARNING: No process listening on port ${port}
+//         ) else (
+//             echo Application appears to be running on port ${port}
+//         )
     }
 }
 

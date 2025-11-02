@@ -21,27 +21,7 @@ pipeline {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     }
 
-//     environment {
-//         MVN_CMD = "mvn"
-// //     SONAR_HOST_URL = "http://<seu-sonar-host>:9000"
-// //     SONAR_LOGIN = credentials('sonar-token-id')  // credencial armazenada no Jenkins
-//     }
-
-
     stages {
-//         stage('Set Maven Home') {
-//             steps {
-//                 script {
-//                     if (isUnix()) {
-//                         env.MAVEN_HOME = '/usr/share/maven/bin/'
-//                     } else {
-//                         env.MAVEN_HOME = '"C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.2.2\\plugins\\maven\\lib\\maven3\\bin\\"'
-//                     }
-//                     echo "MAVEN_HOME is set to: ${env.MAVEN_HOME}"
-//                 }
-//             }
-//         }
-
         stage('Checkout') {
             steps {
                 echo '📥 A fazer checkout do repositório...'
@@ -116,16 +96,6 @@ pipeline {
             }
         }
 
-//         stage('JaCoCo')
-//         {
-//             steps {
-//                 jacoco execPattern: '**/target/jacoco.exec',
-//                        classPattern: '**/target/classes',
-//                        sourcePattern: '**/src/main/java',
-//                        inclusionPattern: '**/*.class'
-//             }
-//         }
-
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -158,49 +128,6 @@ pipeline {
                 }
             }
         }
-
-//         stage('SonarQube Static Code Analysis') {
-//             steps {
-//                 script {
-//                     // Define o mapa de ambientes -> servidores SonarQube
-//                     def ENVIRONMENT_2_SONARQUBE_SERVER = [
-//                         'docker': 'sonarqube_docker',
-//                         'local' : 'sonarqube_local'
-//                     ]
-//
-//                     def sonarServer = ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
-//
-//                     echo "Running SonarQube analysis using server: ${sonarServer}"
-//
-//                     withSonarQubeEnv(sonarServer)
-//                     {
-//                         if (isUnix())
-//                         {
-//                             sh "mvn verify -X org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=odsoft_2025_1200909_1201270 -Dsonar.token=squ_0ac5031162d837cf1ed694409e5c3d5f15dce98d -Dsonar.coverage.jacoco.xmlReportPaths=target/jacoco/jacoco.xml"
-//                         }
-//                         else
-//                         {
-//                             bat "mvn verify -X sonar:sonar"
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//
-//         stage('SonarQube Quality Gate') {
-//             steps {
-//                 timeout(time: 5, unit: 'MINUTES') {
-//                     script {
-//                         def qualityGateResult = waitForQualityGate(abortPipeline: true)
-//                         if (qualityGateResult.status == 'OK')
-//                         {
-//                             echo 'Quality gate passed. Proceeding with the pipeline.'
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-
 
         stage('Package') {
             steps {

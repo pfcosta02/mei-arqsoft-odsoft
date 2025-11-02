@@ -1,4 +1,4 @@
-# Documentação ARQSOFT
+# Documentação ARQSOFT (Arquitetura de Software)
 
 Este documento serve para toda a documentação do projeto para a unidade curricular de Arquitetura de Software (ARQSOFT)
 
@@ -322,3 +322,11 @@ A sua implementação seria a seguinte:
 - Seria implementado um barramento central de eventos (Event Bus) onde os serviços podem publicar e subscrever eventos relacionados a operações que lhes compete;
 - Um serviço de assinantes e publicadores onde cada serviço atua como assinante dos eventos relevantes ao seu domínio e publicador dos eventos que resultam das suas operações, permitindo assim comunicação assíncrona entre componentes;
 - Usando esta arquitetura também é possível ter uma configuração dinâmica onde num ficheiro de configuração é possível definir os serviços que irão estar ativos e como devem reagir a determinados eventos, permitindo assim flexibilidade no sistema.
+
+
+### Clean Architeture
+Esta arquitetura propõe uma separação clara entre as diferentes camadas da aplicação, organizando o código em torno de regras de negócio. 
+
+No centro estão os casos de uso e as entidades, que representam a lógica de negócio e os modelos do domínio, respetivamente. À medida que se avança para as camadas externas, encontram-se os adaptadores de interface (como controladores web, gateways, etc.) e os dispositivos externos (bases de dados, APIs, interfaces de utilizador).
+
+A principal vantagem da Clean Architecture é a sua independência de frameworks, bases de dados e interfaces externas, permitindo uma maior testabilidade, manutenção e facilidade de evolução do sistema. Assim como a Onion Architecture, promove o princípio da inversão de dependência, mas com uma ênfase ainda maior na separação de responsabilidades e na centralização da lógica de negócio.

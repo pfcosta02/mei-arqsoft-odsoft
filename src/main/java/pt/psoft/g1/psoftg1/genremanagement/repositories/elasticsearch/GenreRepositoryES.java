@@ -103,7 +103,34 @@ public class GenreRepositoryES implements GenreRepository  {
 
     @Override
     public List<GenreBookCountDTO> findTop5GenreByBookCount(Pageable pageable) {
-        return List.of();
+        try {
+            SearchResponse<Void> response = client.search(s -> s
+                            .index("books")
+                            .size(0)
+                            .aggregations("genres_count", a -> a
+                                    .terms(t -> t
+                                            .field("genre.keyword")
+                                            .size((int) pageable.getPageSize())
+                                    )
+                            ),
+                    Void.class
+            );
+
+            return response.aggregations()
+                    .get("genres_count")
+                    .sterms()
+                    .buckets()
+                    .array()
+                    .stream()
+                    .map(bucket -> new GenreBookCountDTO(
+                            bucket.key().stringValue(),
+                            bucket.docCount()
+                    ))
+                    .collect(Collectors.toList());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao calcular top géneros por nº de livros no Elasticsearch", e);
+        }
     }
 
 

@@ -42,7 +42,7 @@ pipeline {
         stage('Build & Compile') {
             steps {
                 script {
-                    echo 'Cleaning workspace...'
+                    echo '🔨 Cleaning workspace...'
                     if (isUnix())
                     {
                         sh "mvn clean compile test-compile"
@@ -495,7 +495,7 @@ def deployLocal(environment, port) {
 
             # Inicia nova aplicação
             echo "Starting application on port ${port}..."
-            nohup java -jar ${deployPath}/${env.JAR_NAME} \\
+            nohup java -Dspring.profiles.active=bootstrap,jpa,${environment} -jar ${deployPath}/${env.JAR_NAME} \\
                 --server.port=${port} \\
                 --spring.profiles.active=${environment} \\
                 > ${deployPath}/app.log 2>&1 &

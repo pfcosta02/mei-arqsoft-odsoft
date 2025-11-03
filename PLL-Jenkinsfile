@@ -66,8 +66,7 @@ pipeline {
 
 stage('Tests & Analysis') {
     parallel {
-        stage('Tests') {
-            stages{
+
 
         stage('Unit Tests') {
             
@@ -187,20 +186,10 @@ stage('Tests & Analysis') {
                       }
                   }
 
-
-
-
+                }
             }
-        }
 
-
-
-    stage('Analysis') {
-        stages {
-
-
-
-                stage('SonarQube Analysis') {
+stage('SonarQube Analysis') {
 
                     steps {
                         script {
@@ -228,11 +217,8 @@ stage('Tests & Analysis') {
                         }
                     }
 
+
                 }
-            }
-        }
-    }
-}
 
 //
 //         stage('Quality Gate') {

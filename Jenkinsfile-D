@@ -68,11 +68,19 @@ pipeline {
                     echo 'Running unit tests...'
                     if (isUnix())
                     {
-                        sh "mvn -T 4 surefire:test"
+                        sh """
+                            mvn -T 4 surefire:test \
+                            -Dspring.data.redis.host=redis \
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                     else
                     {
-                        bat "mvn -T 4 surefire:test"
+                        bat """
+                            mvn -T 4 surefire:test ^
+                            -Dspring.data.redis.host=redis ^
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                 }
             }
@@ -97,11 +105,19 @@ pipeline {
                     echo 'Running integration tests...'
                     if (isUnix())
                     {
-                        sh "mvn failsafe:integration-test"
+                        sh """
+                            mvn failsafe:integration-test \
+                            -Dspring.data.redis.host=redis \
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                     else
                     {
-                        bat "mvn failsafe:integration-test"
+                        bat """
+                            mvn failsafe:integration-test ^
+                            -Dspring.data.redis.host=redis ^
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                 }
             }
@@ -113,11 +129,19 @@ pipeline {
                     echo 'Running mutation tests...'
                     if (isUnix())
                     {
-                        sh "mvn org.pitest:pitest-maven:mutationCoverage"
+                        sh """
+                            mvn org.pitest:pitest-maven:mutationCoverage \
+                            -Dspring.data.redis.host=redis \
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                     else
                     {
-                        bat "mvn org.pitest:pitest-maven:mutationCoverage"
+                        bat """
+                            mvn org.pitest:pitest-maven:mutationCoverage ^
+                            -Dspring.data.redis.host=redis ^
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                 }
             }
@@ -150,12 +174,20 @@ pipeline {
                     {
                         if (isUnix())
                         {
-                            sh "mvn verify -X sonar:sonar "
+                            sh """
+                                mvn verify -X sonar:sonar \
+                                -Dspring.data.redis.host=redis \
+                                -Dspring.data.redis.port=6379
+                            """
 
                         }
                         else
                         {
-                            bat "mvn verify -X sonar:sonar "
+                            bat """
+                                mvn verify -X sonar:sonar ^
+                                -Dspring.data.redis.host=redis ^
+                                -Dspring.data.redis.port=6379
+                            """
                         }
                     }
                 }

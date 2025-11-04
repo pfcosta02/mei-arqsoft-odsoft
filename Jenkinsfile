@@ -66,38 +66,35 @@ stage('Verify Redis Connection') {
         script {
             echo '🔍 Verifying Redis connectivity...'
             if (isUnix()) {
-                sh """
+                sh '''
                     # Verifica se o container Jenkins está na mesma rede do Redis
                     echo "Current container network:"
                     docker inspect $(hostname) | grep NetworkMode || echo "Not in Docker"
-                    
+
                     # Tenta ping ao Redis
                     ping -c 2 redis || echo "Cannot ping redis hostname"
-                    
+
                     # Tenta conexão via telnet/nc
                     nc -zv redis 6379 || echo "Cannot connect to Redis on port 6379"
-                    
+
                     # Lista containers na rede
                     echo "Containers in jenkins-sonar-network:"
                     docker network inspect jenkins-sonar-network | grep Name
-                """
+                '''
             }
-            else{
-            bat """
-                    # Verifica se o container Jenkins está na mesma rede do Redis
-                    echo "Current container network:"
-                     docker inspect $(hostname) | grep NetworkMode || echo "Not in Docker"
-                                
-                    # Tenta ping ao Redis
-                    ping -c 2 redis || echo "Cannot ping redis hostname"
-                    
-                    # Tenta conexão via telnet/nc
-                    nc -zv redis 6379 || echo "Cannot connect to Redis on port 6379"
-                    
-                    # Lista containers na rede
-                    echo "Containers in jenkins-sonar-network:"
-                    docker network inspect jenkins-sonar-network | grep Name
-                """
+            else {
+                bat '''
+                    REM Verifica conectividade com Redis
+                    echo Current container network:
+                    docker inspect Jenkins-Docker | findstr NetworkMode
+
+                    REM Tenta ping ao Redis
+                    ping -n 2 redis
+
+                    REM Lista containers na rede
+                    echo Containers in jenkins-sonar-network:
+                    docker network inspect jenkins-sonar-network | findstr Name
+                '''
             }
         }
     }
@@ -111,12 +108,13 @@ stage('Verify Redis Connection') {
             steps {
                 script {
                     echo 'Running unit tests...'
-                    if (isUnix()){
-                    sh """
-                        mvn -T 4 surefire:test \
-                        -Dspring.data.redis.host=redis \
-                        -Dspring.data.redis.port=6379
-                    """
+                    if (isUnix())
+                    {
+                        sh """
+                            mvn -T 4 surefire:test \
+                            -Dspring.data.redis.host=redis \
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                     else
                     {

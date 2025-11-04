@@ -66,7 +66,7 @@ stage('Verify Redis Connection') {
         script {
             echo '🔍 Verifying Redis connectivity...'
             if (isUnix()) {
-                sh '''
+                sh """
                     # Verifica se o container Jenkins está na mesma rede do Redis
                     echo "Current container network:"
                     docker inspect $(hostname) | grep NetworkMode || echo "Not in Docker"
@@ -80,10 +80,10 @@ stage('Verify Redis Connection') {
                     # Lista containers na rede
                     echo "Containers in jenkins-sonar-network:"
                     docker network inspect jenkins-sonar-network | grep Name
-                '''
+                """
             }
             else {
-                bat '''
+                bat """
                     REM Verifica conectividade com Redis
                     echo Current container network:
                     docker inspect Jenkins-Docker | findstr NetworkMode
@@ -94,7 +94,7 @@ stage('Verify Redis Connection') {
                     REM Lista containers na rede
                     echo Containers in jenkins-sonar-network:
                     docker network inspect jenkins-sonar-network | findstr Name
-                '''
+                """
             }
         }
     }

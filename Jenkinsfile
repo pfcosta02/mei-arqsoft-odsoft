@@ -174,11 +174,20 @@ pipeline {
                     {
                         if (isUnix())
                         {
-                            sh "mvn verify -X sonar:sonar"
+                            sh """
+                                mvn verify -X sonar:sonar \
+                                -Dspring.data.redis.host=redis \
+                                -Dspring.data.redis.port=6379
+                            """
+
                         }
                         else
                         {
-                            bat "mvn verify -X sonar:sonar"
+                            bat """
+                                mvn verify -X sonar:sonar ^
+                                -Dspring.data.redis.host=redis ^
+                                -Dspring.data.redis.port=6379
+                            """
                         }
                     }
                 }

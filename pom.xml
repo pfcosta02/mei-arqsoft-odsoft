@@ -177,6 +177,13 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.1</version>
                 <configuration>
+                    <systemPropertyVariables>
+                        <REDIS_HOST>${env.REDIS_HOST}</REDIS_HOST>
+                        <REDIS_PORT>${env.REDIS_PORT}</REDIS_PORT>
+                    </systemPropertyVariables>
+                    <parallel>methods</parallel>
+                    <threadCount>4</threadCount>
+
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>

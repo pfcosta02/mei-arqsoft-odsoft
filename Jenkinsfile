@@ -67,11 +67,11 @@ pipeline {
                     echo 'Running unit tests...'
                     if (isUnix())
                     {
-                        sh "mvn -T 4 surefire:test"
+                        sh "mvn -T 4 surefire:test -DREDIS_HOST=redis -DREDIS_PORT=6379"
                     }
                     else
                     {
-                        bat "mvn -T 4 surefire:test"
+                        bat "mvn -T 4 surefire:test -DREDIS_HOST=redis -DREDIS_PORT=6379"
                     }
                 }
             }

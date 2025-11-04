@@ -19,7 +19,7 @@ pipeline {
 
     environment {
         MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
-        MAVEN_OPTS = '-Dspring.data.redis.host=redis -Dspring.data.redis.port=6379'
+//         MAVEN_OPTS = '-Dspring.data.redis.host=redis -Dspring.data.redis.port=6379'
         APP_NAME = 'psoft-g1'
         REDIS_HOST = 'redis'
         REDIS_PORT = '6379'
@@ -105,11 +105,19 @@ pipeline {
                     echo 'Running integration tests...'
                     if (isUnix())
                     {
-                        sh "mvn failsafe:integration-test failsafe:verify"
+                        sh """
+                            mvn failsafe:integration-test \
+                            -Dspring.data.redis.host=redis \
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                     else
                     {
-                        bat "mvn failsafe:integration-test failsafe:verify"
+                        bat """
+                            mvn failsafe:integration-test ^
+                            -Dspring.data.redis.host=redis ^
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                 }
             }
@@ -121,11 +129,19 @@ pipeline {
                     echo 'Running mutation tests...'
                     if (isUnix())
                     {
-                        sh "mvn org.pitest:pitest-maven:mutationCoverage"
+                        sh """
+                            mvn org.pitest:pitest-maven:mutationCoverage \
+                            -Dspring.data.redis.host=redis \
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                     else
                     {
-                        bat "mvn org.pitest:pitest-maven:mutationCoverage"
+                        bat """
+                            mvn org.pitest:pitest-maven:mutationCoverage ^
+                            -Dspring.data.redis.host=redis ^
+                            -Dspring.data.redis.port=6379
+                        """
                     }
                 }
             }

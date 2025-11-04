@@ -111,7 +111,7 @@ stage('Verify Redis Connection') {
             steps {
                 script {
                     echo 'Running unit tests...'
-                    {
+                    if (isUnix()){
                     sh """
                         mvn -T 4 surefire:test \
                         -Dspring.data.redis.host=redis \

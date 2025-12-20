@@ -45,6 +45,10 @@
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
 
 		<!-- security, authentication & authorization -->
 		<dependency>
@@ -140,6 +144,8 @@
 							<artifactId>lombok-mapstruct-binding</artifactId>
 							<version>0.2.0</version>
 						</path>
+
+
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
@@ -147,107 +153,9 @@
             <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>1.21.0</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.pitest</groupId>
-                        <artifactId>pitest-junit5-plugin</artifactId>
-                        <version>1.2.1</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>mutationCoverage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <excludedClasses>
-                        <!-- Excluindo subpacote SQL -->
-                        <excludedClass>pt.psoft.g1.psoftg1.authormanagement.model.relational.*</excludedClass>
-                        <excludedClass>pt.psoft.g1.psoftg1.bookmanagement.model.relational.*</excludedClass>
-                        <excludedClass>pt.psoft.g1.psoftg1.genremanagement.model.relational.*</excludedClass>
-                        <excludedClass>pt.psoft.g1.psoftg1.lendingmanagement.model.relational.*</excludedClass>
-                        <excludedClass>pt.psoft.g1.psoftg1.readermanagement.model.relational.*</excludedClass>
-                        <excludedClass>pt.psoft.g1.psoftg1.usermanagement.model.relational.*</excludedClass>
-                    </excludedClasses>
-                    <!-- Pacote principal para incluir no teste de mutação -->
-                    <targetClasses>
-                        <param>pt.psoft.g1.psoftg1.authormanagement.api.*Controller</param>
-                        <param>pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.relational.*</param>
-                        <param>pt.psoft.g1.psoftg1.authormanagement.infrastructure.repositories.impl.mongodb.*</param>
-                        <param>pt.psoft.g1.psoftg1.authormanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.authormanagement.services.*ServiceImpl</param>
-
-                        <param>pt.psoft.g1.psoftg1.bookmanagement.api.*Controller</param>
-                        <param>pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.relational.*</param>
-                        <param>pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mongodb.*</param>
-                        <param>pt.psoft.g1.psoftg1.bookmanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.bookmanagement.services.*ServiceImpl</param>
-
-                        <param>pt.psoft.g1.psoftg1.genremanagement.api.*Controller</param>
-                        <param>pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.relational.*</param>
-                        <param>pt.psoft.g1.psoftg1.genremanagement.infrastructure.repositories.impl.mongodb.*</param>
-                        <param>pt.psoft.g1.psoftg1.genremanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.genremanagement.services.*ServiceImpl</param>
-
-                        <param>pt.psoft.g1.psoftg1.lendingmanagement.api.*Controller</param>
-                        <param>pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.relational.*</param>
-                        <param>pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mongodb.*</param>
-                        <param>pt.psoft.g1.psoftg1.lendingmanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.lendingmanagement.services.*ServiceImpl</param>
-
-                        <param>pt.psoft.g1.psoftg1.readermanagement.api.*Controller</param>
-                        <param>pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.relational.*</param>
-                        <param>pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mongodb.*</param>
-                        <param>pt.psoft.g1.psoftg1.readermanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.readermanagement.services.*ServiceImpl</param>
-
-
-                        <param>pt.psoft.g1.psoftg1.usermanagement.api.*Controller</param>
-                        <param>pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.relational.*</param>
-                        <param>pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mongodb.*</param>
-                        <param>pt.psoft.g1.psoftg1.usermanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.usermanagement.services.*ServiceImpl</param>
-                        <!-- <param>pt.psoft.g1.psoftg1.bookmanagement.api.*Controller</param>
-						<param>pt.psoft.g1.psoftg1.genremanagement.api.*Controller</param>
-						<param>pt.psoft.g1.psoftg1.lendingmanagement.api.*Controller</param>
-						<param>pt.psoft.g1.psoftg1.readermanagement.api.*Controller</param> -->
-                    </targetClasses>
-                    <!-- Pacote de testes -->
-                    <targetTests>
-                        <param>pt.psoft.g1.psoftg1.authormanagement.api.*</param>
-                        <param>pt.psoft.g1.psoftg1.authormanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.authormanagement.services.*</param>
-                        <param>pt.psoft.g1.psoftg1.authormanagement.repository.*</param>
-                        <param>pt.psoft.g1.psoftg1.bookmanagement.api.*</param>
-                        <param>pt.psoft.g1.psoftg1.bookmanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.bookmanagement.services.*</param>
-                        <param>pt.psoft.g1.psoftg1.bookmanagement.repository.*</param>
-                        <param>pt.psoft.g1.psoftg1.genremanagement.api.*</param>
-                        <param>pt.psoft.g1.psoftg1.genremanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.genremanagement.services.*</param>
-                        <param>pt.psoft.g1.psoftg1.genremanagement.repository.*</param>
-                        <param>pt.psoft.g1.psoftg1.lendingmanagement.api.*</param>
-                        <param>pt.psoft.g1.psoftg1.lendingmanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.lendingmanagement.services.*</param>
-                        <param>pt.psoft.g1.psoftg1.lendingmanagement.repository.*</param>
-                        <param>pt.psoft.g1.psoftg1.readermanagement.api.*</param>
-                        <param>pt.psoft.g1.psoftg1.readermanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.readermanagement.services.*</param>
-                        <param>pt.psoft.g1.psoftg1.readermanagement.repository.*</param>
-                        <param>pt.psoft.g1.psoftg1.usermanagement.model.*</param>
-                        <param>pt.psoft.g1.psoftg1.usermanagement.repository.*</param>
-                    </targetTests>
-                    <threads>4</threads>
-                    <outputFormats>
-                        <param>HTML</param>
-                    </outputFormats>
-                </configuration>
+                <version>1.15.6</version>
             </plugin>
-
-        </plugins>
+		</plugins>
 	</build>
 
 </project>

@@ -21,6 +21,7 @@ import pt.psoft.g1.psoftg1.bookmanagement.services.SearchBooksQuery;
 import pt.psoft.g1.psoftg1.bookmanagement.services.UpdateBookRequest;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.isbn.model.BookInfo;
 import pt.psoft.g1.psoftg1.lendingmanagement.services.LendingService;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderService;
@@ -75,7 +76,7 @@ public class BookController {
         }
         //final var savedBook = bookService.save(book);
         final var newBookUri = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                .pathSegment(book.getIsbn())
+                .pathSegment(book.getIsbn().toString())
                 .build().toUri();
 
         return ResponseEntity.created(newBookUri)
@@ -106,7 +107,7 @@ public class BookController {
         }
 
         fileStorageService.deleteFile(book.getPhoto().getPhotoFile());
-        bookService.removeBookPhoto(book.getIsbn(), book.getVersion());
+        bookService.removeBookPhoto(book.getIsbn().toString(), book.getVersion());
 
         return ResponseEntity.ok().build();
     }
@@ -172,7 +173,7 @@ public class BookController {
     @GetMapping
     public ListResponse<BookView> findBooks(@RequestParam(value = "title", required = false) final String title,
                                             @RequestParam(value = "genre", required = false) final String genre,
-                                            @RequestParam(value = "authorName", required = false) final String authorName) {
+                                            @RequestParam(value = "authorName", required = false) final Long authorName) {
 
         //Este método, como está, faz uma junção 'OR'.
         //Para uma junção 'AND', ver o "/search"
@@ -239,5 +240,12 @@ public class BookController {
         final var bookList = bookService.searchBooks(request.getPage(), request.getQuery());
         return new ListResponse<>(bookViewMapper.toBookView(bookList));
     }
+
+    @GetMapping("/external/search")
+    public ResponseEntity<List<BookInfo>> searchExternalBooks(@RequestParam String title) {
+        List<BookInfo> books = bookService.searchExternalBooks(title);
+        return ResponseEntity.ok(books);
+    }
+
 }
 

@@ -83,26 +83,8 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     }
 
     @Override
-    public Page<AuthorLendingView> findTopAuthorByLendings (Pageable pageableRules)
-    {
-        return authoRepo.findTopAuthorByLendings(pageableRules);
-    }
-
-    @Override
     public void delete(Author author)
     {
         authoRepo.delete(authorEntityMapper.toEntity(author));
-    }
-
-    @Override
-    public List<Author> findCoAuthorsByAuthorNumber(Long authorNumber)
-    {
-        List<Author> authors = new ArrayList<>();
-        for (AuthorEntity a: authoRepo.findCoAuthorsByAuthorNumber(authorNumber))
-        {
-            authors.add(authorEntityMapper.toModel(a));
-        }
-
-        return authors;
     }
 }

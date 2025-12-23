@@ -8,8 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
-import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
 
@@ -20,7 +18,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthorServiceImpl implements AuthorService {
     private final AuthorRepository authorRepository;
-    private final BookRepository bookRepository;
     private final AuthorMapper mapper;
     private final PhotoRepository photoRepository;
 
@@ -96,21 +93,7 @@ public class AuthorServiceImpl implements AuthorService {
         // this updated object
         return authorRepository.save(author);
     }
-    @Override
-    public List<AuthorLendingView> findTopAuthorByLendings() {
-        Pageable pageableRules = PageRequest.of(0,5);
-        return authorRepository.findTopAuthorByLendings(pageableRules).getContent();
-    }
 
-    @Override
-    public List<Book> findBooksByAuthorNumber(Long authorNumber){
-        return bookRepository.findBooksByAuthorNumber(authorNumber);
-    }
-
-    @Override
-    public List<Author> findCoAuthorsByAuthorNumber(Long authorNumber) {
-        return authorRepository.findCoAuthorsByAuthorNumber(authorNumber);
-    }
     @Override
     public Optional<Author> removeAuthorPhoto(Long authorNumber, long desiredVersion) {
         Author author = authorRepository.findByAuthorNumber(authorNumber)

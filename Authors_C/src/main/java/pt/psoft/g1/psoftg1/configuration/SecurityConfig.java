@@ -45,7 +45,6 @@ import com.nimbusds.jose.proc.SecurityContext;
 import pt.psoft.g1.psoftg1.usermanagement.model.Role;
 
 import lombok.RequiredArgsConstructor;
-import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 
 /**
  * Check https://www.baeldung.com/security-spring and
@@ -63,8 +62,6 @@ import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserRepository userRepo;
-
     @Value("${jwt.public.key}")
     private RSAPublicKey rsaPublicKey;
 
@@ -76,22 +73,6 @@ public class SecurityConfig {
 
     @Value("${springdoc.swagger-ui.path}")
     private String swaggerPath;
-
-    @Bean
-    public AuthenticationManager authenticationManager(final UserDetailsService userDetailsService,
-                                                       final PasswordEncoder passwordEncoder) {
-        final DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder);
-
-        return new ProviderManager(authenticationProvider);
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> userRepo.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(format("User: %s, not found", username)));
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

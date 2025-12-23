@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PsoftG1Application {
+public class BookGenre_Q {
 
 	public static void main(String[] args) {
-		SpringApplication.run(PsoftG1Application.class, args);
+		SpringApplication.run(BookGenre_Q.class, args);
 	}
 
 }

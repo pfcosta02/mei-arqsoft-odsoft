@@ -83,12 +83,6 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     }
 
     @Override
-    public Page<AuthorLendingView> findTopAuthorByLendings (Pageable pageableRules)
-    {
-        return authoRepo.findTopAuthorByLendings(pageableRules);
-    }
-
-    @Override
     public void delete(Author author)
     {
         authoRepo.delete(authorEntityMapper.toEntity(author));

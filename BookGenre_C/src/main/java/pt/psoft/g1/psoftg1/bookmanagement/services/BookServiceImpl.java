@@ -18,8 +18,6 @@ import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.isbn.model.BookInfo;
 import pt.psoft.g1.psoftg1.isbn.services.IsbnProviderFactory;
-import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
-import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 
@@ -37,7 +35,6 @@ public class BookServiceImpl implements BookService {
 	private final GenreRepository genreRepository;
 	private final AuthorRepository authorRepository;
 	private final PhotoRepository photoRepository;
-	private final ReaderRepository readerRepository;
     private final IsbnProviderFactory isbnProviderFactory;
 
 	@Value("${suggestionsLimitPerGenre}")
@@ -127,13 +124,6 @@ public class BookServiceImpl implements BookService {
 	}
 
 	@Override
-	public List<BookCountDTO> findTop5BooksLent(){
-		LocalDate oneYearAgo = LocalDate.now().minusYears(1);
-		Pageable pageableRules = PageRequest.of(0,5);
-		return this.bookRepository.findTop5BooksLent(oneYearAgo, pageableRules).getContent();
-	}
-
-	@Override
 	public Book removeBookPhoto(String isbn, long desiredVersion) {
 		Book book = this.findByIsbn(isbn);
 		String photoFile;
@@ -149,71 +139,8 @@ public class BookServiceImpl implements BookService {
 		return updatedBook;
 	}
 
-	@Override
-	public List<Book> findByGenre(String genre) {
-		return this.bookRepository.findByGenre(genre);
-	}
-
-	public List<Book> findByTitle(String title) {
-		return bookRepository.findByTitle(title);
-	}
-
-	@Override
-	public List<Book> findByAuthorName(Long authorName) {
-		return bookRepository.findByAuthorName(authorName + "%");
-	}
-
 	public Book findByIsbn(String isbn) {
 		return this.bookRepository.findByIsbn(isbn)
 				.orElseThrow(() -> new NotFoundException(Book.class, isbn));
 	}
-
-	public List<Book> getBooksSuggestionsForReader(String readerNumber) {
-		List<Book> books = new ArrayList<>();
-
-		ReaderDetails readerDetails = readerRepository.findByReaderNumber(readerNumber)
-				.orElseThrow(() -> new NotFoundException("Reader not found with provided login"));
-		List<Genre> interestList = readerDetails.getInterestList();
-
-		if(interestList.isEmpty()) {
-			throw new NotFoundException("Reader has no interests");
-		}
-
-		for(Genre genre : interestList) {
-			List<Book> tempBooks = bookRepository.findByGenre(genre.toString());
-			if(tempBooks.isEmpty()) {
-				continue;
-			}
-
-			long genreBookCount = 0;
-
-            for (Book loopBook : tempBooks) {
-                if (genreBookCount >= suggestionsLimitPerGenre) {
-                    break;
-                }
-
-                books.add(loopBook);
-				genreBookCount++;
-            }
-		}
-
-		return books;
-	}
-
-	@Override
-	public List<Book> searchBooks(Page page, SearchBooksQuery query) {
-		if (page == null) {
-			page = new Page(1, 10);
-		}
-		if (query == null) {
-			query = new SearchBooksQuery("", "", "");
-		}
-		return bookRepository.searchBooks(page, query);
-	}
-
-    @Override
-    public List<BookInfo> searchExternalBooks(String title) {
-        return isbnProviderFactory.getProvider().searchByTitle(title);
-    }
-
 }

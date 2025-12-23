@@ -19,10 +19,6 @@ public interface AuthorService {
 
     Author partialUpdate(Long authorNumber, UpdateAuthorRequest resource, long desiredVersion);
 
-    List<AuthorLendingView> findTopAuthorByLendings();
-
-    List<Book> findBooksByAuthorNumber(Long authorNumber);
-
     List<Author> findCoAuthorsByAuthorNumber(Long authorNumber);
 
     Optional<Author> removeAuthorPhoto(Long authorNumber, long desiredVersion);

@@ -96,16 +96,6 @@ public class AuthorServiceImpl implements AuthorService {
         // this updated object
         return authorRepository.save(author);
     }
-    @Override
-    public List<AuthorLendingView> findTopAuthorByLendings() {
-        Pageable pageableRules = PageRequest.of(0,5);
-        return authorRepository.findTopAuthorByLendings(pageableRules).getContent();
-    }
-
-    @Override
-    public List<Book> findBooksByAuthorNumber(Long authorNumber){
-        return bookRepository.findBooksByAuthorNumber(authorNumber);
-    }
 
     @Override
     public List<Author> findCoAuthorsByAuthorNumber(Long authorNumber) {

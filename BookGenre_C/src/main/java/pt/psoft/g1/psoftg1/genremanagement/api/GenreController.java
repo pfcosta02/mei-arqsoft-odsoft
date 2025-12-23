@@ -18,13 +18,6 @@ public class GenreController {
     private final GenreService genreService;
     private final GenreViewMapper genreViewMapper;
 
-    @PostMapping(value="/avgLendingsPerGenre")
-    public ListResponse<GenreLendingsView> getAverageLendings(
-            @Valid @RequestBody final SearchRequest<GetAverageLendingsQuery> query){
-        final var list = genreService.getAverageLendings(query.getQuery(), query.getPage());
-        return new ListResponse<>(genreViewMapper.toGenreAvgLendingsView(list));
-    }
-
     @GetMapping("/top5")
     public ListResponse<GenreBookCountView> getTop() {
         final var list = genreService.findTopGenreByBooks();
@@ -33,31 +26,5 @@ public class GenreController {
             throw new NotFoundException("No genres to show");
 
         return new ListResponse<>(genreViewMapper.toGenreBookCountView(list));
-    }
-
-    @GetMapping("/lendingsPerMonthLastTwelveMonths")
-    public ListResponse<GenreLendingsCountPerMonthView> getLendingsPerMonthLastYearByGenre() {
-        final var list = genreService.getLendingsPerMonthLastYearByGenre();
-
-        if(list.isEmpty())
-            throw new NotFoundException("No genres to show");
-
-        final var viewList = genreViewMapper.toGenreLendingsCountPerMonthView(list);
-
-        return new ListResponse<>(viewList);
-    }
-
-    @GetMapping("/lendingsAverageDurationPerMonth")
-    public ListResponse<GenreLendingsAvgPerMonthView> getLendingsAverageDurationPerMonth(
-            @RequestParam("startDate") final String start,
-            @RequestParam("endDate") final String end) {
-        final var list = genreService.getLendingsAverageDurationPerMonth(start, end);
-
-        if(list.isEmpty())
-            throw new NotFoundException("No genres to show");
-
-        final var viewList = genreViewMapper.toGenreLendingsAveragePerMonthView(list);
-
-        return new ListResponse<>(viewList);
     }
 }

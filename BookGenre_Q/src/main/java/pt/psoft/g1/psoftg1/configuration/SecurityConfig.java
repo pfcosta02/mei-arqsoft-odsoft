@@ -78,22 +78,6 @@ public class SecurityConfig {
     private String swaggerPath;
 
     @Bean
-    public AuthenticationManager authenticationManager(final UserDetailsService userDetailsService,
-                                                       final PasswordEncoder passwordEncoder) {
-        final DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder);
-
-        return new ProviderManager(authenticationProvider);
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> userRepo.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(format("User: %s, not found", username)));
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // Enable CORS and disable CSRF
         http = http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable());

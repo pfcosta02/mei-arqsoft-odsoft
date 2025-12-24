@@ -6,7 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
+import pt.psoft.g1.psoftg1.authormanagement.api.AuthorViewAMQP;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
+import pt.psoft.g1.psoftg1.authormanagement.publishers.AuthorEventsPublisher;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
@@ -20,6 +22,8 @@ public class AuthorServiceImpl implements AuthorService {
     private final AuthorRepository authorRepository;
     private final AuthorMapper mapper;
     private final PhotoRepository photoRepository;
+
+    private final AuthorEventsPublisher authorEventsPublisher;
 
     @Override
     public Iterable<Author> findAll() {
@@ -57,6 +61,22 @@ public class AuthorServiceImpl implements AuthorService {
             resource.setPhotoURI(null);
         }
         final Author author = mapper.create(resource);
+        Author savedAuthor = authorRepository.save(author);
+
+        if( savedAuthor!=null ) {
+            authorEventsPublisher.sendAuthorCreated(savedAuthor);
+        }
+
+        return savedAuthor;
+    }
+
+    @Override
+    public Author create(AuthorViewAMQP authorViewAMQP) {
+
+        final String name = authorViewAMQP.getName();
+        final String bio = authorViewAMQP.getBio();
+        final String photoURI = null;
+        final Author author = new Author(name, bio, photoURI);
         return authorRepository.save(author);
     }
 
@@ -91,6 +111,16 @@ public class AuthorServiceImpl implements AuthorService {
         // in the meantime some other user might have changed this object on the
         // database, so concurrency control will still be applied when we try to save
         // this updated object
+        return authorRepository.save(author);
+    }
+
+    @Override
+    public Author partialUpdate(Long authorNumber, AuthorViewAMQP authorViewAMQP, long desiredVersion) {
+
+        final String name = authorViewAMQP.getName();
+        final String bio = authorViewAMQP.getBio();
+        final String photoURI = null;
+        final Author author = new Author(name, bio, photoURI);
         return authorRepository.save(author);
     }
 

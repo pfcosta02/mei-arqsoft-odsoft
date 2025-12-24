@@ -77,7 +77,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // Enable CORS and disable CSRF
-        http = http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable());
+        http = http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**").disable());
 
         // Set session management to stateless
         http = http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -86,9 +86,12 @@ public class SecurityConfig {
         http = http.exceptionHandling(
                 exceptions -> exceptions.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                         .accessDeniedHandler(new BearerTokenAccessDeniedHandler()));
+        http = http.headers(headers ->
+                headers.frameOptions(frame -> frame.disable()));
 
         // Set permissions on endpoints
         http.authorizeHttpRequests()
+                .requestMatchers("/h2-console/**").permitAll()
                 // Swagger endpoints must be publicly accessible
                 .requestMatchers("/").permitAll().requestMatchers(format("%s/**", restApiDocPath)).permitAll()
                 .requestMatchers(format("%s/**", swaggerPath)).permitAll()

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
+import pt.psoft.g1.psoftg1.authormanagement.api.AuthorViewAMQP;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
@@ -60,6 +61,16 @@ public class AuthorServiceImpl implements AuthorService {
             resource.setPhotoURI(null);
         }
         final Author author = mapper.create(resource);
+        return authorRepository.save(author);
+    }
+
+    @Override
+    public Author create(AuthorViewAMQP authorViewAMQP) {
+
+        final String name = authorViewAMQP.getName();
+        final String bio = authorViewAMQP.getBio();
+        final String photoURI = null;
+        final Author author = new Author(name, bio, photoURI);
         return authorRepository.save(author);
     }
 

@@ -52,38 +52,6 @@ public class BookController {
 
     private final BookViewMapper bookViewMapper;
 
-    @Operation(summary = "Register a new Book")
-    @PutMapping(value = "/{isbn}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<BookView> create( CreateBookRequest resource, @PathVariable("isbn") String isbn) {
-
-
-        //Guarantee that the client doesn't provide a link on the body, null = no photo or error
-        resource.setPhotoURI(null);
-        MultipartFile file = resource.getPhoto();
-
-        String fileName = fileStorageService.getRequestPhoto(file);
-
-        if (fileName != null) {
-            resource.setPhotoURI(fileName);
-        }
-
-        Book book;
-        try {
-            book = bookService.create(resource, isbn);
-        }catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        //final var savedBook = bookService.save(book);
-        final var newBookUri = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                .pathSegment(book.getIsbn().toString())
-                .build().toUri();
-
-        return ResponseEntity.created(newBookUri)
-                .eTag(Long.toString(book.getVersion()))
-                .body(bookViewMapper.toBookView(book));
-    }
-
     @Operation(summary = "Gets a specific Book by isbn")
     @GetMapping(value = "/{isbn}")
     public ResponseEntity<BookView> findByIsbn(@PathVariable final String isbn) {
@@ -95,21 +63,6 @@ public class BookController {
         return ResponseEntity.ok()
                 .eTag(Long.toString(book.getVersion()))
                 .body(bookView);
-    }
-
-    @Operation(summary = "Deletes a book photo")
-    @DeleteMapping("/{isbn}/photo")
-    public ResponseEntity<Void> deleteBookPhoto(@PathVariable("isbn") final String isbn) {
-
-        var book = bookService.findByIsbn(isbn);
-        if(book.getPhoto() == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        fileStorageService.deleteFile(book.getPhoto().getPhotoFile());
-        bookService.removeBookPhoto(book.getIsbn().toString(), book.getVersion());
-
-        return ResponseEntity.ok().build();
     }
 
     @Operation(summary= "Gets a book photo")
@@ -136,44 +89,11 @@ public class BookController {
 
     }
 
-
-    @Operation(summary = "Updates a specific Book")
-    @PatchMapping(value = "/{isbn}")
-    public ResponseEntity<BookView> updateBook(@PathVariable final String isbn,
-                                               final WebRequest request,
-                                               @Valid final UpdateBookRequest resource) {
-
-        final String ifMatchValue = request.getHeader(ConcurrencyService.IF_MATCH);
-        if (ifMatchValue == null || ifMatchValue.isEmpty() || ifMatchValue.equals("null")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "You must issue a conditional PATCH using 'if-match'");
-        }
-
-        MultipartFile file = resource.getPhoto();
-
-        String fileName = fileStorageService.getRequestPhoto(file);
-
-        if (fileName != null) {
-            resource.setPhotoURI(fileName);
-        }
-
-        Book book;
-        resource.setIsbn(isbn);
-        try {
-            book = bookService.update(resource, String.valueOf(concurrencyService.getVersionFromIfMatchHeader(ifMatchValue)));
-        }catch (Exception e){
-            throw new ConflictException("Could not update book: "+ e.getMessage());
-        }
-        return ResponseEntity.ok()
-                .eTag(Long.toString(book.getVersion()))
-                .body(bookViewMapper.toBookView(book));
-    }
-
     @Operation(summary = "Gets Books by title or genre")
     @GetMapping
     public ListResponse<BookView> findBooks(@RequestParam(value = "title", required = false) final String title,
                                             @RequestParam(value = "genre", required = false) final String genre,
-                                            @RequestParam(value = "authorName", required = false) final Long authorName) {
+                                            @RequestParam(value = "authorName", required = false) final String authorName) {
 
         //Este método, como está, faz uma junção 'OR'.
         //Para uma junção 'AND', ver o "/search"

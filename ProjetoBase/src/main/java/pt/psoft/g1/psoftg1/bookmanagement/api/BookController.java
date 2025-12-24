@@ -173,7 +173,7 @@ public class BookController {
     @GetMapping
     public ListResponse<BookView> findBooks(@RequestParam(value = "title", required = false) final String title,
                                             @RequestParam(value = "genre", required = false) final String genre,
-                                            @RequestParam(value = "authorName", required = false) final Long authorName) {
+                                            @RequestParam(value = "authorName", required = false) final String authorName) {
 
         //Este método, como está, faz uma junção 'OR'.
         //Para uma junção 'AND', ver o "/search"

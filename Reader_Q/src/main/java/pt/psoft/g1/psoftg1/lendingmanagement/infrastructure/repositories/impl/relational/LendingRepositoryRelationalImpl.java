@@ -14,9 +14,6 @@ import jakarta.persistence.criteria.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
-import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.relational.BookRepositoryRelationalImpl;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mappers.LendingEntityMapper;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
@@ -33,10 +30,9 @@ import pt.psoft.g1.psoftg1.shared.services.Page;
 public class LendingRepositoryRelationalImpl implements LendingRepository
 {
     private final SpringDataLendingRepository lendingRepo;
+    private final ReaderDetailsRepositoryRelationalImpl readerDetailsRepo;
     private final LendingEntityMapper lendingEntityMapper;
     private final EntityManager em;
-    private final BookRepositoryRelationalImpl bookRepo;
-    private final ReaderDetailsRepositoryRelationalImpl readerDetailsRepo;
 
     @Override
     public Optional<Lending> findByLendingNumber(String lendingNumber)
@@ -56,10 +52,11 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     public List<Lending> listByReaderNumberAndIsbn(String readerNumber, String isbn)
     {
         List<Lending> lendings = new ArrayList<>();
-        for (LendingEntity l: lendingRepo.listByReaderNumberAndIsbn(readerNumber, isbn))
-        {
-            lendings.add(lendingEntityMapper.toModel(l));
-        }
+        // TODO> Corrigir de acordo com a questao de o book estar noutro microservico
+        // for (LendingEntity l: lendingRepo.listByReaderNumberAndIsbn(readerNumber, isbn))
+        // {
+        //     lendings.add(lendingEntityMapper.toModel(l));
+        // }
 
         return lendings;
     }
@@ -130,7 +127,7 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
         final CriteriaBuilder cb = em.getCriteriaBuilder();
         final CriteriaQuery<LendingEntity> cq = cb.createQuery(LendingEntity.class);
         final Root<LendingEntity> lendingRoot = cq.from(LendingEntity.class);
-        final Join<LendingEntity, Book> bookJoin = lendingRoot.join("book");
+        final Join<LendingEntity, String> bookJoin = lendingRoot.join("book");
         final Join<LendingEntity, ReaderDetails> readerDetailsJoin = lendingRoot.join("readerDetails");
         cq.select(lendingRoot);
 
@@ -187,23 +184,25 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
         // Convert the domain model (Lending) to a JPA entity (LendingEntity)
         LendingEntity entity = lendingEntityMapper.toEntity(lending);
 
-        // Retrieve the existing Book model from the repository
-        // Throws an exception if the book is not found
-        Book bookModel = bookRepo.findByIsbn(lending.getBook().getIsbn().getIsbn())
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+        // TODO: Rever esta parte dos Book e ReaderDetails porque agora so guardo o BookId
+        // // Retrieve the existing Book model from the repository
+        // // Throws an exception if the book is not found
+        // Book bookModel = bookRepo.findByIsbn(lending.getBook().getIsbn().getIsbn())
+        //         .orElseThrow(() -> new RuntimeException("Book not found"));
 
-        // Get the managed JPA reference for the BookEntity using its database ID (pk)
-        // This ensures we use the existing BookEntity instead of creating a new one
-        BookEntity bookEntity = em.getReference(BookEntity.class, bookModel.getPk());
+        // // Get the managed JPA reference for the BookEntity using its database ID (id)
+        // // This ensures we use the existing BookEntity instead of creating a new one
+        // //BookEntity bookEntity = em.getReference(BookEntity.class, bookModel.getPk());
+        // BookEntity bookEntity = em.getReference(BookEntity.class, bookModel.getId());
 
-        entity.setBook(bookEntity);
+        // entity.setBook(bookEntity);
 
         // Retrieve the existing ReaderDetail model from the repository
         // Throws an exception if the reader is not found
         ReaderDetails readerDetailsModel = readerDetailsRepo.findByReaderNumber(lending.getReaderDetails().getReaderNumber())
                 .orElseThrow(() -> new RuntimeException("Reader not found"));
 
-        // Get the managed JPA reference for the ReaderDetailEntity using its database ID (pk)
+        // Get the managed JPA reference for the ReaderDetailEntity using its database ID (id)
         // This ensures we use the existing ReaderDetailEntity instead of creating a new one
         ReaderDetailsEntity readerDetailsEntity = em.getReference(ReaderDetailsEntity.class, readerDetailsModel.getPk());
 

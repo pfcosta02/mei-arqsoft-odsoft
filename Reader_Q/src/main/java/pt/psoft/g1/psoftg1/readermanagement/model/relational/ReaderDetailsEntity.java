@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import pt.psoft.g1.psoftg1.shared.model.relational.EntityWithPhotoEntity;
 import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
-import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
-import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
 
 import java.util.List;
 
@@ -64,16 +62,18 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
     @Setter
     private Long version;
 
-    @ManyToMany
     @Getter
     @Setter
-    private List<GenreEntity> interestList;
+    @ElementCollection
+    @CollectionTable(name = "reader_interests", joinColumns = @JoinColumn(name = "reader_id"))
+    @Column(name = "genre_id")
+    private List<String> interestList;
 
     protected ReaderDetailsEntity() {}
 
     public ReaderDetailsEntity(ReaderNumberEntity readerNumber, ReaderEntity reader, BirthDateEntity birthDate, PhoneNumberEntity phoneNumber,
                                boolean gdpr, boolean marketing, boolean thirdParty,
-                               PhotoEntity photoURI, List<GenreEntity> interestList)
+                               PhotoEntity photoURI, List<String> interestList)
     {
         setReaderNumber(readerNumber);
         setReader(reader);

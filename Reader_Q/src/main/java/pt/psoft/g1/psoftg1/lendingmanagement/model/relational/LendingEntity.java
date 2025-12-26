@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
 
 import java.time.LocalDate;
@@ -28,9 +27,8 @@ public class LendingEntity {
     private LendingNumberEntity lendingNumber;
 
     @NotNull
-    @Getter
-    @ManyToOne(fetch=FetchType.EAGER, optional = false)
-    private BookEntity book;
+    @Column(name = "book_id", nullable = false)
+    private String bookId;
 
     @NotNull
     @Getter
@@ -73,10 +71,10 @@ public class LendingEntity {
 
     protected LendingEntity() {}
 
-    public LendingEntity(BookEntity book, ReaderDetailsEntity readerDetails, LendingNumberEntity lendingNumber,
+    public LendingEntity(String bookId, ReaderDetailsEntity readerDetails, LendingNumberEntity lendingNumber,
                          LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents,
                          String commentary) {
-        this.book = book;
+        this.bookId = bookId;
         this.readerDetails = readerDetails;
         this.lendingNumber = lendingNumber;
         this.startDate = startDate;
@@ -87,10 +85,10 @@ public class LendingEntity {
     }
 
     // Setter
-    public void setBook(BookEntity book) { this.book = book;}
+    public void setBook(String bookId) { this.bookId = bookId;}
     public void setReaderDetails(ReaderDetailsEntity readerDetails) { this.readerDetails = readerDetails;}
 
     // Getter
-    public BookEntity getBook() { return book; }
+    public String getBook() { return bookId; }
     public ReaderDetailsEntity getReaderDetails() { return readerDetails; }
 }

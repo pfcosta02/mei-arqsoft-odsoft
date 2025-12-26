@@ -1,81 +1,34 @@
 package pt.psoft.g1.psoftg1.readermanagement.services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
-import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.readermanagement.model.BirthDate;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
+import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderDetailsRepository;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
-import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
-import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
+import pt.psoft.g1.psoftg1.readermanagement.model.Reader;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 
+import pt.psoft.g1.psoftg1.readermanagement.dto.ReaderDetailsDTO;
+
 @Service
 @RequiredArgsConstructor
 public class ReaderServiceImpl implements ReaderService {
+    private final ReaderDetailsRepository readerDetailsRepo;
     private final ReaderRepository readerRepo;
-    private final UserRepository userRepo;
     private final ReaderMapper readerMapper;
     private final GenreRepository genreRepo;
     private final ForbiddenNameRepository forbiddenNameRepository;
     private final PhotoRepository photoRepository;
-
-
-    @Override
-    public ReaderDetails create(CreateReaderRequest request, String photoURI) {
-        if (userRepo.findByUsername(request.getUsername()).isPresent()) {
-            throw new ConflictException("Username already exists!");
-        }
-
-        Iterable<String> words = List.of(request.getFullName().split("\\s+"));
-        for (String word : words){
-            if(!forbiddenNameRepository.findByForbiddenNameIsContained(word).isEmpty()) {
-                throw new IllegalArgumentException("Name contains a forbidden word");
-            }
-        }
-
-        List<String> stringInterestList = request.getInterestList();
-        List<Genre> interestList = this.getGenreListFromStringList(stringInterestList);
-        /*if(stringInterestList != null && !stringInterestList.isEmpty()) {
-            request.setInterestList(this.getGenreListFromStringList(stringInterestList));
-        }*/
-
-        /*
-         * Since photos can be null (no photo uploaded) that means the URI can be null as well.
-         * To avoid the client sending false data, photoURI has to be set to any value / null
-         * according to the MultipartFile photo object
-         *
-         * That means:
-         * - photo = null && photoURI = null -> photo is removed
-         * - photo = null && photoURI = validString -> ignored
-         * - photo = validFile && photoURI = null -> ignored
-         * - photo = validFile && photoURI = validString -> photo is set
-         * */
-
-        MultipartFile photo = request.getPhoto();
-        if(photo == null && photoURI != null || photo != null && photoURI == null) {
-            request.setPhoto(null);
-        }
-
-        int count = readerRepo.getCountFromCurrentYear();
-        Reader reader = readerMapper.createReader(request);
-        userRepo.save(reader);
-        ReaderDetails rd = readerMapper.createReaderDetails(count+1, reader, request, photoURI, interestList);
-
-        return readerRepo.save(rd);
-    }
 
     @Override
     public List<ReaderBookCountDTO> findTopByGenre(String genre, LocalDate startDate, LocalDate endDate){
@@ -83,60 +36,29 @@ public class ReaderServiceImpl implements ReaderService {
             throw new IllegalArgumentException("Start date cannot be after end date");
         }
         Pageable pageableRules = PageRequest.of(0,5);
-        return this.readerRepo.findTopByGenre(pageableRules, genre, startDate, endDate).getContent();
+        return this.readerDetailsRepo.findTopByGenre(pageableRules, genre, startDate, endDate);
     }
-
-    @Override
-    public ReaderDetails update(final Long id, final UpdateReaderRequest request, final long desiredVersion, String photoURI){
-        final ReaderDetails readerDetails = readerRepo.findByUserId(id)
-                .orElseThrow(() -> new NotFoundException("Cannot find reader"));
-
-        List<String> stringInterestList = request.getInterestList();
-        List<Genre> interestList = this.getGenreListFromStringList(stringInterestList);
-
-         /*
-         * Since photos can be null (no photo uploaded) that means the URI can be null as well.
-         * To avoid the client sending false data, photoURI has to be set to any value / null
-         * according to the MultipartFile photo object
-         *
-         * That means:
-         * - photo = null && photoURI = null -> photo is removed
-         * - photo = null && photoURI = validString -> ignored
-         * - photo = validFile && photoURI = null -> ignored
-         * - photo = validFile && photoURI = validString -> photo is set
-         * */
-
-        MultipartFile photo = request.getPhoto();
-        if(photo == null && photoURI != null || photo != null && photoURI == null) {
-            request.setPhoto(null);
-        }
-
-        readerDetails.applyPatch(desiredVersion, request, photoURI, interestList);
-
-        userRepo.save(readerDetails.getReader());
-        return readerRepo.save(readerDetails);
-    }
-
 
     @Override
     public Optional<ReaderDetails> findByReaderNumber(String readerNumber) {
-        return this.readerRepo.findByReaderNumber(readerNumber);
+        return this.readerDetailsRepo.findByReaderNumber(readerNumber);
     }
 
     @Override
     public List<ReaderDetails> findByPhoneNumber(String phoneNumber) {
-        return this.readerRepo.findByPhoneNumber(phoneNumber);
+        return this.readerDetailsRepo.findByPhoneNumber(phoneNumber);
     }
 
     @Override
-    public Optional<ReaderDetails> findByUsername(final String username) {
-        return this.readerRepo.findByUsername(username);
+    public Optional<ReaderDetails> findByEmail(final String email) {
+        return this.readerDetailsRepo.findByEmail(email);
     }
 
 
     @Override
-    public Iterable<ReaderDetails> findAll() {
-        return this.readerRepo.findAll();
+    public Iterable<ReaderDetails> findAll()
+    {
+        return this.readerDetailsRepo.findAll();
     }
 
     @Override
@@ -146,57 +68,57 @@ public class ReaderServiceImpl implements ReaderService {
         }
 
         Pageable pageableRules = PageRequest.of(0,minTop);
-        Page<ReaderDetails> page = readerRepo.findTopReaders(pageableRules);
-        return page.getContent();
-    }
 
-    private List<Genre> getGenreListFromStringList(List<String> interestList) {
-        if(interestList == null) {
-            return null;
-        }
-
-        if(interestList.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<Genre> genreList = new ArrayList<>();
-        for(String interest : interestList) {
-            Optional<Genre> optGenre = genreRepo.findByString(interest);
-            if(optGenre.isEmpty()) {
-                throw new NotFoundException("Could not find genre with name " + interest);
-            }
-
-            genreList.add(optGenre.get());
-        }
-
-        return genreList;
+        return readerDetailsRepo.findTopReaders(pageableRules);
     }
 
     @Override
-    public Optional<ReaderDetails> removeReaderPhoto(String readerNumber, long desiredVersion) {
-        ReaderDetails readerDetails = readerRepo.findByReaderNumber(readerNumber)
-                .orElseThrow(() -> new NotFoundException("Cannot find reader"));
-
-        String photoFile = readerDetails.getPhoto().getPhotoFile();
-        readerDetails.removePhoto(desiredVersion);
-        Optional<ReaderDetails> updatedReader = Optional.of(readerRepo.save(readerDetails));
-        photoRepository.deleteByPhotoFile(photoFile);
-        return updatedReader;
+    public List<Reader> searchByName(String namePart)
+    {
+        return readerRepo.searchByName(namePart);
     }
 
     @Override
-    public List<ReaderDetails> searchReaders(pt.psoft.g1.psoftg1.shared.services.Page page, SearchReadersQuery query) {
-        if (page == null)
-            page = new pt.psoft.g1.psoftg1.shared.services.Page(1, 10);
+    public void createEvent(ReaderDetailsDTO rd)
+    {
+        Reader reader = new Reader(rd.reader.readerId, rd.reader.userId, rd.reader.name.name, rd.reader.email);
 
-        if (query == null)
-            query = new SearchReadersQuery("", "","");
+        ReaderDetails readerDetails = new ReaderDetails(rd.readerNumber, reader, new BirthDate(rd.birthDate.birthDate), rd.phoneNumber,
+                rd.gdprConsent, rd.marketingConsent, rd.thirdPartySharingConsent,
+                rd.photo, rd.interestList);
 
-        final var list = readerRepo.searchReaderDetails(page, query);
+        readerDetails.setPk(rd.id);
+        readerDetails.setVersion(rd.version);
 
-        if(list.isEmpty())
-            throw new NotFoundException("No results match the search query");
+        /* Primeiro persistimos o reader */
+        readerRepo.save(reader);
 
-        return list;
+        /* Agora persistimos os detalhes dele */
+        readerDetailsRepo.save(readerDetails);
+    }
+
+    @Override
+    public void updateEvent(ReaderDetailsDTO rd)
+    {
+        Reader reader = new Reader(rd.reader.readerId, rd.reader.userId, rd.reader.name.name, rd.reader.email);
+
+        ReaderDetails readerDetails = new ReaderDetails(rd.readerNumber, reader, new BirthDate(rd.birthDate.birthDate), rd.phoneNumber,
+                rd.gdprConsent, rd.marketingConsent, rd.thirdPartySharingConsent,
+                rd.photo, rd.interestList);
+        readerDetails.setPk(rd.id);
+        readerDetails.setVersion(rd.version);
+    }
+
+    @Override
+    public void deleteEvent(String readerId)
+    {
+        ReaderDetails rd = readerDetailsRepo.findByReaderId(readerId)
+                .orElseThrow(() -> new NotFoundException("Cannot find readerDetails with readerid:" + readerId));
+
+        /* Eliminar primeiro o Reader Detail */
+        readerDetailsRepo.delete(rd.getPk());
+
+        /* Eliminar o Reader */
+        readerRepo.delete(readerId);
     }
 }

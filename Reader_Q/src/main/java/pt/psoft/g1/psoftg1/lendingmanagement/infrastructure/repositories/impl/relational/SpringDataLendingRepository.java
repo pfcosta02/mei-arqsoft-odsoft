@@ -17,13 +17,13 @@ public interface SpringDataLendingRepository extends CrudRepository<LendingEntit
 
     //http://www.h2database.com/html/commands.html
 
-    @Query("SELECT l " +
-            "FROM LendingEntity l " +
-            "JOIN BookEntity b ON l.book.pk = b.pk " +
-            "JOIN ReaderDetailsEntity r ON l.readerDetails.pk = r.pk " +
-            "WHERE b.isbn.isbn = :isbn " +
-            "AND r.readerNumber.readerNumber = :readerNumber ")
-    List<LendingEntity> listByReaderNumberAndIsbn(String readerNumber, String isbn);
+//    @Query("SELECT l " +
+//            "FROM LendingEntity l " +
+//            "JOIN BookEntity b ON l.book.pk = b.pk " +
+//            "JOIN ReaderDetailsEntity r ON l.readerDetails.pk = r.pk " +
+//            "WHERE b.isbn.isbn = :isbn " +
+//            "AND r.readerNumber.readerNumber = :readerNumber ")
+//    List<LendingEntity> listByReaderNumberAndIsbn(String readerNumber, String isbn);
 
     @Query("SELECT COUNT (l) " +
             "FROM LendingEntity l " +

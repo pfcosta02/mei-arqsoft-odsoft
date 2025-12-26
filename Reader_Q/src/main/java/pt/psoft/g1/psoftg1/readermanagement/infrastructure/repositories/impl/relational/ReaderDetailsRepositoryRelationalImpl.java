@@ -7,51 +7,41 @@ import java.util.Optional;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import jakarta.persistence.criteria.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
-import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
-import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
-import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.FineEntity;
 import pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mappers.ReaderDetailsEntityMapper;
+import pt.psoft.g1.psoftg1.readermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
-import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
+import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderDetailsRepository;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO;
 import pt.psoft.g1.psoftg1.readermanagement.services.SearchReadersQuery;
-import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.relational.UserRepositoryRelationalImpl;
-import pt.psoft.g1.psoftg1.usermanagement.model.User;
-import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
-import pt.psoft.g1.psoftg1.usermanagement.model.relational.UserEntity;
+import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderEntity;
 
 @Profile("jpa")
 @Primary
 @Repository
 @RequiredArgsConstructor
-public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
+public class ReaderDetailsRepositoryRelationalImpl implements ReaderDetailsRepository
 {
-    private final SpringDataReaderRepositoryImpl readerRepo;
-    private final UserRepositoryRelationalImpl userRepo;
-    private final ReaderDetailsEntityMapper readerEntityMapper;
+    private final SpringDataReaderDetailsRepositoryImpl readerDetailsRepo;
+    private final ReaderDetailsEntityMapper readerDetailsEntityMapper;
+    private final ReaderRepositoryRelationalImpl readerRepo;
     private final EntityManager entityManager;
 
     @Override
     public Optional<ReaderDetails> findByReaderNumber(String readerNumber)
     {
-        Optional<ReaderDetailsEntity> entityOpt = readerRepo.findByReaderNumber(readerNumber);
+        Optional<ReaderDetailsEntity> entityOpt = readerDetailsRepo.findByReaderNumber(readerNumber);
         if (entityOpt.isPresent())
         {
-            return Optional.of(readerEntityMapper.toModel(entityOpt.get()));
+            return Optional.of(readerDetailsEntityMapper.toModel(entityOpt.get()));
         }
         else
         {
@@ -63,21 +53,21 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
     public List<ReaderDetails> findByPhoneNumber(String phoneNumber)
     {
         List<ReaderDetails> readers = new ArrayList<>();
-        for (ReaderDetailsEntity r: readerRepo.findByPhoneNumber(phoneNumber))
+        for (ReaderDetailsEntity r: readerDetailsRepo.findByPhoneNumber(phoneNumber))
         {
-            readers.add(readerEntityMapper.toModel(r));
+            readers.add(readerDetailsEntityMapper.toModel(r));
         }
 
         return readers;
     }
 
     @Override
-    public Optional<ReaderDetails> findByUsername(String username)
+    public Optional<ReaderDetails> findByEmail(String email)
     {
-        Optional<ReaderDetailsEntity> entityOpt = readerRepo.findByUsername(username);
+        Optional<ReaderDetailsEntity> entityOpt = readerDetailsRepo.findByEmail(email);
         if (entityOpt.isPresent())
         {
-            return Optional.of(readerEntityMapper.toModel(entityOpt.get()));
+            return Optional.of(readerDetailsEntityMapper.toModel(entityOpt.get()));
         }
         else
         {
@@ -86,12 +76,12 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
     }
 
     @Override
-    public Optional<ReaderDetails> findByUserId(Long userId)
+    public Optional<ReaderDetails> findByReaderId(String readerId)
     {
-        Optional<ReaderDetailsEntity> entityOpt = readerRepo.findByUserId(userId);
+        Optional<ReaderDetailsEntity> entityOpt = readerDetailsRepo.findByReaderId(readerId);
         if (entityOpt.isPresent())
         {
-            return Optional.of(readerEntityMapper.toModel(entityOpt.get()));
+            return Optional.of(readerDetailsEntityMapper.toModel(entityOpt.get()));
         }
         else
         {
@@ -102,57 +92,63 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
     @Override
     public int getCountFromCurrentYear()
     {
-        return readerRepo.getCountFromCurrentYear();
+        return readerDetailsRepo.getCountFromCurrentYear();
     }
 
     @Override
     public ReaderDetails save(ReaderDetails readerDetails)
     {
         // Convert the domain model (readerDetails) to a JPA entity (ReaderDetailsEntity)
-        ReaderDetailsEntity readerDetailsEntity = readerEntityMapper.toEntity(readerDetails);
+        ReaderDetailsEntity readerDetailsEntity = readerDetailsEntityMapper.toEntity(readerDetails);
 
-        // Retrieve the existing User model from the repository
-        // Throws an exception if the user is not found
-        User userModel = userRepo.findByUsername(readerDetails.getReader().getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // Retrieve the existing Reader model from the repository
+        // Throws an exception if the reader is not found
+        Reader reader = readerRepo.findByEmail(readerDetails.getReader().getEmail())
+                .orElseThrow(() -> new RuntimeException("Reader not found"));
 
-        //TODO: No futuro aqui vai ter de deixar de ser ID
         // Get the managed JPA reference for the UserEntity using its database ID
         // This ensures we use the existing UserEntity instead of creating a new one
-        ReaderEntity userEntity = entityManager.getReference(ReaderEntity.class, userModel.getId());
+        ReaderEntity readerEntity = entityManager.getReference(ReaderEntity.class, reader.getReaderId());
 
-        readerDetailsEntity.setReader(userEntity);
-        return readerEntityMapper.toModel(readerRepo.save(readerDetailsEntity));
+        readerDetailsEntity.setReader(readerEntity);
+        return readerDetailsEntityMapper.toModel(readerDetailsRepo.save(readerDetailsEntity));
     }
 
     @Override
     public Iterable<ReaderDetails> findAll()
     {
         List<ReaderDetails> readerDetails = new ArrayList<>();
-        for (ReaderDetailsEntity r: readerRepo.findAll())
+        for (ReaderDetailsEntity r: readerDetailsRepo.findAll())
         {
-            readerDetails.add(readerEntityMapper.toModel(r));
+            readerDetails.add(readerDetailsEntityMapper.toModel(r));
         }
 
         return readerDetails;
     }
 
     @Override
-    public Page<ReaderDetails> findTopReaders(Pageable pageable)
+    public List<ReaderDetails> findTopReaders(Pageable pageable)
     {
-        return readerRepo.findTopReaders(pageable).map(readerEntityMapper::toModel);
+        return readerDetailsRepo.findTopReaders(pageable).stream().map(readerDetailsEntityMapper::toModel).toList();
     }
 
     @Override
-    public Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate)
+    public List<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate)
     {
-        return readerRepo.findTopByGenre(pageable, genre, startDate, endDate);
+        // return readerDetailsRepo.findTopByGenre(pageable, genre, startDate, endDate);
+        return new ArrayList<>();
     }
 
     @Override
     public void delete(ReaderDetails readerDetails)
     {
-        readerRepo.delete(readerEntityMapper.toEntity(readerDetails));
+        readerDetailsRepo.delete(readerDetailsEntityMapper.toEntity(readerDetails));
+    }
+
+    @Override
+    public void delete(String readerDetailsId)
+    {
+        readerDetailsRepo.deleteById(readerDetailsId);
     }
 
     @Override
@@ -161,7 +157,7 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
         final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         final CriteriaQuery<ReaderDetailsEntity> cq = cb.createQuery(ReaderDetailsEntity.class);
         final Root<ReaderDetailsEntity> readerDetailsRoot = cq.from(ReaderDetailsEntity.class);
-        Join<ReaderDetailsEntity, UserEntity> userJoin = readerDetailsRoot.join("reader");
+        Join<ReaderDetailsEntity, String> userJoin = readerDetailsRoot.join("reader");
 
         cq.select(readerDetailsRoot);
 
@@ -200,7 +196,7 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
 
         for (ReaderDetailsEntity readerDetail : q.getResultList())
         {
-            readerDetails.add(readerEntityMapper.toModel(readerDetail));
+            readerDetails.add(readerDetailsEntityMapper.toModel(readerDetail));
         }
 
         return readerDetails;

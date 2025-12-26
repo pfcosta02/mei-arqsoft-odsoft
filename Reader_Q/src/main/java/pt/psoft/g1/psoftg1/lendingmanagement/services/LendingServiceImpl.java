@@ -4,13 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.exceptions.LendingForbiddenException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
+import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderDetailsRepository;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 
@@ -26,8 +27,8 @@ import java.util.Optional;
 public class LendingServiceImpl implements LendingService{
     private final LendingRepository lendingRepository;
     private final FineRepository fineRepository;
-    private final BookRepository bookRepository;
-    private final ReaderRepository readerRepository;
+    private final ReaderDetailsRepository readerDetailsRepository;
+    private final IdGenerator idGenerator;
 
     @Value("${lendingDurationInDays}")
     private int lendingDurationInDays;
@@ -72,13 +73,16 @@ public class LendingServiceImpl implements LendingService{
             }
         }
 
-        final var b = bookRepository.findByIsbn(resource.getIsbn())
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-        final var r = readerRepository.findByReaderNumber(resource.getReaderNumber())
+        // TODO: Book esta noutro microservico
+        // final var b = bookRepository.findByIsbn(resource.getIsbn())
+        //         .orElseThrow(() -> new NotFoundException("Book not found"));
+
+        String b = null; // Placeholder for Book object
+        final var r = readerDetailsRepository.findByReaderNumber(resource.getReaderNumber())
                 .orElseThrow(() -> new NotFoundException("Reader not found"));
         int seq = lendingRepository.getCountFromCurrentYear()+1;
         final Lending l = new Lending(b,r,seq, lendingDurationInDays, fineValuePerDayInCents );
-
+        l.setId(idGenerator.generateId());
         return lendingRepository.save(l);
     }
 
@@ -89,9 +93,11 @@ public class LendingServiceImpl implements LendingService{
                 .orElseThrow(() -> new NotFoundException("Cannot update lending with this lending number"));
 
         lending.setReturned(desiredVersion, resource.getCommentary());
+        System.out.println("No service returnedDate: " + lending.getReturnedDate());
 
         if(lending.getDaysDelayed() > 0){
             final var fine = new Fine(lending);
+            fine.setId(idGenerator.generateId());
             fineRepository.save(fine);
         }
 
@@ -150,7 +156,4 @@ public class LendingServiceImpl implements LendingService{
                 endDate);
 
     }
-
-
-
 }

@@ -9,7 +9,9 @@ import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.readermanagement.api.ReaderViewAMQP;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
+import pt.psoft.g1.psoftg1.readermanagement.publishers.ReaderEventsPublisher;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
@@ -32,6 +34,7 @@ public class ReaderServiceImpl implements ReaderService {
     private final ForbiddenNameRepository forbiddenNameRepository;
     private final PhotoRepository photoRepository;
 
+    private final ReaderEventsPublisher readerEventsPublisher;
 
     @Override
     public ReaderDetails create(CreateReaderRequest request, String photoURI) {
@@ -48,21 +51,6 @@ public class ReaderServiceImpl implements ReaderService {
 
         List<String> stringInterestList = request.getInterestList();
         List<Genre> interestList = this.getGenreListFromStringList(stringInterestList);
-        /*if(stringInterestList != null && !stringInterestList.isEmpty()) {
-            request.setInterestList(this.getGenreListFromStringList(stringInterestList));
-        }*/
-
-        /*
-         * Since photos can be null (no photo uploaded) that means the URI can be null as well.
-         * To avoid the client sending false data, photoURI has to be set to any value / null
-         * according to the MultipartFile photo object
-         *
-         * That means:
-         * - photo = null && photoURI = null -> photo is removed
-         * - photo = null && photoURI = validString -> ignored
-         * - photo = validFile && photoURI = null -> ignored
-         * - photo = validFile && photoURI = validString -> photo is set
-         * */
 
         MultipartFile photo = request.getPhoto();
         if(photo == null && photoURI != null || photo != null && photoURI == null) {
@@ -74,7 +62,33 @@ public class ReaderServiceImpl implements ReaderService {
         userRepo.save(reader);
         ReaderDetails rd = readerMapper.createReaderDetails(count+1, reader, request, photoURI, interestList);
 
+        if (rd != null) {
+            readerEventsPublisher.sendReaderCreated(rd);
+        }
+
         return readerRepo.save(rd);
+    }
+
+    @Override
+    public ReaderDetails create(CreateReaderDTOAmqp createReaderDTOAmqp) {
+        if (userRepo.findByUsername(createReaderDTOAmqp.getUsername()).isPresent()) {
+            throw new ConflictException("Username already exists!");
+        }
+
+        Iterable<String> words = List.of(createReaderDTOAmqp.getFullName().split("\\s+"));
+        for (String word : words){
+            if(!forbiddenNameRepository.findByForbiddenNameIsContained(word).isEmpty()) {
+                throw new IllegalArgumentException("Name contains a forbidden word");
+            }
+        }
+
+        List<String> stringInterestList = createReaderDTOAmqp.getInterestList();
+        List<Genre> interestList = this.getGenreListFromStringList(stringInterestList);
+
+        MultipartFile photo = createReaderDTOAmqp.getPhoto();
+        if(photo == null && photoURI != null || photo != null && photoURI == null) {
+            request.setPhoto(null);
+        }
     }
 
     @Override

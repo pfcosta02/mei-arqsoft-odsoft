@@ -20,7 +20,9 @@ public interface AuthorService {
 
     Author create(AuthorViewAMQP authorViewAMQP); // AMQP request
 
-    Author partialUpdate(Long authorNumber, UpdateAuthorRequest resource, long desiredVersion);
+    //    Author partialUpdate(Long authorNumber, UpdateAuthorRequest resource, long desiredVersion);
+
+    Author partialUpdate(AuthorViewAMQP authorViewAMQP);
 
     List<Author> findCoAuthorsByAuthorNumber(Long authorNumber);
 

@@ -74,37 +74,51 @@ public class AuthorServiceImpl implements AuthorService {
         return authorRepository.save(author);
     }
 
+//    @Override
+//    public Author partialUpdate(final Long authorNumber, final UpdateAuthorRequest request, final long desiredVersion) {
+//        // first let's check if the object exists so we don't create a new object with
+//        // save
+//        final var author = findByAuthorNumber(authorNumber)
+//                .orElseThrow(() -> new NotFoundException("Cannot update an object that does not yet exist"));
+//        /*
+//         * Since photos can be null (no photo uploaded) that means the URI can be null as well.
+//         * To avoid the client sending false data, photoURI has to be set to any value / null
+//         * according to the MultipartFile photo object
+//         *
+//         * That means:
+//         * - photo = null && photoURI = null -> photo is removed
+//         * - photo = null && photoURI = validString -> ignored
+//         * - photo = validFile && photoURI = null -> ignored
+//         * - photo = validFile && photoURI = validString -> photo is set
+//         * */
+//
+//        MultipartFile photo = request.getPhoto();
+//        String photoURI = request.getPhotoURI();
+//        if(photo == null && photoURI != null || photo != null && photoURI == null) {
+//            request.setPhoto(null);
+//            request.setPhotoURI(null);
+//        }
+//        // since we got the object from the database we can check the version in memory
+//        // and apply the patch
+//        author.applyPatch(desiredVersion, request);
+//
+//        // in the meantime some other user might have changed this object on the
+//        // database, so concurrency control will still be applied when we try to save
+//        // this updated object
+//        return authorRepository.save(author);
+//    }
+
     @Override
-    public Author partialUpdate(final Long authorNumber, final UpdateAuthorRequest request, final long desiredVersion) {
-        // first let's check if the object exists so we don't create a new object with
-        // save
-        final var author = findByAuthorNumber(authorNumber)
-                .orElseThrow(() -> new NotFoundException("Cannot update an object that does not yet exist"));
-        /*
-         * Since photos can be null (no photo uploaded) that means the URI can be null as well.
-         * To avoid the client sending false data, photoURI has to be set to any value / null
-         * according to the MultipartFile photo object
-         *
-         * That means:
-         * - photo = null && photoURI = null -> photo is removed
-         * - photo = null && photoURI = validString -> ignored
-         * - photo = validFile && photoURI = null -> ignored
-         * - photo = validFile && photoURI = validString -> photo is set
-         * */
+    public Author partialUpdate(AuthorViewAMQP authorViewAMQP) {
 
-        MultipartFile photo = request.getPhoto();
-        String photoURI = request.getPhotoURI();
-        if(photo == null && photoURI != null || photo != null && photoURI == null) {
-            request.setPhoto(null);
-            request.setPhotoURI(null);
-        }
-        // since we got the object from the database we can check the version in memory
-        // and apply the patch
-        author.applyPatch(desiredVersion, request);
+        final var author = findByName(authorViewAMQP.getName()).get(0);
 
-        // in the meantime some other user might have changed this object on the
-        // database, so concurrency control will still be applied when we try to save
-        // this updated object
+        final String name = authorViewAMQP.getName();
+        final String bio = authorViewAMQP.getBio();
+        final String photoURI = null;
+        final MultipartFile photo = null;
+        final UpdateAuthorRequest authorReq = new UpdateAuthorRequest(bio, name, photo, photoURI);
+        author.applyPatch(authorViewAMQP.getVersion(), authorReq);
         return authorRepository.save(author);
     }
 

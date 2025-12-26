@@ -21,7 +21,7 @@ public interface AuthorService {
 
     Author partialUpdate(Long authorNumber, UpdateAuthorRequest resource, long desiredVersion);
 
-    Author partialUpdate(Long authorNumber, AuthorViewAMQP resource, long desiredVersion);
+    Author partialUpdate(AuthorViewAMQP authorViewAMQP);
 
     Optional<Author> removeAuthorPhoto(Long authorNumber, long desiredVersion);
 }

@@ -111,16 +111,27 @@ public class AuthorServiceImpl implements AuthorService {
         // in the meantime some other user might have changed this object on the
         // database, so concurrency control will still be applied when we try to save
         // this updated object
+
+        Author updatedAuthor = authorRepository.save(author);
+
+        if( updatedAuthor!=null ) {
+            authorEventsPublisher.sendAuthorUpdated(updatedAuthor, desiredVersion);
+        }
+
         return authorRepository.save(author);
     }
 
     @Override
-    public Author partialUpdate(Long authorNumber, AuthorViewAMQP authorViewAMQP, long desiredVersion) {
+    public Author partialUpdate(AuthorViewAMQP authorViewAMQP) {
+
+        final var author = findByName(authorViewAMQP.getName()).get(0);
 
         final String name = authorViewAMQP.getName();
         final String bio = authorViewAMQP.getBio();
         final String photoURI = null;
-        final Author author = new Author(name, bio, photoURI);
+        final MultipartFile photo = null;
+        final UpdateAuthorRequest authorReq = new UpdateAuthorRequest(bio, name, photo, photoURI);
+        author.applyPatch(authorViewAMQP.getVersion(), authorReq);
         return authorRepository.save(author);
     }
 

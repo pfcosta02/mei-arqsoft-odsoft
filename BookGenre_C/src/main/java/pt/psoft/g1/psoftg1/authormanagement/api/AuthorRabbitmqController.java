@@ -39,24 +39,24 @@ public class AuthorRabbitmqController {
         }
     }
 
-//    @RabbitListener(queues = "#{autoDeleteQueue_Author_Updated.name}")
-//    public void receiveAuthorUpdated(Message msg) {
-//        try {
-//            ObjectMapper objectMapper = new ObjectMapper();
-//
-//            String jsonReceived = new String(msg.getBody(), StandardCharsets.UTF_8);
-//            AuthorViewAMQP authorViewAMQP = objectMapper.readValue(jsonReceived, AuthorViewAMQP.class);
-//
-//            System.out.println(" [x] Received Author Updated by AMQP: " + msg + ".");
-//            try {
-//                authorService.update(authorViewAMQP);
-//                System.out.println(" [x] Author updated from AMQP: " + msg + ".");
-//            } catch (Exception e) {
-//                System.out.println(" [x] Author does not exists or wrong version. Nothing stored.");
-//            }
-//        }
-//        catch(Exception ex) {
-//            System.out.println(" [x] Exception receiving author event from AMQP: '" + ex.getMessage() + "'");
-//        }
-//    }
+    @RabbitListener(queues = "#{autoDeleteQueue_Author_Updated.name}")
+    public void receiveAuthorUpdated(Message msg) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            String jsonReceived = new String(msg.getBody(), StandardCharsets.UTF_8);
+            AuthorViewAMQP authorViewAMQP = objectMapper.readValue(jsonReceived, AuthorViewAMQP.class);
+
+            System.out.println(" [x] Received Author Updated by AMQP: " + msg + ".");
+            try {
+                authorService.partialUpdate(authorViewAMQP);
+                System.out.println(" [x] Author updated from AMQP: " + msg + ".");
+            } catch (Exception e) {
+                System.out.println(" [x] Author does not exists or wrong version. Nothing stored.");
+            }
+        }
+        catch(Exception ex) {
+            System.out.println(" [x] Exception receiving author event from AMQP: '" + ex.getMessage() + "'");
+        }
+    }
 }

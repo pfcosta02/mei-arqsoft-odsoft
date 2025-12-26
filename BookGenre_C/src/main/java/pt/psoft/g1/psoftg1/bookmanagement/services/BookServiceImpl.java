@@ -136,8 +136,11 @@ public class BookServiceImpl implements BookService {
 
         book.applyPatch(Long.parseLong(currentVersion), request);
 
-		bookRepository.save(book);
+		Book updatedBook = bookRepository.save(book);
 
+//		if( updatedBook!=null ) {
+//			bookEventsPublisher.sendBookUpdated(updatedBook, updatedBook.getVersion());
+//		}
 
 		return book;
 	}

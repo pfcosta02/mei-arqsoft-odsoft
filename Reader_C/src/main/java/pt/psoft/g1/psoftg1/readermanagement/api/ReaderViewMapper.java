@@ -26,6 +26,16 @@ public abstract class ReaderViewMapper extends MapperInterface {
     @Mapping(target = "interestList", expression = "java(mapInterestList(readerDetails.getInterestList()))")
     public abstract ReaderView toReaderView(ReaderDetails readerDetails);
 
+    @Named(value = "toReaderViewAMQP")
+    @Mapping(target = "fullName", source = "reader.name.name")
+    @Mapping(target = "email", source = "reader.email")
+    @Mapping(target = "birthDate", source = "birthDate.birthDate")
+    @Mapping(target = "phoneNumber", source = "phoneNumber")
+    @Mapping(target = "gdprConsent", source = "gdprConsent")
+    @Mapping(target = "photo", expression = "java(generatePhotoUrlWithoutReaderNumber(readerDetails))")
+    @Mapping(target = "interestList", source = "interestList")
+    public abstract ReaderViewAMQP toReaderViewAMQP(ReaderDetails readerDetails);
+
     @Named(value = "toReaderQuoteView")
     @Mapping(target = "fullName", source = "reader.name.name")
     @Mapping(target = "email", source = "reader.username")

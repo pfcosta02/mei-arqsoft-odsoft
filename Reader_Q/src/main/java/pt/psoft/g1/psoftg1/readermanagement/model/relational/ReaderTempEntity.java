@@ -9,7 +9,7 @@ import lombok.Setter;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-@Profile("sql")
+@Profile("jpa")
 @Primary
 @Entity
 @Table(name = "readers_temp")

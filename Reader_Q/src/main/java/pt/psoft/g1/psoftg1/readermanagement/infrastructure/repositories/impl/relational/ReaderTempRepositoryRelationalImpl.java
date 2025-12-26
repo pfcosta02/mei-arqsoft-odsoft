@@ -11,7 +11,7 @@ import pt.psoft.g1.psoftg1.readermanagement.model.Reader;
 
 import java.util.Optional;
 
-@Profile("sql")
+@Profile("jpa")
 @Primary
 @Repository
 @RequiredArgsConstructor

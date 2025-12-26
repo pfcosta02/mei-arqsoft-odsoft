@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Profile("sql")
+@Profile("jpa")
 @Primary
 @Repository
 @RequiredArgsConstructor

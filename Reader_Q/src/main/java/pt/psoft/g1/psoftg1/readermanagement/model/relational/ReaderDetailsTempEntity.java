@@ -9,7 +9,7 @@ import pt.psoft.g1.psoftg1.shared.model.relational.EntityWithPhotoEntity;
 
 import java.util.List;
 
-@Profile("sql")
+@Profile("jpa")
 @Primary
 @Entity
 @Table(name = "READER_DETAILS_TEMP")

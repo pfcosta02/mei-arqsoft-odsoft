@@ -8,15 +8,11 @@ import pt.psoft.g1.psoftg1.readermanagement.model.BirthDate;
 import pt.psoft.g1.psoftg1.readermanagement.model.PhoneNumber;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderNumber;
-import pt.psoft.g1.psoftg1.readermanagement.model.relational.BirthDateEntity;
-import pt.psoft.g1.psoftg1.readermanagement.model.relational.PhoneNumberEntity;
-import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
-import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderNumberEntity;
+import pt.psoft.g1.psoftg1.readermanagement.model.relational.*;
 import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;
 import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
-import pt.psoft.g1.psoftg1.usermanagement.infrastructure.repositories.impl.mappers.UserEntityMapper;
 
-@Mapper(componentModel = "spring", uses = { UserEntityMapper.class})
+@Mapper(componentModel = "spring")
 public interface ReaderDetailsEntityMapper
 {
     ReaderDetails toModel(ReaderDetailsEntity entity);
@@ -27,6 +23,12 @@ public interface ReaderDetailsEntityMapper
     @Mapping(target = "thirdPartySharingConsent", source = "thirdPartySharingConsent")
     @Mapping(target = "photo", source = "photo")
     ReaderDetailsEntity toEntity(ReaderDetails model);
+
+    @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "toPhoneNumberEntity")
+    ReaderDetailsTempEntity toTempEntity(ReaderDetails model);
+
+    @Mapping(target = "readerNumber", ignore = true)
+    ReaderDetails toModelFromTemp(ReaderDetailsTempEntity tempEntity);
 
     default String map(PhotoEntity value)
     {

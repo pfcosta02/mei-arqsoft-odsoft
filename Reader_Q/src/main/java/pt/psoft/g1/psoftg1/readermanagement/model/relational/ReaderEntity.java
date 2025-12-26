@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-@Profile("sql")
+@Profile("jpa")
 @Primary
 @Entity
 @Table(name = "readers")

@@ -10,16 +10,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -42,10 +37,9 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
-import pt.psoft.g1.psoftg1.usermanagement.model.Role;
+import pt.psoft.g1.psoftg1.usermanagement.Role;
 
 import lombok.RequiredArgsConstructor;
-import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 
 /**
  * Check https://www.baeldung.com/security-spring and
@@ -63,8 +57,6 @@ import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserRepository userRepo;
-
     @Value("${jwt.public.key}")
     private RSAPublicKey rsaPublicKey;
 
@@ -76,22 +68,6 @@ public class SecurityConfig {
 
     @Value("${springdoc.swagger-ui.path}")
     private String swaggerPath;
-
-    @Bean
-    public AuthenticationManager authenticationManager(final UserDetailsService userDetailsService,
-                                                       final PasswordEncoder passwordEncoder) {
-        final DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder);
-
-        return new ProviderManager(authenticationProvider);
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> userRepo.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(format("User: %s, not found", username)));
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -106,11 +82,14 @@ public class SecurityConfig {
                 exceptions -> exceptions.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                         .accessDeniedHandler(new BearerTokenAccessDeniedHandler()));
 
-        http = http.headers(headers ->
-                headers.frameOptions(frame -> frame.disable()));
+        http
+            // CSRF e frameOptions para H2 Console
+            .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
-        // Set permissions on endpoints
-        http.authorizeHttpRequests()
+            // Autorização de endpoints
+            .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/h2-console/**").permitAll()
                 // Swagger endpoints must be publicly accessible
                 .requestMatchers("/").permitAll().requestMatchers(format("%s/**", restApiDocPath)).permitAll()
@@ -127,8 +106,14 @@ public class SecurityConfig {
                 // Admin has access to all endpoints
                 .requestMatchers("/**").hasRole(Role.ADMIN)
                 .anyRequest().authenticated()
-                // Set up oauth2 resource server
-                .and().httpBasic(Customizer.withDefaults()).oauth2ResourceServer().jwt();
+            )
+        // HTTP Basic
+        .httpBasic(Customizer.withDefaults())
+
+        // OAuth2 Resource Server
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
+            // Opcional: customizar JWT Decoder ou JWT authentication converter aqui
+        }));
 
         return http.build();
     }

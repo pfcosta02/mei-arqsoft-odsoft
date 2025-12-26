@@ -1,29 +1,20 @@
 package pt.psoft.g1.psoftg1.readermanagement.api;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
-import pt.psoft.g1.psoftg1.external.service.ApiNinjasService;
+import pt.psoft.g1.psoftg1.featuremanagement.services.FeatureService;
+import pt.psoft.g1.psoftg1.lendingmanagement.services.LendingService;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.services.CreateReaderRequest;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderService;
@@ -33,16 +24,8 @@ import pt.psoft.g1.psoftg1.shared.api.ListResponse;
 import pt.psoft.g1.psoftg1.shared.services.ConcurrencyService;
 import pt.psoft.g1.psoftg1.shared.services.FileStorageService;
 import pt.psoft.g1.psoftg1.shared.services.SearchRequest;
-import pt.psoft.g1.psoftg1.usermanagement.model.Librarian;
-import pt.psoft.g1.psoftg1.usermanagement.model.Role;
-import pt.psoft.g1.psoftg1.usermanagement.model.User;
-import pt.psoft.g1.psoftg1.usermanagement.services.UserService;
+import pt.psoft.g1.psoftg1.usermanagement.Role;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 @Tag(name = "Readers", description = "Endpoints to manage readers")
 @RestController
@@ -51,49 +34,96 @@ import java.util.Optional;
 class ReaderController {
     private final ReaderService readerService;
     private final ReaderViewMapper readerViewMapper;
+    private final LendingService lendingService;
+    //TODO
+    // private final LendingViewMapper lendingViewMapper;
     private final ConcurrencyService concurrencyService;
     private final FileStorageService fileStorageService;
-    private final UserService userService;
-    private final ApiNinjasService apiNinjasService;
 
+    private final FeatureService featureService;
 
-    @Operation(summary = "Creates a reader")
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ReaderView> createReader(@Valid CreateReaderRequest readerRequest) throws ValidationException {
+    @Operation(summary = "Creates a reader and respective user")
+    @PostMapping("/user")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResponseEntity<ReaderViewAMQP> createReaderAndUser(
+            @Valid @RequestBody CreateReaderRequest readerRequest,
+            Authentication authentication) throws ValidationException
+    {
+        // Obter userId do utilizador autenticado (quem está logado)
+        // JWT subject format: "id,username" - extrair apenas username
+        String userId = "anonymous";
+        if (authentication != null && authentication.getName() != null)
+        {
+            String[] parts = authentication.getName().split(",");
+            userId = parts.length > 1 ? parts[1] : parts[0]; // username é a segunda parte
+        }
+
+        // DARK LAUNCH: Executa feature invisível para coletar métricas
+        if (featureService.shouldExecuteInDarkLaunch(userId, "createReaderAdvanced")) {
+            // Validações avançadas que não afetam o fluxo normal
+            String email = readerRequest.getUsername();
+            String phone = readerRequest.getPhoneNumber();
+
+            // Validação 1: Email tem domínio válido
+            boolean hasValidDomain = email != null &&
+                    (email.endsWith("@gmail.com") || email.endsWith("@email.com"));
+
+            // Validação 2: Telefone tem exatamente 9 dígitos
+            boolean hasValidPhone = phone != null && phone.matches("\\d{9}");
+
+            // Registar métricas adicionais
+            if (hasValidDomain) {
+                featureService.getDarkLaunchMetrics()
+                        .computeIfAbsent("validDomainEmails", k -> new java.util.concurrent.atomic.AtomicLong(0))
+                        .incrementAndGet();
+            }
+            if (hasValidPhone) {
+                featureService.getDarkLaunchMetrics()
+                        .computeIfAbsent("valid9DigitPhones", k -> new java.util.concurrent.atomic.AtomicLong(0))
+                        .incrementAndGet();
+            }
+        }
+
+        // Feature flag normal: controla se user autenticado pode usar feature
+        if (!featureService.isFeatureEnabledForUser(userId))
+        {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Feature not available for your user"
+            );
+        }
+
         MultipartFile file = readerRequest.getPhoto();
 
         String fileName = fileStorageService.getRequestPhoto(file);
 
         ReaderDetails readerDetails = readerService.create(readerRequest, fileName);
 
-        final var newReaderUri = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                .pathSegment(readerDetails.getReaderNumber())
-                .build().toUri();
-
-        return ResponseEntity.created(newReaderUri)
+        // Retornar 202
+        return ResponseEntity.accepted()
                 .eTag(Long.toString(readerDetails.getVersion()))
-                .body(readerViewMapper.toReaderView(readerDetails));
+                .body(readerViewMapper.toReaderViewAMQP(readerDetails));
+
     }
 
     @Operation(summary = "Deletes a reader photo")
     @DeleteMapping("/photo")
     public ResponseEntity<Void> deleteReaderPhoto(Authentication authentication) {
-        User loggedUser = userService.getAuthenticatedUser(authentication);
+        // TODO> Como fazer isto da autenticacao?
+        // User loggedUser = userService.getAuthenticatedUser(authentication);
+        // Optional<ReaderDetails> optReaderDetails = readerService.findByUsername(loggedUser.getUsername());
+        // if(optReaderDetails.isEmpty()) {
+        //     throw new AccessDeniedException("Could not find a valid reader from current auth");
+        // }
 
-        Optional<ReaderDetails> optReaderDetails = readerService.findByUsername(loggedUser.getUsername());
-        if(optReaderDetails.isEmpty()) {
-            throw new AccessDeniedException("Could not find a valid reader from current auth");
-        }
+        // ReaderDetails readerDetails = optReaderDetails.get();
 
-        ReaderDetails readerDetails = optReaderDetails.get();
+        // if(readerDetails.getPhoto() == null) {
+        //     throw new NotFoundException("Reader has no photo to delete");
+        // }
 
-        if(readerDetails.getPhoto() == null) {
-            throw new NotFoundException("Reader has no photo to delete");
-        }
-
-        this.fileStorageService.deleteFile(readerDetails.getPhoto().getPhotoFile());
-        readerService.removeReaderPhoto(readerDetails.getReaderNumber(), readerDetails.getVersion());
+        // this.fileStorageService.deleteFile(readerDetails.getPhoto().getPhotoFile());
+        // readerService.removeReaderPhoto(readerDetails.getReaderNumber(), readerDetails.getVersion());
 
         return ResponseEntity.ok().build();
     }
@@ -116,13 +146,15 @@ class ReaderController {
 
         String fileName = this.fileStorageService.getRequestPhoto(file);
 
-        User loggedUser = userService.getAuthenticatedUser(authentication);
-        ReaderDetails readerDetails = readerService
-                .update(loggedUser.getId(), readerRequest, concurrencyService.getVersionFromIfMatchHeader(ifMatchValue), fileName);
+        // TODO> Como fazer isto da autenticacao?
+        // User loggedUser = userService.getAuthenticatedUser(authentication);
+        // ReaderDetails readerDetails = readerService
+        //         .update(loggedUser.getId(), readerRequest, concurrencyService.getVersionFromIfMatchHeader(ifMatchValue), fileName);
 
-        return ResponseEntity.ok()
-                .eTag(Long.toString(readerDetails.getVersion()))
-                .body(readerViewMapper.toReaderView(readerDetails));
+        // return ResponseEntity.ok()
+        //         .eTag(Long.toString(readerDetails.getVersion()))
+        //         .body(readerViewMapper.toReaderView(readerDetails));
+        return null;
     }
 
     @PostMapping("/search")

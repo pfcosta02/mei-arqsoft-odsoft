@@ -1,12 +1,12 @@
 package pt.psoft.g1.psoftg1.readermanagement.publishers;
 
-import pt.psoft.g1.psoftg1.readermanagement.api.ReaderViewAMQP;
-import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
-
 public interface ReaderEventsPublisher {
-    ReaderViewAMQP sendReaderCreated(ReaderDetails readerDetails);
+    /* Comunicacao entre Reader e AuthNUsers */
+    void publishReaderTempCreatedEvent(String payload);
+    void publishReaderPersistedEvent(String authorId);
 
-    ReaderViewAMQP sendReaderUpdated(ReaderDetails readerDetails, Long currentVersion);
-
-    ReaderViewAMQP sendReaderDeleted(ReaderDetails readerDetails, Long currentVersion);
+    /* Comunicacao entre Reader Command e Reader Query */
+    void publishReaderCreatedEvent(String payload);
+    void publishReaderUpdatedEvent(String payload);
+    void publishReaderDeletedEvent(String readerId);
 }

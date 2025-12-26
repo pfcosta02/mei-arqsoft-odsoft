@@ -2,7 +2,7 @@ package pt.psoft.g1.psoftg1.readermanagement.model;
 
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
-import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
+import pt.psoft.g1.psoftg1.readermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.readermanagement.services.UpdateReaderRequest;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 
@@ -10,7 +10,7 @@ import java.nio.file.InvalidPathException;
 import java.util.List;
 
 public class ReaderDetails extends EntityWithPhoto {
-    public Long pk;
+    public String id;
     private Reader reader;
     private ReaderNumber readerNumber;
     private BirthDate birthDate;
@@ -19,14 +19,14 @@ public class ReaderDetails extends EntityWithPhoto {
     private boolean marketingConsent;
     private boolean thirdPartySharingConsent;
     private Long version;
-    private List<Genre> interestList;
+    private List<String> interestList;
 
     public ReaderDetails() {}
 
     // Construtor principal
     public ReaderDetails(ReaderNumber readerNumber, Reader reader, BirthDate birthDate, PhoneNumber phoneNumber,
                          boolean gdpr, boolean marketing, boolean thirdParty,
-                         String photoURI, List<Genre> interestList)
+                         String photoURI, List<String> interestList)
     {
         if (reader == null || phoneNumber == null)
         {
@@ -51,13 +51,14 @@ public class ReaderDetails extends EntityWithPhoto {
 
     public ReaderDetails(int readerNumber, Reader reader, String birthDate, String phoneNumber,
                          boolean gdpr, boolean marketing, boolean thirdParty,
-                         String photoURI, List<Genre> interestList)
+                         String photoURI, List<String> interestList)
     {
         this(new ReaderNumber(readerNumber), reader, new BirthDate(birthDate), new PhoneNumber(phoneNumber), gdpr, marketing, thirdParty, photoURI, interestList);
     }
 
     // Getters and Setters
-    public Long getPk() { return pk; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     public Reader getReader() { return reader; }
     public void setReader(Reader reader) { this.reader = reader; }
@@ -67,6 +68,11 @@ public class ReaderDetails extends EntityWithPhoto {
         if(readerNumber != null) {
             this.readerNumber = readerNumber;
         }
+    }
+
+    public void setReaderNumber(int readerNumber)
+    {
+        setReaderNumber(new ReaderNumber(readerNumber));
     }
 
     public void setVersion(Long version) { this.version = version;}
@@ -94,37 +100,27 @@ public class ReaderDetails extends EntityWithPhoto {
     public void setThirdPartySharingConsent(boolean thirdPartySharingConsent) { this.thirdPartySharingConsent = thirdPartySharingConsent; }
 
     public Long getVersion() { return version; }
-    public List<Genre> getInterestList() { return interestList; }
-    public void setInterestList(List<Genre> interestList) { this.interestList = interestList; }
+    public List<String> getInterestList() { return interestList; }
+    public void setInterestList(List<String> interestList) { this.interestList = interestList; }
 
     // Método de patch
-    public void applyPatch(long currentVersion, UpdateReaderRequest request, String photoURI, List<Genre> interestList)
-    {
-        if (currentVersion != this.version)
-        {
+    public void applyPatch(long currentVersion, UpdateReaderRequest request, String photoURI, List<String> interestList) {
+        if (currentVersion != this.version) {
             throw new ConflictException("Provided version does not match latest version of this object");
         }
 
-        if (request.getUsername() != null)
-        {
-            reader.setUsername(request.getUsername());
-        }
-        if (request.getPassword() != null)
-        {
-            reader.setPassword(request.getPassword());
-        }
-        if (request.getFullName() != null)
-        {
+        // Atualiza apenas o nome
+        if (request.getFullName() != null) {
             reader.setName(request.getFullName());
         }
-        if (request.getBirthDate() != null)
-        {
+
+        if (request.getBirthDate() != null) {
             birthDate = new BirthDate(request.getBirthDate());
         }
-        if (request.getPhoneNumber() != null)
-        {
+        if (request.getPhoneNumber() != null) {
             phoneNumber = new PhoneNumber(request.getPhoneNumber());
         }
+
         this.marketingConsent = request.getMarketing();
         this.thirdPartySharingConsent = request.getThirdParty();
 
@@ -136,12 +132,10 @@ public class ReaderDetails extends EntityWithPhoto {
             }
             catch (InvalidPathException ignored)
             {
-
             }
         }
 
-        if (interestList != null)
-        {
+        if (interestList != null) {
             this.interestList = interestList;
         }
     }

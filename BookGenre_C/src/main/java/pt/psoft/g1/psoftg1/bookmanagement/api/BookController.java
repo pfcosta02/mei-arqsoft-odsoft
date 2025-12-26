@@ -15,10 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
-import pt.psoft.g1.psoftg1.bookmanagement.services.BookService;
-import pt.psoft.g1.psoftg1.bookmanagement.services.CreateBookRequest;
-import pt.psoft.g1.psoftg1.bookmanagement.services.SearchBooksQuery;
-import pt.psoft.g1.psoftg1.bookmanagement.services.UpdateBookRequest;
+import pt.psoft.g1.psoftg1.bookmanagement.services.*;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.isbn.model.BookInfo;
@@ -48,6 +45,38 @@ public class BookController {
     @PutMapping(value = "/{isbn}")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<BookView> create( CreateBookRequest resource, @PathVariable("isbn") String isbn) {
+
+
+        //Guarantee that the client doesn't provide a link on the body, null = no photo or error
+        resource.setPhotoURI(null);
+        MultipartFile file = resource.getPhoto();
+
+        String fileName = fileStorageService.getRequestPhoto(file);
+
+        if (fileName != null) {
+            resource.setPhotoURI(fileName);
+        }
+
+        Book book;
+        try {
+            book = bookService.create(resource, isbn);
+        }catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        //final var savedBook = bookService.save(book);
+        final var newBookUri = ServletUriComponentsBuilder.fromCurrentRequestUri()
+                .pathSegment(book.getIsbn().toString())
+                .build().toUri();
+
+        return ResponseEntity.created(newBookUri)
+                .eTag(Long.toString(book.getVersion()))
+                .body(bookViewMapper.toBookView(book));
+    }
+
+    @Operation(summary = "Register a new Book, Author and Genre")
+    @PutMapping(value = "/{isbn}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<BookView> createSAGA(CreateBookAuthorGenreRequest resource, @PathVariable("isbn") String isbn) {
 
 
         //Guarantee that the client doesn't provide a link on the body, null = no photo or error

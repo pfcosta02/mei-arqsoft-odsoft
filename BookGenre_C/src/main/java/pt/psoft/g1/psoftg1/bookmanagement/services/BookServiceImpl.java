@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.web.multipart.MultipartFile;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
+import pt.psoft.g1.psoftg1.authormanagement.services.CreateAuthorRequest;
 import pt.psoft.g1.psoftg1.bookmanagement.api.BookViewAMQP;
 import pt.psoft.g1.psoftg1.bookmanagement.model.*;
 import pt.psoft.g1.psoftg1.bookmanagement.publishers.BookEventsPublisher;
@@ -60,6 +61,27 @@ public class BookServiceImpl implements BookService {
 		}
 
 		return savedBook;
+	}
+
+
+	// NOVO METODO PARA SAGA
+	@Override
+	public Book create(CreateBookAuthorGenreRequest request, String isbn) {
+
+		final String title = request.getTitle();
+		final String description = request.getDescription();
+		final String photoURI = request.getPhotoURI();
+		final String genre = request.getGenre();
+		final CreateAuthorRequest author = request.getAuthor();
+
+		return null;
+//		Book savedBook = create(isbn, title, description, photoURI, genre, authorIds);
+//
+//		if( savedBook!=null ) {
+//			bookEventsPublisher.sendBookCreated(savedBook);
+//		}
+//
+//		return savedBook;
 	}
 
 	@Override

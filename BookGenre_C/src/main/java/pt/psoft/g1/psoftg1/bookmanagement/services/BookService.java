@@ -13,6 +13,7 @@ import java.util.List;
  */
 public interface BookService {
     Book create(CreateBookRequest request, String isbn);
+    Book create(CreateBookAuthorGenreRequest request, String isbn);
     Book create(BookViewAMQP bookViewAMQP);
     Book save(Book book);
     Book findByIsbn(String isbn);

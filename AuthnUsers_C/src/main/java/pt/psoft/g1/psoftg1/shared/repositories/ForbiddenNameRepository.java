@@ -7,9 +7,7 @@ import java.util.Optional;
 
 public interface ForbiddenNameRepository {
     Iterable<ForbiddenName> findAll();
-
     List<ForbiddenName> findByForbiddenNameIsContained(String pat);
-
     ForbiddenName save(ForbiddenName forbiddenName);
 
     Optional<ForbiddenName> findByForbiddenName(String forbiddenName);

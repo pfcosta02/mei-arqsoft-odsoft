@@ -1,9 +1,5 @@
 package pt.psoft.g1.psoftg1.usermanagement.model;
 
-import jakarta.persistence.Entity;
-import pt.psoft.g1.psoftg1.shared.model.Name;
-
-@Entity
 public class Librarian extends User {
     protected Librarian() {
         // for ORM only

@@ -30,17 +30,37 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 import pt.psoft.g1.psoftg1.usermanagement.model.Librarian;
-import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.usermanagement.model.Role;
 import pt.psoft.g1.psoftg1.usermanagement.model.User;
 import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
+import pt.psoft.g1.psoftg1.usermanagement.repositories.OutboxEventRepository;
+import pt.psoft.g1.psoftg1.usermanagement.repositories.UserTempRepository;
 
+import pt.psoft.g1.psoftg1.usermanagement.dto.RealUserDTO;
+import pt.psoft.g1.psoftg1.usermanagement.dto.UserDTO;
+import pt.psoft.g1.psoftg1.usermanagement.dto.RoleDTO;
+import pt.psoft.g1.psoftg1.shared.model.AuthNUsersEvents;
+import pt.psoft.g1.psoftg1.usermanagement.model.relational.OutboxEvent;
+import pt.psoft.g1.psoftg1.usermanagement.model.OutboxEnum;
+
+import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import pt.psoft.g1.psoftg1.usermanagement.publishers.AuthNUsersEventsPublisher;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Based on https://github.com/Yoh0xFF/java-spring-security-example
@@ -51,19 +71,18 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepo;
+    private final UserTempRepository userTempRepo;
+
     private final EditUserMapper userEditMapper;
 
     private final ForbiddenNameRepository forbiddenNameRepository;
 
     private final PasswordEncoder passwordEncoder;
 
-    public List<User> findByName(String name) {
-        return this.userRepo.findByNameName(name);
-    }
+    private final IdGenerator idGenerator;
 
-    public List<User> findByNameLike(String name) {
-        return this.userRepo.findByNameNameContains(name);
-    }
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper; // Para serializar payload
 
     @Transactional
     public User create(final CreateUserRequest request) {
@@ -72,69 +91,86 @@ public class UserService implements UserDetailsService {
         }
 
         Iterable<String> words = List.of(request.getName().split("\\s+"));
-        for (String word : words) {
-            if (!forbiddenNameRepository.findByForbiddenNameIsContained(word).isEmpty()) {
+        for (String word : words){
+            if(!forbiddenNameRepository.findByForbiddenNameIsContained(word).isEmpty()) {
                 throw new IllegalArgumentException("Name contains a forbidden word");
             }
         }
 
         User user;
-        switch (request.getRole()) {
-        case Role.READER: {
-            user = Reader.newReader(request.getUsername(), request.getPassword(), request.getName());
-            break;
-        }
-        case Role.LIBRARIAN: {
-            user = Librarian.newLibrarian(request.getUsername(), request.getPassword(), request.getName());
-            break;
-        }
-        default: {
-            return null;
-        }
+        switch(request.getRole()) {
+            case Role.READER: {
+                // TODO> Aqui mandar msg para o microservico do reader
+                // user = Reader.newReader(request.getUsername(), request.getPassword(), request.getName());
+                user = null;
+                break;
+            }
+            case Role.LIBRARIAN: {
+                user = Librarian.newLibrarian(request.getUsername(), request.getPassword(), request.getName());
+                break;
+            }
+            default: {
+                return null;
+            }
         }
 
-        // final User user = userEditMapper.create(request);
+
+        if (user == null)
+        {
+            throw new IllegalArgumentException("Invalid role");
+        }
+
+        //final User user = userEditMapper.create(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        // user.addAuthority(new Role(request.getRole()));
-
+        //user.addAuthority(new Role(request.getRole()));
+        user.setId(idGenerator.generateId());
         return userRepo.save(user);
     }
 
     @Transactional
-    public User update(final Long id, final EditUserRequest request) {
+    public User update(final String id, final EditUserRequest request) {
         final User user = userRepo.getById(id);
         userEditMapper.update(request, user);
 
-        return userRepo.save(user);
+        User userUpdated = userRepo.save(user);
+
+        /* Dizemos ao Servico Querys para alterar do lado deles também */
+        // publisher.publishUserUpdatedEvent(userUpdated);
+
+        return userUpdated;
     }
 
     @Transactional
-    public User delete(final Long id) {
+    public User delete(final String id) {
         final User user = userRepo.getById(id);
 
         // user.setUsername(user.getUsername().replace("@", String.format("_%s@",
         // user.getId().toString())));
         user.setEnabled(false);
-        return userRepo.save(user);
+        User userChanged = userRepo.save(user);
+
+        /* Dizemos ao Servico Querys para alterar do lado deles também */
+        // publisher.publishUserDeletedEvent(user.getId());
+
+        return userChanged;
     }
 
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
-        return userRepo.findByUsername(username).orElseThrow(
-                () -> new UsernameNotFoundException(String.format("User with username - %s, not found", username)));
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return user;
     }
 
     public boolean usernameExists(final String username) {
         return userRepo.findByUsername(username).isPresent();
     }
 
-    public User getUser(final Long id) {
+    public User getUser(final String id) {
         return userRepo.getById(id);
     }
 
-    public Optional<User> findByUsername(final String username) {
-        return userRepo.findByUsername(username);
-    }
+    public Optional<User> findByUsername(final String username) { return userRepo.findByUsername(username); }
 
     public List<User> searchUsers(Page page, SearchUsersQuery query) {
         if (page == null) {
@@ -147,7 +183,7 @@ public class UserService implements UserDetailsService {
     }
 
     public User getAuthenticatedUser(Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal()instanceof Jwt jwt)) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
             throw new AccessDeniedException("User is not logged in");
         }
 
@@ -160,5 +196,107 @@ public class UserService implements UserDetailsService {
         }
 
         return loggedUser.get();
+    }
+
+    public void createUserTemp(UserDTO userDTO)
+    {
+        /* Primeiro verifico se nao existe nenhum User igual ja no repo Temporario ou Permanente */
+        if (userTempRepo.findByUsername(userDTO.username).isPresent() || userRepo.findByUsername(userDTO.username).isPresent())
+        {
+            throw new ConflictException("Username already exists!");
+        }
+
+        /* Confirmar que o nome é valido */
+        Iterable<String> words = List.of(userDTO.fullname.split("\\s+"));
+        for (String word : words)
+        {
+            if(!forbiddenNameRepository.findByForbiddenNameIsContained(word).isEmpty())
+            {
+                throw new IllegalArgumentException("Name contains a forbidden word");
+            }
+        }
+
+        /* Persistir o User temporariamente */
+        User user = User.newUser(userDTO.username, passwordEncoder.encode(userDTO.password), userDTO.fullname, Role.READER);
+        user.setId(idGenerator.generateId());
+
+        userTempRepo.save(user);
+
+        // Em vez de publicar diretamente, gravamos no Outbox
+        try
+        {
+            UserDTO dto = new UserDTO(user.getId(), userDTO.readerId, user.getUsername(), user.getPassword(), user.getName().getName(), user.getVersion());
+            String payload = objectMapper.writeValueAsString(dto);
+
+            OutboxEvent event = new OutboxEvent();
+            event.setAggregateId(user.getId());
+            event.setEventType(AuthNUsersEvents.TEMP_USER_CREATED);
+            event.setPayload(payload);
+            event.setStatus(OutboxEnum.NEW);
+
+            outboxEventRepository.save(event);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao salvar evento Outbox", e);
+        }
+    }
+
+    public void persistTemporary(String userId)
+    {
+        User userToPresist = userTempRepo.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException("Nao ha nenhum user temporario com o id:" + userId));
+
+        /* Armazenar o userId correspondente */
+        userToPresist.setId(userId);
+
+        /* Primeiro persistimos o User */
+        User userSaved = userRepo.save(userToPresist);
+
+        /* Agora eliminamor o User temporario */
+        userTempRepo.delete(userId);
+
+        System.out.println("User com o id(" + userId + ") persistido permanentemente e eliminado do repositorio temporario");
+
+        // Gravar evento Outbox para USER_CREATED
+        try
+        {
+            RealUserDTO dto = new RealUserDTO(userSaved.getId(), userSaved.getUsername(), userSaved.getPassword(), userSaved.getName().getName(), userSaved.getVersion(), userSaved.isEnabled(),
+                    userSaved.getAuthorities()
+                            .stream()
+                            .map(role -> new RoleDTO(role.getAuthority()))
+                            .collect(Collectors.toSet())
+            );
+            String payload = objectMapper.writeValueAsString(dto);
+
+            OutboxEvent event = new OutboxEvent();
+            event.setAggregateId(userSaved.getId());
+            event.setEventType(AuthNUsersEvents.USER_CREATED);
+            event.setPayload(payload);
+            event.setStatus(OutboxEnum.NEW);
+
+            outboxEventRepository.save(event);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao salvar evento Outbox", e);
+        }
+    }
+
+    @Transactional
+    public List<RealUserDTO> usersToDTO()
+    {
+        List<User> users = userRepo.findAll();
+        List<RealUserDTO> userDTOs = new ArrayList<>();
+
+        for (User user: users)
+        {
+            RealUserDTO dto = new RealUserDTO(user.getId(), user.getUsername(), user.getPassword(),
+                    user.getName().getName(), user.getVersion(), user.isEnabled(),
+                    user.getAuthorities()
+                            .stream()
+                            .map(role -> new RoleDTO(role.getAuthority()))
+                            .collect(Collectors.toSet())
+            );
+            userDTOs.add(dto);
+        }
+
+        return userDTOs;
     }
 }

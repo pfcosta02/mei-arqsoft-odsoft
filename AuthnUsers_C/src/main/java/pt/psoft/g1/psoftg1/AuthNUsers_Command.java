@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class LMSUsers {
+public class AuthNUsers_Command {
 
     public static void main(String[] args) {
-        SpringApplication.run(LMSUsers.class, args);
+        SpringApplication.run(AuthNUsers_Command.class, args);
     }
 
 }

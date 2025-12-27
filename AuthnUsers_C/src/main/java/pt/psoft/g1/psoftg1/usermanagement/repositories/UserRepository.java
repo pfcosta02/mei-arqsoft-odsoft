@@ -37,9 +37,9 @@ public interface UserRepository {
 
     <S extends User> S save(S entity);
 
-    Optional<User> findById(Long objectId);
+    Optional<User> findById(String objectId);
 
-    default User getById(final Long id) {
+    default User getById(final String id) {
         final Optional<User> maybeUser = findById(id);
         // throws 404 Not Found if the user does not exist or is not enabled
         return maybeUser.filter(User::isEnabled).orElseThrow(() -> new NotFoundException(User.class, id));
@@ -50,8 +50,7 @@ public interface UserRepository {
     List<User> searchUsers(Page page, SearchUsersQuery query);
 
     List<User> findByNameName(String name);
-
     List<User> findByNameNameContains(String name);
-
     void delete(User user);
+    List<User> findAll();
 }

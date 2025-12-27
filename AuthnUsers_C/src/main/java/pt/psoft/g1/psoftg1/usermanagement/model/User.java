@@ -20,158 +20,100 @@
  */
 package pt.psoft.g1.psoftg1.usermanagement.model;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pt.psoft.g1.psoftg1.shared.model.Name;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * Based on https://github.com/Yoh0xFF/java-spring-security-example
  *
  */
-@Entity
-@Table(name = "T_USER")
-@EntityListeners(AuditingEntityListener.class)
-public class User implements UserDetails {
-
-    private static final long serialVersionUID = 1L;
-
-    // database primary key
-    @Id
-    @GeneratedValue
-    @Getter
-    @Column(name = "USER_ID")
-    private Long id;
-
-    // optimistic lock concurrency control
-    @Version
+public class User implements UserDetails
+{
+    private String id;
     private Long version;
-
-    // auditing info
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    @Getter
-    private LocalDateTime createdAt;
-
-    // auditing info
-    @LastModifiedDate
-    @Column(nullable = false)
-    @Getter
-    private LocalDateTime modifiedAt;
-
-    // auditing info
-    @CreatedBy
-    @Column(nullable = false, updatable = false)
-    @Getter
-    private String createdBy;
-
-    // auditing info
-    @LastModifiedBy
-    @Column(nullable = false)
-    private String modifiedBy;
-
-    @Setter
-    @Getter
     private boolean enabled = true;
-
-    @Setter
-    @Column(unique = true, /* updatable = false, */ nullable = false)
-    @Email
-    @Getter
-    @NotNull
-    @NotBlank
     private String username;
-
-    @Column(nullable = false)
-    @Getter
-    @NotNull
-    @NotBlank
     private String password;
-
-    @Getter
-    // @Setter
-    @Embedded
     private Name name;
-
-    @ElementCollection
-    @Getter
     private final Set<Role> authorities = new HashSet<>();
 
-    protected User() {
-        // for ORM only
-    }
+    protected User() {}
 
-    /**
-     *
-     * @param username
-     * @param password
-     */
-    public User(final String username, final String password) {
-        this.username = username;
+    public User(final String username, final String password)
+    {
+        setUsername(username);
         setPassword(password);
+
+        this.version = 0L;
     }
 
-    /**
-     * factory method. since mapstruct does not handle protected/private setters neither more than one public
-     * constructor, we use these factory methods for helper creation scenarios
-     *
-     * @param username
-     * @param password
-     * @param name
-     * 
-     * @return
-     */
-    public static User newUser(final String username, final String password, final String name) {
+    public static User newUser(final String username, final String password, final String name)
+    {
         final var u = new User(username, password);
         u.setName(name);
         return u;
     }
 
-    /**
-     * factory method. since mapstruct does not handle protected/private setters neither more than one public
-     * constructor, we use these factory methods for helper creation scenarios
-     *
-     * @param username
-     * @param password
-     * @param name
-     * @param role
-     * 
-     * @return
-     */
-    public static User newUser(final String username, final String password, final String name, final String role) {
+    public static User newUser(final String username, final String password, final String name, final String role)
+    {
         final var u = new User(username, password);
         u.setName(name);
         u.addAuthority(new Role(role));
         return u;
     }
 
-    public void setPassword(final String password) {
-        Password passwordCheck = new Password(password);
-        final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        this.password = passwordEncoder.encode(password);
+    public void setId(String id) { this.id = id; }
+
+    public void setPassword(final String password)
+    {
+        // Password passwordCheck = new Password(password);
+        if (password != null && !password.startsWith("$2a$"))
+        {
+            final PasswordEncoder encoder = new BCryptPasswordEncoder();
+            this.password = encoder.encode(password);
+        }
+        else
+        {
+            this.password = password;
+        }
+
     }
 
-    public void addAuthority(final Role r) {
+    public void setUsername(final String username)
+    {
+        this.username = username;
+    }
+
+
+    public void addAuthority(final Role r)
+    {
         authorities.add(r);
     }
 
+    public void setName(String name)
+    {
+        this.name = new Name(name);
+    }
+
+    public void setEnabled(boolean value)
+    {
+        this.enabled = value;
+    }
+
+    // getters
+    public String getId() { return id; }
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+    public Name getName() { return name; }
+    public boolean isEnabled() { return enabled; }
+    @Override
+    public Set<Role> getAuthorities() { return authorities; }
     @Override
     public boolean isAccountNonExpired() {
         return isEnabled();
@@ -186,8 +128,6 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() {
         return isEnabled();
     }
-
-    public void setName(String name) {
-        this.name = new Name(name);
-    }
+    // public Long getId() { return id; }
+    public Long getVersion() { return version; }
 }

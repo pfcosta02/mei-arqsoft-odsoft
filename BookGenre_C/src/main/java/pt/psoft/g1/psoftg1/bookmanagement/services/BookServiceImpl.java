@@ -1,30 +1,34 @@
 package pt.psoft.g1.psoftg1.bookmanagement.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.services.CreateAuthorRequest;
 import pt.psoft.g1.psoftg1.bookmanagement.api.BookViewAMQP;
 import pt.psoft.g1.psoftg1.bookmanagement.model.*;
+import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.BookTempCreatedDTO;
+import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookTempEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.publishers.BookEventsPublisher;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import lombok.RequiredArgsConstructor;
+import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookTempRepository;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
-import pt.psoft.g1.psoftg1.isbn.model.BookInfo;
 import pt.psoft.g1.psoftg1.isbn.services.IsbnProviderFactory;
+import pt.psoft.g1.psoftg1.shared.model.BookEvents;
+import pt.psoft.g1.psoftg1.shared.model.OutboxEnum;
+import pt.psoft.g1.psoftg1.shared.model.relational.OutboxEvent;
+import pt.psoft.g1.psoftg1.shared.repositories.OutboxEventRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
-import pt.psoft.g1.psoftg1.shared.services.Page;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +45,9 @@ public class BookServiceImpl implements BookService {
     private final IsbnProviderFactory isbnProviderFactory;
 
 	private final BookEventsPublisher bookEventsPublisher;
+	private final BookTempRepository bookTempRepository;
+	private final OutboxEventRepository outboxEventRepository;
+	private final ObjectMapper objectMapper;
 
 	@Value("${suggestionsLimitPerGenre}")
 	private long suggestionsLimitPerGenre;
@@ -65,6 +72,7 @@ public class BookServiceImpl implements BookService {
 
 
 	// NOVO METODO PARA SAGA
+	@Transactional
 	@Override
 	public Book create(CreateBookAuthorGenreRequest request, String isbn) {
 
@@ -74,14 +82,33 @@ public class BookServiceImpl implements BookService {
 		final String genre = request.getGenre();
 		final CreateAuthorRequest author = request.getAuthor();
 
+		BookTempEntity temp = new BookTempEntity(
+				isbn,
+				title,
+				description,
+				author.getName(),
+				author.getBio(),
+				request.getGenre()
+		);
+
+		bookTempRepository.save(temp);
+
+		try {
+			BookTempCreatedDTO bookTempCreatedDTO = new BookTempCreatedDTO(isbn, author.getName(), author.getBio());
+			String payload = objectMapper.writeValueAsString(bookTempCreatedDTO);
+
+			OutboxEvent event = new OutboxEvent();
+			event.setAggregateId(isbn);
+			event.setEventType(BookEvents.TEMP_BOOK_CREATED);
+			event.setPayload(payload);
+			event.setStatus(OutboxEnum.NEW);
+
+			outboxEventRepository.save(event);
+		} catch (Exception e) {
+			throw new RuntimeException("Erro ao salvar evento Outbox", e);
+		}
+
 		return null;
-//		Book savedBook = create(isbn, title, description, photoURI, genre, authorIds);
-//
-//		if( savedBook!=null ) {
-//			bookEventsPublisher.sendBookCreated(savedBook);
-//		}
-//
-//		return savedBook;
 	}
 
 	@Override

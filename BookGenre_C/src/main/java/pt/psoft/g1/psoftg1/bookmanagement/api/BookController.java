@@ -74,9 +74,9 @@ public class BookController {
     }
 
     @Operation(summary = "Register a new Book, Author and Genre")
-    @PutMapping(value = "/{isbn}")
+    @PutMapping(value = "/saga/{isbn}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<BookView> createSAGA(CreateBookAuthorGenreRequest resource, @PathVariable("isbn") String isbn) {
+    public ResponseEntity<String> createSAGA(@RequestBody CreateBookAuthorGenreRequest resource, @PathVariable("isbn") String isbn) {
 
 
         //Guarantee that the client doesn't provide a link on the body, null = no photo or error
@@ -96,13 +96,13 @@ public class BookController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         //final var savedBook = bookService.save(book);
-        final var newBookUri = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                .pathSegment(book.getIsbn().toString())
-                .build().toUri();
+//        final var newBookUri = ServletUriComponentsBuilder.fromCurrentRequestUri()
+//                .pathSegment(book.getIsbn().toString())
+//                .build().toUri();
 
-        return ResponseEntity.created(newBookUri)
-                .eTag(Long.toString(book.getVersion()))
-                .body(bookViewMapper.toBookView(book));
+        return ResponseEntity.accepted()
+                .eTag("O")
+                .body("teste");
     }
 
     @Operation(summary = "Deletes a book photo")

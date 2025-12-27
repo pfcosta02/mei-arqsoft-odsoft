@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Profile;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorRabbitmqController;
 import pt.psoft.g1.psoftg1.authormanagement.services.AuthorService;
 import pt.psoft.g1.psoftg1.shared.model.AuthorEvents;
+import pt.psoft.g1.psoftg1.shared.model.BookEvents;
 
 //@Profile("!test")
 @Configuration
@@ -47,6 +48,11 @@ public  class RabbitmqClientConfig {
         return new AnonymousQueue();
     }
 
+    @Bean
+    public Queue autoDeleteQueue_Book_Temp_Created() {
+        return new AnonymousQueue();
+    }
+
     /* ========= Bindings ========= */
 
     @Bean
@@ -71,5 +77,13 @@ public  class RabbitmqClientConfig {
             Queue autoDeleteQueue_Author_Deleted) {
         return BindingBuilder.bind(autoDeleteQueue_Author_Deleted)
                 .to(authorDeletedExchange);
+    }
+
+    @Bean
+    public Binding bindBookTempCreated(
+            Queue autoDeleteQueue_Book_Temp_Created) {
+        return BindingBuilder.bind(autoDeleteQueue_Book_Temp_Created)
+                .to(new DirectExchange("Books.Events"))
+                .with(BookEvents.TEMP_BOOK_CREATED);
     }
 }

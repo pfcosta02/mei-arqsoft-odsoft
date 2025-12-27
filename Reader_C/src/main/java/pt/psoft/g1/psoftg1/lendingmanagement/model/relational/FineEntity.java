@@ -14,8 +14,9 @@ import lombok.Setter;
 @Primary
 public class FineEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+    @Getter
+    @Setter
+    private String id;
 
     @PositiveOrZero
     @Column(updatable = false)

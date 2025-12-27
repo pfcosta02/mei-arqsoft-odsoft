@@ -16,20 +16,20 @@ import org.springframework.context.annotation.Profile;
 @Profile("jpa")
 @Primary
 public class ReaderDetailsEntity extends EntityWithPhotoEntity {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Getter
-    private Long pk;
-
-    @OneToOne
     @Getter
     @Setter
-    private ReaderEntity reader;
+    private String id;
 
     @Embedded
     @Getter
     @Setter
+    @OneToOne
+    private ReaderEntity reader;
+
+    @Embedded
+    @Setter
+    @Getter
     private ReaderNumberEntity readerNumber;
 
     @Embedded
@@ -38,8 +38,8 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
     private BirthDateEntity birthDate;
 
     @Embedded
-    @Getter
     @Setter
+    @Getter
     private PhoneNumberEntity phoneNumber;
 
     @Basic
@@ -47,20 +47,20 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
     @Setter
     private boolean gdprConsent;
 
-    @Basic
     @Getter
     @Setter
+    @Basic
     private boolean marketingConsent;
 
-    @Basic
     @Getter
     @Setter
+    @Basic
     private boolean thirdPartySharingConsent;
 
-    @Version
-    @Getter
     @Setter
-    private Long version;
+    @Getter
+    @Version
+    private long version;
 
     @Getter
     @Setter
@@ -72,17 +72,17 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
     protected ReaderDetailsEntity() {}
 
     public ReaderDetailsEntity(ReaderNumberEntity readerNumber, ReaderEntity reader, BirthDateEntity birthDate, PhoneNumberEntity phoneNumber,
-                               boolean gdpr, boolean marketing, boolean thirdParty,
-                               PhotoEntity photoURI, List<String> interestList)
+                               boolean gdprConsent, boolean marketingConsent, boolean thirdPartySharingConsent,
+                               PhotoEntity photo, List<String> interestList)
     {
-        setReaderNumber(readerNumber);
         setReader(reader);
-        setBirthDate(birthDate);
+        setReaderNumber(readerNumber);
         setPhoneNumber(phoneNumber);
-        setGdprConsent(gdpr);
-        setMarketingConsent(marketing);
-        setThirdPartySharingConsent(thirdParty);
-        setPhoto(photoURI);
+        setBirthDate(birthDate);
+        setGdprConsent(gdprConsent);
+        setPhoto(photo);
+        setMarketingConsent(marketingConsent);
+        setThirdPartySharingConsent(thirdPartySharingConsent);
         setInterestList(interestList);
     }
 }

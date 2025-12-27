@@ -3,7 +3,6 @@ package pt.psoft.g1.psoftg1.readermanagement.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.readermanagement.model.BirthDate;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
@@ -24,9 +23,11 @@ import pt.psoft.g1.psoftg1.readermanagement.dto.ReaderDetailsDTO;
 @RequiredArgsConstructor
 public class ReaderServiceImpl implements ReaderService {
     private final ReaderDetailsRepository readerDetailsRepo;
+
+    /* ReaderRepo */
     private final ReaderRepository readerRepo;
+
     private final ReaderMapper readerMapper;
-    private final GenreRepository genreRepo;
     private final ForbiddenNameRepository forbiddenNameRepository;
     private final PhotoRepository photoRepository;
 
@@ -87,7 +88,7 @@ public class ReaderServiceImpl implements ReaderService {
                 rd.gdprConsent, rd.marketingConsent, rd.thirdPartySharingConsent,
                 rd.photo, rd.interestList);
 
-        readerDetails.setPk(rd.id);
+        readerDetails.setId(rd.id);
         readerDetails.setVersion(rd.version);
 
         /* Primeiro persistimos o reader */
@@ -105,7 +106,7 @@ public class ReaderServiceImpl implements ReaderService {
         ReaderDetails readerDetails = new ReaderDetails(rd.readerNumber, reader, new BirthDate(rd.birthDate.birthDate), rd.phoneNumber,
                 rd.gdprConsent, rd.marketingConsent, rd.thirdPartySharingConsent,
                 rd.photo, rd.interestList);
-        readerDetails.setPk(rd.id);
+        readerDetails.setId(rd.id);
         readerDetails.setVersion(rd.version);
     }
 
@@ -116,7 +117,7 @@ public class ReaderServiceImpl implements ReaderService {
                 .orElseThrow(() -> new NotFoundException("Cannot find readerDetails with readerid:" + readerId));
 
         /* Eliminar primeiro o Reader Detail */
-        readerDetailsRepo.delete(rd.getPk());
+        readerDetailsRepo.delete(rd.getId());
 
         /* Eliminar o Reader */
         readerRepo.delete(readerId);

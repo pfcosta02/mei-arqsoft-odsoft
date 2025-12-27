@@ -1,15 +1,13 @@
 package pt.psoft.g1.psoftg1.readermanagement.model;
 
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
 import pt.psoft.g1.psoftg1.readermanagement.services.UpdateReaderRequest;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
-import pt.psoft.g1.psoftg1.readermanagement.model.Reader;
 import java.nio.file.InvalidPathException;
 import java.util.List;
 
 public class ReaderDetails extends EntityWithPhoto {
-    public String pk;
+    private String id;
     private Reader reader;
     private ReaderNumber readerNumber;
     private BirthDate birthDate;
@@ -17,22 +15,24 @@ public class ReaderDetails extends EntityWithPhoto {
     private boolean gdprConsent;
     private boolean marketingConsent;
     private boolean thirdPartySharingConsent;
-    private Long version;
+    private long version;
+
+    /* Id do Genre */
     private List<String> interestList;
 
     public ReaderDetails() {}
 
     // Construtor principal
     public ReaderDetails(ReaderNumber readerNumber, Reader reader, BirthDate birthDate, PhoneNumber phoneNumber,
-                         boolean gdpr, boolean marketing, boolean thirdParty,
-                         String photoURI, List<String> interestList)
+                         boolean gdprConsent, boolean marketingConsent, boolean thirdPartySharingConsent,
+                         String photo, List<String> interestList)
     {
         if (reader == null || phoneNumber == null)
         {
             throw new IllegalArgumentException("Provided argument resolves to null object");
         }
 
-        if (!gdpr)
+        if (!gdprConsent)
         {
             throw new IllegalArgumentException("Readers must agree with the GDPR rules");
         }
@@ -41,23 +41,24 @@ public class ReaderDetails extends EntityWithPhoto {
         setReaderNumber(readerNumber);
         setPhoneNumber(phoneNumber);
         setBirthDate(birthDate);
-        setGdprConsent(gdpr);
-        setPhotoInternal(photoURI);
-        setMarketingConsent(marketing);
-        setThirdPartySharingConsent(thirdParty);
+        setGdprConsent(gdprConsent);
+        setPhotoInternal(photo);
+        setMarketingConsent(marketingConsent);
+        setThirdPartySharingConsent(thirdPartySharingConsent);
         setInterestList(interestList);
     }
 
     public ReaderDetails(int readerNumber, Reader reader, String birthDate, String phoneNumber,
-                         boolean gdpr, boolean marketing, boolean thirdParty,
-                         String photoURI, List<String> interestList)
+                         boolean gdprConsent, boolean marketingConsent, boolean thirdPartySharingConsent,
+                         String photo, List<String> interestList)
     {
-        this(new ReaderNumber(readerNumber), reader, new BirthDate(birthDate), new PhoneNumber(phoneNumber), gdpr, marketing, thirdParty, photoURI, interestList);
+        this(new ReaderNumber(readerNumber), reader, new BirthDate(birthDate), new PhoneNumber(phoneNumber), gdprConsent, marketingConsent, thirdPartySharingConsent, photo, interestList);
     }
 
     // Getters and Setters
-    public String getPk() { return pk; }
-    public void setPk(String pk) { this.pk = pk; }
+    // public Long getPk() { return pk; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     public Reader getReader() { return reader; }
     public void setReader(Reader reader) { this.reader = reader; }
@@ -69,8 +70,13 @@ public class ReaderDetails extends EntityWithPhoto {
         }
     }
 
-    public Long getVersion() { return version; }
+    public void setReaderNumber(int readerNumber)
+    {
+        setReaderNumber(new ReaderNumber(readerNumber));
+    }
+
     public void setVersion(Long version) { this.version = version;}
+    public Long getVersion() { return version; }
 
     public BirthDate getBirthDate() { return birthDate; }
     public void setBirthDate(BirthDate date) {

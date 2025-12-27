@@ -4,6 +4,7 @@ import java.util.Objects;
 
 public class Fine
 {
+    private String id;
     private final int fineValuePerDayInCents;
     private final int centsValue;
 
@@ -37,4 +38,8 @@ public class Fine
     public int getFineValuePerDayInCents() { return fineValuePerDayInCents; }
     public int getCentsValue() { return centsValue; }
     public Lending getLending() { return lending; }
+    public String getId() { return id; }
+
+    // Setters
+    public void setId(String id) {this.id = id;}
 }

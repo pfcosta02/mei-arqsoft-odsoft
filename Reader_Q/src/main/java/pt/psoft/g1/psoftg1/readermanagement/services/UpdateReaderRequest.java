@@ -1,10 +1,8 @@
 package pt.psoft.g1.psoftg1.readermanagement.services;
 
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
 
 import java.util.List;
 

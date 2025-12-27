@@ -13,6 +13,9 @@ import java.time.LocalDate;
 public class LendingView {
 
     @NotNull
+    private String id;
+
+    @NotNull
     private String lendingNumber;
 
     @NotNull

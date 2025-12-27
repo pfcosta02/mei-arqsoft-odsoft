@@ -17,10 +17,8 @@ import org.springframework.context.annotation.Profile;
 @Profile("jpa")
 @Primary
 public class LendingEntity {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long pk;
+    private String id;
 
     @Embedded
     @Getter
@@ -31,7 +29,6 @@ public class LendingEntity {
     private String bookId;
 
     @NotNull
-    @Getter
     @ManyToOne(fetch=FetchType.EAGER, optional = false)
     private ReaderDetailsEntity readerDetails;
 
@@ -63,12 +60,6 @@ public class LendingEntity {
     @Getter
     private int fineValuePerDayInCents;
 
-    @Transient
-    private Integer daysUntilReturn;
-
-    @Transient
-    private Integer daysOverdue;
-
     protected LendingEntity() {}
 
     public LendingEntity(String bookId, ReaderDetailsEntity readerDetails, LendingNumberEntity lendingNumber,
@@ -85,10 +76,12 @@ public class LendingEntity {
     }
 
     // Setter
-    public void setBook(String bookId) { this.bookId = bookId;}
+    public void setId(String id) { this.id = id; }
+    public void setBookId(String bookId) { this.bookId = bookId;}
     public void setReaderDetails(ReaderDetailsEntity readerDetails) { this.readerDetails = readerDetails;}
 
     // Getter
-    public String getBook() { return bookId; }
+    public String getId() { return id; }
+    public String getBookId() { return bookId; }
     public ReaderDetailsEntity getReaderDetails() { return readerDetails; }
 }

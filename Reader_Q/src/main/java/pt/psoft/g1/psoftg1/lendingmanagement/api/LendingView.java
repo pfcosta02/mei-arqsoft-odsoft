@@ -11,6 +11,8 @@ import java.time.LocalDate;
 @Data
 @Schema(description = "A Lending")
 public class LendingView {
+    @NotNull
+    private String id;
 
     @NotNull
     private String lendingNumber;

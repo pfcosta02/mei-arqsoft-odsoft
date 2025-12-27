@@ -13,7 +13,7 @@ import org.hibernate.StaleObjectStateException;
 public class Lending
 {
     // TODO: Substituir por ID e nao é suposto ser public
-    public Long pk;
+    public String id;
     private LendingNumber lendingNumber;
     private String bookId;
     private ReaderDetails readerDetails;
@@ -46,6 +46,8 @@ public class Lending
 
         setDaysUntilReturn();
         setDaysOverdue();
+
+        this.version = 0L;
     }
 
     @Builder
@@ -65,9 +67,11 @@ public class Lending
 
         setDaysUntilReturn();
         setDaysOverdue();
+        setId(id);
     }
 
     // Getters
+    public String getId() { return id; }
     public String getBook() { return bookId; }
     public ReaderDetails getReaderDetails() { return readerDetails; }
     public LocalDate getStartDate() { return startDate; }
@@ -116,6 +120,7 @@ public class Lending
 
 
     // Setters
+    public void setId(String id) { this.id = id; }
     /**
      * <p>Sets {@code commentary} and the current date as {@code returnedDate}.
      * <p>If {@code returnedDate} is after {@code limitDate}, fine is applied with corresponding value.
@@ -135,7 +140,7 @@ public class Lending
         // check current version
         if (this.version != desiredVersion)
         {
-            throw new StaleObjectStateException("Object was already modified by another user", this.pk);
+            throw new StaleObjectStateException("Object was already modified by another user", this.id);
         }
 
         if(commentary != null)
@@ -166,7 +171,6 @@ public class Lending
 
     protected Lending() {}
 
-    //TODO: Provavelmente tenho de remover isto
     /**Factory method meant to be only used in bootstrapping.*/
     public static Lending newBootstrappingLending(String bookId,
                                                   ReaderDetails readerDetails,
@@ -177,8 +181,22 @@ public class Lending
                                                   int lendingDuration,
                                                   int fineValuePerDayInCents)
     {
-        Lending lending = new Lending(bookId, readerDetails, new LendingNumber(year, seq), startDate, startDate.plusDays(lendingDuration), returnedDate, fineValuePerDayInCents);
+        Lending lending = new Lending();
 
+        try
+        {
+            lending.bookId = bookId;
+            lending.readerDetails = Objects.requireNonNull(readerDetails);
+        }
+        catch (NullPointerException e)
+        {
+            throw new IllegalArgumentException("Null objects passed to lending");
+        }
+        lending.lendingNumber = new LendingNumber(year, seq);
+        lending.startDate = startDate;
+        lending.limitDate = startDate.plusDays(lendingDuration);
+        lending.fineValuePerDayInCents = fineValuePerDayInCents;
+        lending.returnedDate = returnedDate;
         return lending;
     }
 }

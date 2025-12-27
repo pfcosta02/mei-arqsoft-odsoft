@@ -32,7 +32,7 @@ public interface SpringDataLendingRepository extends CrudRepository<LendingEntit
 
     @Query("SELECT l " +
             "FROM LendingEntity l " +
-            "JOIN ReaderDetailsEntity r ON l.readerDetails.pk = r.pk " +
+            "JOIN ReaderDetailsEntity r ON l.readerDetails.id = r.id " +
             "WHERE r.readerNumber.readerNumber = :readerNumber " +
             "AND l.returnedDate IS NULL")
     List<LendingEntity> listOutstandingByReaderNumber(@Param("readerNumber") String readerNumber);
@@ -46,7 +46,7 @@ public interface SpringDataLendingRepository extends CrudRepository<LendingEntit
     @Query(value =
             "SELECT AVG(DATEDIFF(day, l.start_date, l.returned_date)) " +
                     "FROM Lending l " +
-                    "JOIN BOOK b ON l.BOOK_PK = b.PK " +
+                    "JOIN BOOK b ON l.BOOK_ID = b.ID " +
                     "WHERE b.ISBN = :isbn"
             , nativeQuery = true)
     Double getAvgLendingDurationByIsbn(@Param("isbn") String isbn);

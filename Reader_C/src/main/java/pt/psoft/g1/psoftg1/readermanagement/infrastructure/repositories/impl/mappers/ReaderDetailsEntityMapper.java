@@ -9,6 +9,7 @@ import pt.psoft.g1.psoftg1.readermanagement.model.PhoneNumber;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderNumber;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.*;
+import pt.psoft.g1.psoftg1.shared.model.Name;
 import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;
 import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
 
@@ -75,5 +76,10 @@ public interface ReaderDetailsEntityMapper
     default PhoneNumber tPhoneNumber(String value)
     {
         return value == null ? null : new PhoneNumber(value);
+    }
+
+    default String map(Name value)
+    {
+        return value == null ? null : value.getName();
     }
 }

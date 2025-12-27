@@ -204,7 +204,7 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
 
         // Get the managed JPA reference for the ReaderDetailEntity using its database ID (id)
         // This ensures we use the existing ReaderDetailEntity instead of creating a new one
-        ReaderDetailsEntity readerDetailsEntity = em.getReference(ReaderDetailsEntity.class, readerDetailsModel.getPk());
+        ReaderDetailsEntity readerDetailsEntity = em.getReference(ReaderDetailsEntity.class, readerDetailsModel.getId());
 
         entity.setReaderDetails(readerDetailsEntity);
         return lendingEntityMapper.toModel(lendingRepo.save(entity));

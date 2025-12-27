@@ -12,7 +12,7 @@ public interface SpringDataFineRepository extends CrudRepository<FineEntity, Lon
 {
     @Query("SELECT f " +
             "FROM FineEntity f " +
-            "JOIN LendingEntity l ON f.lending.pk = l.pk " +
+            "JOIN LendingEntity l ON f.lending.id = l.id " +
             "WHERE l.lendingNumber.lendingNumber = :lendingNumber")
     Optional<FineEntity> findByLendingNumber(String lendingNumber);
 

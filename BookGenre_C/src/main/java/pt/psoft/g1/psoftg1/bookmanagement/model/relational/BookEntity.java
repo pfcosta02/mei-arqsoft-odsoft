@@ -46,16 +46,20 @@ public class BookEntity extends EntityWithPhotoEntity
     private GenreEntity genre;
 
     @Getter
-    @ManyToMany
-    @JoinTable(joinColumns = @JoinColumn(name = "BOOK_PK"))
-    private List<AuthorEntity> authors = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(
+            name = "book_authors",
+            joinColumns = @JoinColumn(name = "book_pk")
+    )
+    @Column(name = "author_number", nullable = false)
+    private List<String> authorNumbers = new ArrayList<>();
 
-    public BookEntity(IsbnEntity isbn, TitleEntity title, DescriptionEntity description, GenreEntity genre, List<AuthorEntity> authors, String photoURI)
+    public BookEntity(IsbnEntity isbn, TitleEntity title, DescriptionEntity description, GenreEntity genre, List<String> authorNumbers, String photoURI)
     {
         setTitle(title);
         setIsbn(isbn);
         setDescription(description);
-        setAuthors(authors);
+        setAuthors(authorNumbers);
         setGenre(genre);
         setPhotoInternal(photoURI);
 
@@ -69,7 +73,7 @@ public class BookEntity extends EntityWithPhotoEntity
     public void setIsbn(IsbnEntity isbn) { this.isbn = isbn; }
     public void setDescription(DescriptionEntity description) { this.description = description; }
     public void setGenre(GenreEntity genre) { this.genre = genre; }
-    public void setAuthors(List<AuthorEntity> authors) { this.authors = authors; }
+    public void setAuthors(List<String> authors) { this.authorNumbers = authors; }
 
     // Getters
     public String getDescription(){ return this.description.toString(); }

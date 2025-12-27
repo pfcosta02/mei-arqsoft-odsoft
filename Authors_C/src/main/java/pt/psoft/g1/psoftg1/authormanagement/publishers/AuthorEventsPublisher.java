@@ -7,6 +7,8 @@ public interface AuthorEventsPublisher {
 
     AuthorViewAMQP sendAuthorCreated(Author author);
 
+    void sendAuthorTempCreated(String payload);
+
     AuthorViewAMQP sendAuthorUpdated(Author author, Long currentVersion);
 
     AuthorViewAMQP sendAuthorDeleted(Author author, Long currentVersion);

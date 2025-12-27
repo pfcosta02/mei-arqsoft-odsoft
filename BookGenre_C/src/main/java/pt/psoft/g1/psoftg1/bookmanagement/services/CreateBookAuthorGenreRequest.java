@@ -39,5 +39,7 @@ public class CreateBookAuthorGenreRequest {
     private String photoURI;
 
     @NotNull
-    private CreateAuthorRequest author;
+    @Getter
+    @Setter
+    private List<CreateAuthorRequest> authors;
 }

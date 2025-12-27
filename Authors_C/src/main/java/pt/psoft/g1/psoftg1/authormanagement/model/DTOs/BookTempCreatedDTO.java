@@ -1,9 +1,15 @@
-package pt.psoft.g1.psoftg1.bookmanagement.model.DTOs;
+package pt.psoft.g1.psoftg1.authormanagement.model.DTOs;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class BookTempCreatedDTO {
     @Getter
     private String isbn;

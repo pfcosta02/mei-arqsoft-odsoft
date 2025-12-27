@@ -6,6 +6,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookTempCreatedDTO;
 import pt.psoft.g1.psoftg1.authormanagement.services.AuthorService;
 
 import java.nio.charset.StandardCharsets;
@@ -30,6 +31,28 @@ public class AuthorRabbitmqController {
             try {
                 authorService.create(authorViewAMQP);
                 System.out.println(" [x] New author inserted from AMQP: " + msg + ".");
+            } catch (Exception e) {
+                System.out.println(" [x] Author already exists. No need to store it.");
+            }
+        }
+        catch(Exception ex) {
+            System.out.println(" [x] Exception receiving author event from AMQP: '" + ex.getMessage() + "'");
+        }
+    }
+
+    @RabbitListener(queues = "#{autoDeleteQueue_Book_Temp_Created.name}")
+    public void receiveBookTempCreatedMsg(Message msg) {
+
+        try {
+            String jsonReceived = new String(msg.getBody(), StandardCharsets.UTF_8);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            BookTempCreatedDTO bookTempCreatedDTO = objectMapper.readValue(jsonReceived, BookTempCreatedDTO.class);
+
+            System.out.println(" [x] Received Book Temp Created by AMQP: " + msg + ".");
+            try {
+                authorService.createTemp(bookTempCreatedDTO);
+                System.out.println(" [x] New author temp inserted from AMQP: " + msg + ".");
             } catch (Exception e) {
                 System.out.println(" [x] Author already exists. No need to store it.");
             }

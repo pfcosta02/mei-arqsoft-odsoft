@@ -71,7 +71,7 @@ public class AuthorController {
     @PatchMapping(value = "/{authorNumber}")
     public ResponseEntity<AuthorView> partialUpdate(
             @PathVariable("authorNumber")
-            @Parameter(description = "The number of the Author to find") final Long authorNumber,
+            @Parameter(description = "The number of the Author to find") final String authorNumber,
             final WebRequest request,
             @Valid UpdateAuthorRequest resource) {
 
@@ -98,7 +98,7 @@ public class AuthorController {
     //Delete a foto
     @Operation(summary = "Deletes a author photo")
     @DeleteMapping("/{authorNumber}/photo")
-    public ResponseEntity<Void> deleteBookPhoto(@PathVariable("authorNumber") final Long authorNumber) {
+    public ResponseEntity<Void> deleteBookPhoto(@PathVariable("authorNumber") final String authorNumber) {
 
         Optional<Author> optionalAuthor = authorService.findByAuthorNumber(authorNumber);
         if(optionalAuthor.isEmpty()) {

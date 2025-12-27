@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
 import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
+import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreTempEntity;
 import pt.psoft.g1.psoftg1.shared.model.relational.EntityWithPhotoEntity;
 
 import java.util.ArrayList;
@@ -27,48 +28,50 @@ public class BookTempEntity {
     @Version
     private Long version;
 
-    // Dados iniciais (request)
-    @NotNull
-    private String isbn;
+    @Embedded
+    private IsbnEntity isbn;
 
+    @Getter
+    @Embedded
     @NotNull
-    private String title;
+    private TitleEntity title;
 
-    private String description;
-
-    @NotNull
-    private String authorName;
-
-    @NotNull
-    private String authorBio;
+    @Embedded
+    private DescriptionEntity description;
 
     @NotNull
-    private String genreName;
+    private String genre;
 
-    // Resultados da saga (preenchidos por eventos)
-    private Long authorId;
-    private Long genreId;
+    @Getter
+    @ElementCollection
+    @CollectionTable(
+            name = "book_temp_authors",
+            joinColumns = @JoinColumn(name = "book_pk")
+    )
+    @Column(name = "author_number", nullable = false)
+    private List<String> authorNumbers = new ArrayList<>();
 
-    private boolean authorCreated;
-    private boolean genreCreated;
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
 
     protected BookTempEntity() {}
 
     public BookTempEntity(
-            String isbn,
-            String title,
-            String description,
-            String authorName,
-            String authorBio,
-            String genreName
+            IsbnEntity isbn,
+            TitleEntity title,
+            DescriptionEntity description,
+            String genre,
+            List<String> authorNumbers
     ) {
         this.isbn = isbn;
         this.title = title;
         this.description = description;
-        this.authorName = authorName;
-        this.authorBio = authorBio;
-        this.genreName = genreName;
-        this.authorCreated = false;
-        this.genreCreated = false;
+        this.genre = genre;
+        this.authorNumbers = authorNumbers;
     }
 }

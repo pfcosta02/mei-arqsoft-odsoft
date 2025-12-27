@@ -31,6 +31,11 @@ public  class RabbitmqClientConfig {
         return new FanoutExchange(AuthorEvents.AUTHOR_DELETED);
     }
 
+    @Bean
+    public DirectExchange direct() {
+        return new DirectExchange("Author.Events");
+    }
+
     /* ========= Queues ========= */
 
     @Bean

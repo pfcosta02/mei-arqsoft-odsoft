@@ -11,17 +11,24 @@ import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.services.CreateAuthorRequest;
 import pt.psoft.g1.psoftg1.bookmanagement.api.BookViewAMQP;
 import pt.psoft.g1.psoftg1.bookmanagement.model.*;
+import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.BookTempCreatedAuthorsDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.BookTempCreatedDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookTempEntity;
+import pt.psoft.g1.psoftg1.bookmanagement.model.relational.DescriptionEntity;
+import pt.psoft.g1.psoftg1.bookmanagement.model.relational.IsbnEntity;
+import pt.psoft.g1.psoftg1.bookmanagement.model.relational.TitleEntity;
 import pt.psoft.g1.psoftg1.bookmanagement.publishers.BookEventsPublisher;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import lombok.RequiredArgsConstructor;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookTempRepository;
+import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreTempEntity;
 import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
+import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreTempRepository;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
 import pt.psoft.g1.psoftg1.isbn.services.IsbnProviderFactory;
 import pt.psoft.g1.psoftg1.shared.model.BookEvents;
 import pt.psoft.g1.psoftg1.shared.model.OutboxEnum;
@@ -43,9 +50,11 @@ public class BookServiceImpl implements BookService {
 	private final AuthorRepository authorRepository;
 	private final PhotoRepository photoRepository;
     private final IsbnProviderFactory isbnProviderFactory;
+	private final IdGenerator idGenerator;
 
 	private final BookEventsPublisher bookEventsPublisher;
 	private final BookTempRepository bookTempRepository;
+	private final GenreTempRepository genreTempRepository;
 	private final OutboxEventRepository outboxEventRepository;
 	private final ObjectMapper objectMapper;
 
@@ -59,7 +68,7 @@ public class BookServiceImpl implements BookService {
 		final String description = request.getDescription();
 		final String photoURI = request.getPhotoURI();
 		final String genre = request.getGenre();
-		final List<Long> authorIds = request.getAuthors();
+		final List<String> authorIds = request.getAuthors();
 
 		Book savedBook = create(isbn, title, description, photoURI, genre, authorIds);
 
@@ -79,22 +88,33 @@ public class BookServiceImpl implements BookService {
 		final String title = request.getTitle();
 		final String description = request.getDescription();
 		final String photoURI = request.getPhotoURI();
-		final String genre = request.getGenre();
-		final CreateAuthorRequest author = request.getAuthor();
+		final String genreFromReq = request.getGenre();
+		final List<CreateAuthorRequest> authors = request.getAuthors();
+
+//		Optional<Genre> genre = genreRepository.findByString(genreFromReq);
+//
+//		if( genre.isEmpty() ) {
+//			GenreTempEntity genreTemp = new GenreTempEntity(genreFromReq);
+//			genreTemp.setPk(idGenerator.generateId());
+//			genreTempRepository.save(genreTemp);
+//		}
 
 		BookTempEntity temp = new BookTempEntity(
-				isbn,
-				title,
-				description,
-				author.getName(),
-				author.getBio(),
-				request.getGenre()
+				new IsbnEntity(isbn),
+				new TitleEntity(title),
+				new DescriptionEntity(description),
+				genreFromReq,
+				null
 		);
 
 		bookTempRepository.save(temp);
 
+		List<BookTempCreatedAuthorsDTO> authorDTOs = authors.stream()
+				.map(a -> new BookTempCreatedAuthorsDTO(a.getName(), a.getBio()))
+				.toList();
+
 		try {
-			BookTempCreatedDTO bookTempCreatedDTO = new BookTempCreatedDTO(isbn, author.getName(), author.getBio());
+			BookTempCreatedDTO bookTempCreatedDTO = new BookTempCreatedDTO(isbn, authorDTOs);
 			String payload = objectMapper.writeValueAsString(bookTempCreatedDTO);
 
 			OutboxEvent event = new OutboxEvent();
@@ -119,7 +139,7 @@ public class BookServiceImpl implements BookService {
 		final String title = bookViewAMQP.getTitle();
 		final String photoURI = null;
 		final String genre = bookViewAMQP.getGenre();
-		final List<Long> authorIds = bookViewAMQP.getAuthorIds();
+		final List<String> authorIds = bookViewAMQP.getAuthorIds();
 
 		Book bookCreated = create(isbn, title, description, photoURI, genre, authorIds);
 
@@ -131,18 +151,18 @@ public class BookServiceImpl implements BookService {
 						 String description,
 						 String photoURI,
 						 String genreName,
-						 List<Long> authorIds) {
+						 List<String> authorIds) {
 
 		if (bookRepository.findByIsbn(isbn).isPresent()) {
 			throw new ConflictException("Book with ISBN " + isbn + " already exists");
 		}
 
-		List<Author> authors = getAuthors(authorIds);
+		//List<Author> authors = getAuthors(authorIds);
 
 		final Genre genre = genreRepository.findByString(String.valueOf(genreName))
 				.orElseThrow(() -> new NotFoundException("Genre not found"));
 
-		Book newBook = new Book(isbn, title, description, genre, authors, photoURI);
+		Book newBook = new Book(isbn, title, description, genre, authorIds, photoURI);
 
 		Book savedBook = bookRepository.save(newBook);
 
@@ -154,9 +174,9 @@ public class BookServiceImpl implements BookService {
 
         var book = findByIsbn(request.getIsbn());
         if(request.getAuthors()!= null) {
-            List<Long> authorNumbers = request.getAuthors();
+            List<String> authorNumbers = request.getAuthors();
             List<Author> authors = new ArrayList<>();
-            for (Long authorNumber : authorNumbers) {
+            for (String authorNumber : authorNumbers) {
                 Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber);
                 if (temp.isEmpty()) {
                     continue;
@@ -220,10 +240,10 @@ public class BookServiceImpl implements BookService {
 				.orElseThrow(() -> new NotFoundException(Book.class, isbn));
 	}
 
-	private List<Author> getAuthors(List<Long> authorNumbers) {
+	private List<Author> getAuthors(List<String> authorNumbers) {
 
 		List<Author> authors = new ArrayList<>();
-		for (Long authorNumber : authorNumbers) {
+		for (String authorNumber : authorNumbers) {
 
 			Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber);
 			if (temp.isEmpty()) {

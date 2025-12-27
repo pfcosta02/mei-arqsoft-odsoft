@@ -27,7 +27,7 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     private final AuthorEntityMapper authorEntityMapper;
 
     @Override
-    public Optional<Author> findByAuthorNumber(Long authorNumber)
+    public Optional<Author> findByAuthorNumber(String authorNumber)
     {
         Optional<AuthorEntity> entityOpt = authoRepo.findByAuthorNumber(authorNumber);
         if (entityOpt.isPresent())
@@ -67,7 +67,16 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     @Override
     public Author save(Author author)
     {
-        return authorEntityMapper.toModel( authoRepo.save(authorEntityMapper.toEntity(author)));
+        // Converte o DTO para entidade
+        AuthorEntity entity = authorEntityMapper.toEntity(author);
+
+        // Salva a entidade no repositório
+        AuthorEntity savedEntity = authoRepo.save(entity);
+
+        // Converte a entidade salva de volta para DTO/Model
+        Author savedAuthor = authorEntityMapper.toModel(savedEntity);
+
+        return savedAuthor;
     }
 
     @Override

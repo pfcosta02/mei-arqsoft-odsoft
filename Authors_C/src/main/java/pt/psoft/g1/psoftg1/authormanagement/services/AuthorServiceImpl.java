@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.authormanagement.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -8,11 +9,25 @@ import org.springframework.web.multipart.MultipartFile;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorViewAMQP;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
+import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.AuthorTempCreatedDTO;
+import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookTempCreatedAuthorsDTO;
+import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookTempCreatedDTO;
+import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorTempEntity;
+import pt.psoft.g1.psoftg1.authormanagement.model.relational.BioEntity;
 import pt.psoft.g1.psoftg1.authormanagement.publishers.AuthorEventsPublisher;
 import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorRepository;
+import pt.psoft.g1.psoftg1.authormanagement.repositories.AuthorTempRepository;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.idgeneratormanagement.IdGenerator;
+import pt.psoft.g1.psoftg1.shared.model.AuthorEvents;
+import pt.psoft.g1.psoftg1.shared.model.BookEvents;
+import pt.psoft.g1.psoftg1.shared.model.OutboxEnum;
+import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;
+import pt.psoft.g1.psoftg1.shared.model.relational.OutboxEvent;
+import pt.psoft.g1.psoftg1.shared.repositories.OutboxEventRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,8 +37,12 @@ public class AuthorServiceImpl implements AuthorService {
     private final AuthorRepository authorRepository;
     private final AuthorMapper mapper;
     private final PhotoRepository photoRepository;
+    private final IdGenerator idGenerator;
+    private final AuthorTempRepository authorTempRepository;
 
     private final AuthorEventsPublisher authorEventsPublisher;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Iterable<Author> findAll() {
@@ -31,7 +50,7 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public Optional<Author> findByAuthorNumber(final Long authorNumber) {
+    public Optional<Author> findByAuthorNumber(final String authorNumber) {
         return authorRepository.findByAuthorNumber(authorNumber);
     }
 
@@ -61,6 +80,7 @@ public class AuthorServiceImpl implements AuthorService {
             resource.setPhotoURI(null);
         }
         final Author author = mapper.create(resource);
+        author.setAuthorNumber(idGenerator.generateId());
         Author savedAuthor = authorRepository.save(author);
 
         if( savedAuthor!=null ) {
@@ -76,12 +96,53 @@ public class AuthorServiceImpl implements AuthorService {
         final String name = authorViewAMQP.getName();
         final String bio = authorViewAMQP.getBio();
         final String photoURI = null;
+        final String authorNumber = authorViewAMQP.getAuthorNumber();
         final Author author = new Author(name, bio, photoURI);
+        author.setAuthorNumber(authorNumber);
         return authorRepository.save(author);
     }
 
     @Override
-    public Author partialUpdate(final Long authorNumber, final UpdateAuthorRequest request, final long desiredVersion) {
+    public void createTemp(BookTempCreatedDTO bookTempCreatedDTO) {
+
+        final List<BookTempCreatedAuthorsDTO> authorsDTOs = bookTempCreatedDTO.getAuthorsDTOs();
+        final String isbn = bookTempCreatedDTO.getIsbn();
+        List<String> generatedAuthorNumbers = new ArrayList<>();
+
+        for (BookTempCreatedAuthorsDTO authorDTO : authorsDTOs) {
+
+            String authorNumber = idGenerator.generateId();
+
+            AuthorTempEntity authorTemp = new AuthorTempEntity(
+                    new NameEntity(authorDTO.getName()),
+                    new BioEntity(authorDTO.getBio()),
+                    isbn
+            );
+
+            authorTemp.setAuthorNumber(authorNumber);
+            authorTempRepository.save(authorTemp);
+
+            generatedAuthorNumbers.add(authorNumber);
+        }
+
+        try {
+            AuthorTempCreatedDTO authorTempCreatedDTO = new AuthorTempCreatedDTO(isbn, generatedAuthorNumbers);
+            String payload = objectMapper.writeValueAsString(authorTempCreatedDTO);
+
+            OutboxEvent event = new OutboxEvent();
+            event.setAggregateId(isbn);
+            event.setEventType(AuthorEvents.TEMP_AUTHOR_CREATED);
+            event.setPayload(payload);
+            event.setStatus(OutboxEnum.NEW);
+
+            outboxEventRepository.save(event);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao salvar evento Outbox", e);
+        }
+    }
+
+    @Override
+    public Author partialUpdate(final String authorNumber, final UpdateAuthorRequest request, final long desiredVersion) {
         // first let's check if the object exists so we don't create a new object with
         // save
         final var author = findByAuthorNumber(authorNumber)
@@ -111,14 +172,14 @@ public class AuthorServiceImpl implements AuthorService {
         // in the meantime some other user might have changed this object on the
         // database, so concurrency control will still be applied when we try to save
         // this updated object
-
+        author.setAuthorNumber(idGenerator.generateId());
         Author updatedAuthor = authorRepository.save(author);
 
         if( updatedAuthor!=null ) {
             authorEventsPublisher.sendAuthorUpdated(updatedAuthor, desiredVersion);
         }
 
-        return authorRepository.save(author);
+        return updatedAuthor;
     }
 
     @Override
@@ -136,7 +197,7 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public Optional<Author> removeAuthorPhoto(Long authorNumber, long desiredVersion) {
+    public Optional<Author> removeAuthorPhoto(String authorNumber, long desiredVersion) {
         Author author = authorRepository.findByAuthorNumber(authorNumber)
                 .orElseThrow(() -> new NotFoundException("Cannot find reader"));
 

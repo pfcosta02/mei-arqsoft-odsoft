@@ -79,6 +79,11 @@ public  class RabbitmqClientConfig {
         return new AnonymousQueue();
     }
 
+    @Bean
+    public Queue autoDeleteQueue_Authors_Temp_Created() {
+        return new AnonymousQueue();
+    }
+
     /* ========= Bindings ========= */
 
     @Bean
@@ -127,5 +132,13 @@ public  class RabbitmqClientConfig {
             Queue autoDeleteQueue_Book_Deleted) {
         return BindingBuilder.bind(autoDeleteQueue_Book_Deleted)
                 .to(bookDeletedExchange);
+    }
+
+    @Bean
+    public Binding bindAuthorTempCreated(
+            Queue autoDeleteQueue_Authors_Temp_Created) {
+        return BindingBuilder.bind(autoDeleteQueue_Authors_Temp_Created)
+                .to(new DirectExchange("Author.Events"))
+                .with(BookEvents.TEMP_BOOK_CREATED);
     }
 }

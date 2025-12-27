@@ -15,6 +15,10 @@ import java.util.Map;
 @Schema(description = "A Author form AMQP communication")
 @NoArgsConstructor
 public class AuthorViewAMQP {
+
+    @NotNull
+    private String authorNumber;
+
     @NotNull
     private String name;
 

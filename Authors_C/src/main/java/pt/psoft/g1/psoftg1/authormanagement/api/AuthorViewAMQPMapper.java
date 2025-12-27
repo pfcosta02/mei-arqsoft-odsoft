@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public abstract class AuthorViewAMQPMapper extends MapperInterface {
 
+    @Mapping(target = "authorNumber", source = "authorNumber")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "bio", source = "bio")
     @Mapping(target = "version", expression = "java(author.getVersion())")

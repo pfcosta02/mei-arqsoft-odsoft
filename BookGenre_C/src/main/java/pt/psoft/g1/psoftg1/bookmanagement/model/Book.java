@@ -20,9 +20,9 @@ public class Book extends EntityWithPhoto
     private Title title;
     private Description description;
     private Genre genre;
-    private List<Author> authors;
+    private List<String> authors;
 
-    public Book(String isbn, String title, String description, Genre genre, List<Author> authors, String photoURI)
+    public Book(String isbn, String title, String description, Genre genre, List<String> authors, String photoURI)
     {
         setTitle(new Title(title));
         setIsbn(new Isbn(isbn));
@@ -40,7 +40,7 @@ public class Book extends EntityWithPhoto
     public Title getTitle() { return title; }
     public Description getDescription() { return description; }
     public Genre getGenre() { return genre; }
-    public List<Author> getAuthors() { return authors; }
+    public List<String> getAuthors() { return authors; }
     public Long getVersion() { return version; }
 
     // Setters
@@ -56,7 +56,7 @@ public class Book extends EntityWithPhoto
 
         this.genre = genre;
     }
-    public void setAuthors(List<Author> authors)
+    public void setAuthors(List<String> authors)
     {
         if(authors == null || authors.isEmpty())
         {
@@ -77,7 +77,7 @@ public class Book extends EntityWithPhoto
         String title = request.getTitle();
         String description = request.getDescription();
         Genre genre = request.getGenreObj();
-        List<Author> authors = request.getAuthorObjList();
+        List<String> authors = request.getAuthors();
         String photoURI = request.getPhotoURI();
         if(title != null)
         {

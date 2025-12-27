@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface SpringDataAuthorRepository extends CrudRepository<AuthorEntity, Long> {
 
     @Query("SELECT a FROM AuthorEntity a WHERE a.authorNumber = :authorNumber")
-    Optional<AuthorEntity> findByAuthorNumber(Long authorNumber);
+    Optional<AuthorEntity> findByAuthorNumber(String authorNumber);
 
     @Query("SELECT a FROM AuthorEntity a WHERE a.name.name = :name")
     List<AuthorEntity> searchByNameName(String name);

@@ -3,6 +3,7 @@ package pt.psoft.g1.psoftg1.authormanagement.services;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorViewAMQP;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
+import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookTempCreatedDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +12,7 @@ public interface AuthorService {
 
     Iterable<Author> findAll();
 
-    Optional<Author> findByAuthorNumber(Long authorNumber);
+    Optional<Author> findByAuthorNumber(String authorNumber);
 
     List<Author> findByName(String name);
 
@@ -19,9 +20,11 @@ public interface AuthorService {
 
     Author create(AuthorViewAMQP authorViewAMQP); // AMQP request
 
-    Author partialUpdate(Long authorNumber, UpdateAuthorRequest resource, long desiredVersion);
+    void createTemp(BookTempCreatedDTO bookTempCreatedDTO); // SAGA
+
+    Author partialUpdate(String authorNumber, UpdateAuthorRequest resource, long desiredVersion);
 
     Author partialUpdate(AuthorViewAMQP authorViewAMQP);
 
-    Optional<Author> removeAuthorPhoto(Long authorNumber, long desiredVersion);
+    Optional<Author> removeAuthorPhoto(String authorNumber, long desiredVersion);
 }

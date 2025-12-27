@@ -31,7 +31,7 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public Optional<Author> findByAuthorNumber(final Long authorNumber) {
+    public Optional<Author> findByAuthorNumber(final String authorNumber) {
         return authorRepository.findByAuthorNumber(authorNumber);
     }
 
@@ -123,11 +123,11 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public List<Author> findCoAuthorsByAuthorNumber(Long authorNumber) {
+    public List<Author> findCoAuthorsByAuthorNumber(String authorNumber) {
         return authorRepository.findCoAuthorsByAuthorNumber(authorNumber);
     }
     @Override
-    public Optional<Author> removeAuthorPhoto(Long authorNumber, long desiredVersion) {
+    public Optional<Author> removeAuthorPhoto(String authorNumber, long desiredVersion) {
         Author author = authorRepository.findByAuthorNumber(authorNumber)
                 .orElseThrow(() -> new NotFoundException("Cannot find reader"));
 

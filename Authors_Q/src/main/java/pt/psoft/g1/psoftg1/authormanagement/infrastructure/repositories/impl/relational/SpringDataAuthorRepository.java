@@ -11,24 +11,39 @@ import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
 import java.util.List;
 import java.util.Optional;
 
-public interface SpringDataAuthorRepository extends CrudRepository<AuthorEntity, Long> {
+public interface SpringDataAuthorRepository extends CrudRepository<AuthorEntity, String> {
 
     @Query("SELECT a FROM AuthorEntity a WHERE a.authorNumber = :authorNumber")
-    Optional<AuthorEntity> findByAuthorNumber(Long authorNumber);
+    Optional<AuthorEntity> findByAuthorNumber(String authorNumber);
 
-    @Query("SELECT new pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView(a.name.name, COUNT(l.pk)) " +
-            "FROM BookEntity b " +
-            "JOIN b.authors a " +
-            "JOIN LendingEntity l ON l.book.pk = b.pk " +
-            "GROUP BY a.name " +
-            "ORDER BY COUNT(l) DESC")
+    @Query("SELECT new pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView(\n" +
+            "    a.name.name,\n" +
+            "    COUNT(l.pk)\n" +
+            ")\n" +
+            "FROM AuthorEntity a\n" +
+            "JOIN BookEntity b\n" +
+            "JOIN b.authorNumbers an\n" +
+            "JOIN LendingEntity l ON l.book.pk = b.pk\n" +
+            "WHERE an = a.authorNumber\n" +
+            "GROUP BY a.name.name\n" +
+            "ORDER BY COUNT(l.pk) DESC")
     Page<AuthorLendingView> findTopAuthorByLendings(Pageable pageable);
 
-    @Query("SELECT DISTINCT coAuthor FROM BookEntity b " +
-            "JOIN b.authors coAuthor " +
-            "WHERE b IN (SELECT b FROM BookEntity b JOIN b.authors a WHERE a.authorNumber = :authorNumber) " +
-            "AND coAuthor.authorNumber <> :authorNumber")
-    List<AuthorEntity> findCoAuthorsByAuthorNumber(Long authorNumber);
+    @Query("""
+        SELECT DISTINCT a
+        FROM AuthorEntity a
+        WHERE a.authorNumber <> :authorNumber
+        AND a.authorNumber IN (
+            SELECT an
+            FROM BookEntity b
+            JOIN b.authorNumbers an
+            WHERE :authorNumber IN (
+                SELECT an2 FROM BookEntity b2 JOIN b2.authorNumbers an2
+                WHERE b2 = b
+            )
+        )
+        """)
+    List<AuthorEntity> findCoAuthorsByAuthorNumber(String authorNumber);
 
     @Query("SELECT a FROM AuthorEntity a WHERE a.name.name = :name")
     List<AuthorEntity> searchByNameName(String name);

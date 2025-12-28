@@ -87,7 +87,7 @@ public class BookServiceImpl implements BookService {
 		final String title = bookViewAMQP.getTitle();
 		final String photoURI = null;
 		final String genre = bookViewAMQP.getGenre();
-		final List<Long> authorIds = bookViewAMQP.getAuthorIds();
+		final List<String> authorIds = bookViewAMQP.getAuthorIds();
 
 		Book bookCreated = create(isbn, title, description, photoURI, genre, authorIds);
 
@@ -99,18 +99,18 @@ public class BookServiceImpl implements BookService {
 						 String description,
 						 String photoURI,
 						 String genreName,
-						 List<Long> authorIds) {
+						 List<String> authorIds) {
 
 		if (bookRepository.findByIsbn(isbn).isPresent()) {
 			throw new ConflictException("Book with ISBN " + isbn + " already exists");
 		}
 
-		List<Author> authors = getAuthors(authorIds);
+		// List<Author> authors = getAuthors(authorIds);
 
 		final Genre genre = genreRepository.findByString(String.valueOf(genreName))
 				.orElseThrow(() -> new NotFoundException("Genre not found"));
 
-		Book newBook = new Book(isbn, title, description, genre, authors, photoURI);
+		Book newBook = new Book(isbn, title, description, genre, authorIds, photoURI);
 
 		Book savedBook = bookRepository.save(newBook);
 
@@ -123,9 +123,9 @@ public class BookServiceImpl implements BookService {
 
         var book = findByIsbn(request.getIsbn());
         if(request.getAuthors()!= null) {
-            List<Long> authorNumbers = request.getAuthors();
+            List<String> authorNumbers = request.getAuthors();
             List<Author> authors = new ArrayList<>();
-            for (Long authorNumber : authorNumbers) {
+            for (String authorNumber : authorNumbers) {
                 Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber);
                 if (temp.isEmpty()) {
                     continue;
@@ -255,10 +255,10 @@ public class BookServiceImpl implements BookService {
         return isbnProviderFactory.getProvider().searchByTitle(title);
     }
 
-	private List<Author> getAuthors(List<Long> authorNumbers) {
+	private List<Author> getAuthors(List<String> authorNumbers) {
 
 		List<Author> authors = new ArrayList<>();
-		for (Long authorNumber : authorNumbers) {
+		for (String authorNumber : authorNumbers) {
 
 			Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber);
 			if (temp.isEmpty()) {

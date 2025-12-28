@@ -20,7 +20,8 @@ public abstract class BookViewMapper extends MapperInterface {
     @Mapping(target = "isbn", source = "isbn")
     @Mapping(target = "description", source = "description")
     @Mapping(target = "title", source = "title")
-    @Mapping(target = "authors", expression = "java(mapAuthors(book.getAuthors()))")
+    //@Mapping(target = "authors", expression = "java(mapAuthors(book.getAuthors()))")
+    @Mapping(target = "authors", source = "authors")
     @Mapping(target = "_links", expression = "java(mapLinks(book))")
     public abstract BookView toBookView(Book book);
 
@@ -53,7 +54,7 @@ public abstract class BookViewMapper extends MapperInterface {
                 .map(author -> {
                     String authorUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                             .path("/api/authors/")
-                            .path(author.getAuthorNumber().toString())
+                            .path(author)
                             .toUriString();
                     Map<String, String> authorLink = new HashMap<>();
                     authorLink.put("href", authorUri);

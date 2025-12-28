@@ -21,7 +21,6 @@ public class GenreServiceImpl implements GenreService {
 
     private final GenreRepository genreRepository;
 
-
     public Optional<Genre> findByString(String name) {
         return genreRepository.findByString(name);
     }

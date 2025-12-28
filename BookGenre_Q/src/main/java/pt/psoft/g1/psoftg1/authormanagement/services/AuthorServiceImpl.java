@@ -31,7 +31,7 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public Optional<Author> findByAuthorNumber(final Long authorNumber) {
+    public Optional<Author> findByAuthorNumber(final String authorNumber) {
         return authorRepository.findByAuthorNumber(authorNumber);
     }
 
@@ -71,6 +71,7 @@ public class AuthorServiceImpl implements AuthorService {
         final String bio = authorViewAMQP.getBio();
         final String photoURI = null;
         final Author author = new Author(name, bio, photoURI);
+        author.setAuthorNumber(authorViewAMQP.getAuthorNumber());
         return authorRepository.save(author);
     }
 
@@ -129,16 +130,11 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public List<Book> findBooksByAuthorNumber(Long authorNumber){
+    public List<Book> findBooksByAuthorNumber(String authorNumber){
         return bookRepository.findBooksByAuthorNumber(authorNumber);
     }
-
     @Override
-    public List<Author> findCoAuthorsByAuthorNumber(Long authorNumber) {
-        return authorRepository.findCoAuthorsByAuthorNumber(authorNumber);
-    }
-    @Override
-    public Optional<Author> removeAuthorPhoto(Long authorNumber, long desiredVersion) {
+    public Optional<Author> removeAuthorPhoto(String authorNumber, long desiredVersion) {
         Author author = authorRepository.findByAuthorNumber(authorNumber)
                 .orElseThrow(() -> new NotFoundException("Cannot find reader"));
 

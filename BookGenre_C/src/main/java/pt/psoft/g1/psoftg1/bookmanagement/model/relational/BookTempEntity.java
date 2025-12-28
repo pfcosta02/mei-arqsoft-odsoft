@@ -28,6 +28,7 @@ public class BookTempEntity {
     @Version
     private Long version;
 
+    @Getter
     @Embedded
     private IsbnEntity isbn;
 
@@ -36,9 +37,11 @@ public class BookTempEntity {
     @NotNull
     private TitleEntity title;
 
+    @Getter
     @Embedded
     private DescriptionEntity description;
 
+    @Getter
     @NotNull
     private String genre;
 
@@ -73,5 +76,11 @@ public class BookTempEntity {
         this.description = description;
         this.genre = genre;
         this.authorNumbers = authorNumbers;
+    }
+
+    public boolean isReadyToFinalize() {
+        return genre != null
+                && authorNumbers != null
+                && !authorNumbers.isEmpty();
     }
 }

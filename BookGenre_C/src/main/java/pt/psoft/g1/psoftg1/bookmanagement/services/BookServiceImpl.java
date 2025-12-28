@@ -11,12 +11,11 @@ import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.services.CreateAuthorRequest;
 import pt.psoft.g1.psoftg1.bookmanagement.api.BookViewAMQP;
 import pt.psoft.g1.psoftg1.bookmanagement.model.*;
+import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.AuthorTempCreatedDTO;
+import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.BookFinalizedDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.BookTempCreatedAuthorsDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.BookTempCreatedDTO;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookTempEntity;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.DescriptionEntity;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.IsbnEntity;
-import pt.psoft.g1.psoftg1.bookmanagement.model.relational.TitleEntity;
+import pt.psoft.g1.psoftg1.bookmanagement.model.relational.*;
 import pt.psoft.g1.psoftg1.bookmanagement.publishers.BookEventsPublisher;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import lombok.RequiredArgsConstructor;
@@ -214,6 +213,56 @@ public class BookServiceImpl implements BookService {
 		return book;
 	}
 
+	@Transactional
+	@Override
+	public void updateTemp(AuthorTempCreatedDTO authorTempCreatedDTO) {
+		// Encontrar BookTemp pelo ISBN (aggregateId)
+		BookTempEntity bookTemp = bookTempRepository
+				.findByIsbn(authorTempCreatedDTO.getIsbn())
+				.orElseThrow(() ->
+						new IllegalStateException(
+								"BookTemp not found for ISBN " + authorTempCreatedDTO.getIsbn()
+						)
+				);
+
+		// Atualizar authorNumbers
+		bookTemp.getAuthorNumbers().addAll(authorTempCreatedDTO.getAuthorNumber());
+
+		bookTempRepository.save(bookTemp);
+
+		//Criar o Genre
+		Genre genre = new Genre(bookTemp.getGenre());
+		genre.setPk(idGenerator.generateId());
+		genreRepository.save(genre);
+
+		// Verificar se a saga pode avançar
+		if (bookTemp.isReadyToFinalize()) {
+			Book book = fromBookTempEntitytoBook(bookTemp);
+			bookRepository.save(book);
+
+			BookFinalizedDTO bookFinalizedDTO = new BookFinalizedDTO(
+					book.getIsbn().getIsbn(),
+					book.getAuthors()
+			);
+
+			try {
+				String payload = objectMapper.writeValueAsString(bookFinalizedDTO);
+
+				OutboxEvent event = new OutboxEvent();
+				event.setAggregateId(book.getIsbn().getIsbn());
+				event.setEventType(BookEvents.BOOK_FINALIZED);
+				event.setPayload(payload);
+				event.setStatus(OutboxEnum.NEW);
+
+				outboxEventRepository.save(event);
+			} catch (Exception e) {
+				throw new RuntimeException("Erro ao salvar evento Outbox", e);
+			}
+			// Importante: remover o temporário
+			bookTempRepository.delete(bookTemp);
+		}
+	}
+
 	@Override
 	public Book save(Book book) {
 		return this.bookRepository.save(book);
@@ -240,20 +289,19 @@ public class BookServiceImpl implements BookService {
 				.orElseThrow(() -> new NotFoundException(Book.class, isbn));
 	}
 
-	private List<Author> getAuthors(List<String> authorNumbers) {
+	protected Book fromBookTempEntitytoBook(BookTempEntity bookTempEntity) {
 
-		List<Author> authors = new ArrayList<>();
-		for (String authorNumber : authorNumbers) {
+		final Genre genre = genreRepository.findByString(bookTempEntity.getGenre())
+				.orElseThrow(() -> new NotFoundException("Genre not found"));
 
-			Optional<Author> temp = authorRepository.findByAuthorNumber(authorNumber);
-			if (temp.isEmpty()) {
-				continue;
-			}
-
-			Author author = temp.get();
-			authors.add(author);
-		}
-
-		return authors;
+		Book book = new Book(
+				bookTempEntity.getIsbn().getIsbn(),
+				bookTempEntity.getTitle().getTitle(),
+				bookTempEntity.getDescription().getDescription(),
+				genre,
+				bookTempEntity.getAuthorNumbers(),
+				null
+		);
+		return book;
 	}
 }

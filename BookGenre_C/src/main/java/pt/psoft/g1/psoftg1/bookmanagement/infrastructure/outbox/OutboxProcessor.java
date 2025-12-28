@@ -43,9 +43,9 @@ public class OutboxProcessor {
                     case BookEvents.TEMP_BOOK_CREATED:
                         publisher.sendBookTempCreated(event.getPayload());
                         break;
-//                    case AuthorEvents.TEMP_AUTHOR_PERSISTED:
-//                        publisher.publishReaderPersistedEvent(event.getPayload());
-//                        break;
+                    case BookEvents.BOOK_FINALIZED:
+                        publisher.publishReaderPersistedEvent(event.getPayload());
+                        break;
                     default:
                         throw new IllegalArgumentException("Unknown event type: " + event.getEventType());
                 }

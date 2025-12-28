@@ -6,6 +6,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.AuthorTempCreatedDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.services.BookService;
 
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,28 @@ public class BookRabbitmqController {
         }
         catch(Exception ex) {
             System.out.println(" [x] Exception receiving book event from AMQP: '" + ex.getMessage() + "'");
+        }
+    }
+
+    @RabbitListener(queues = "#{autoDeleteQueue_Author_Temp_Created.name}")
+    public void receiveAuthorTempCreatedMsg(Message msg) {
+
+        try {
+            String jsonReceived = new String(msg.getBody(), StandardCharsets.UTF_8);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            AuthorTempCreatedDTO authorTempCreatedDTO = objectMapper.readValue(jsonReceived, AuthorTempCreatedDTO.class);
+
+            System.out.println(" [x] Received Author Temp Created by AMQP: " + msg + ".");
+            try {
+                bookService.updateTemp(authorTempCreatedDTO);
+                System.out.println(" [x] Book updated with authorNumbers from AMQP: " + msg + ".");
+            } catch (Exception e) {
+                System.out.println(" [x] Something went wrong." + e.getMessage());
+            }
+        }
+        catch(Exception ex) {
+            System.out.println(" [x] Exception receiving author event from AMQP: '" + ex.getMessage() + "'");
         }
     }
 

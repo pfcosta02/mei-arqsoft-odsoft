@@ -9,6 +9,8 @@ public interface BookEventsPublisher {
 
     void sendBookTempCreated(String payload); // temporario
 
+    void sendBookFinalized(String payload);
+
     BookViewAMQP sendBookUpdated(Book book, Long currentVersion);
 
     BookViewAMQP sendBookDeleted(Book book, Long currentVersion);

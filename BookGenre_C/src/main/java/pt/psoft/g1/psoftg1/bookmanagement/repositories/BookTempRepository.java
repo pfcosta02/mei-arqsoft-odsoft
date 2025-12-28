@@ -6,5 +6,6 @@ import java.util.Optional;
 
 public interface BookTempRepository {
     BookTempEntity save(BookTempEntity temp);
+    void delete(BookTempEntity temp);
     Optional<BookTempEntity> findByIsbn(String isbn);
 }

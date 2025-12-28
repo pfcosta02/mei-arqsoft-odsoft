@@ -23,6 +23,11 @@ public class BookTempRepositoryImpl implements BookTempRepository {
     }
 
     @Override
+    public void delete(BookTempEntity temp) {
+        bookTempRepository.delete(temp);
+    }
+
+    @Override
     public Optional<BookTempEntity> findByIsbn(String isbn) {
         return bookTempRepository.findByIsbn(isbn);
     }

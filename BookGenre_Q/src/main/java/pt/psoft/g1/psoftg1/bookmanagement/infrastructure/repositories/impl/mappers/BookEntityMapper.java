@@ -16,7 +16,9 @@ import pt.psoft.g1.psoftg1.shared.infrastructure.repositories.impl.mappers.Photo
 public interface BookEntityMapper
 {
     @Mapping(target="photoURI", source="photo")
+    @Mapping(target="authors", source="authorNumbers")
     Book toModel(BookEntity entity);
+    @Mapping(target="authorNumbers", source="authors")
     BookEntity toEntity(Book model);
 
     // default String map(Isbn value)

@@ -13,7 +13,7 @@ import java.util.Objects;
 public class Author extends EntityWithPhoto
 {
     // TODO: Nao deve ser suposto ser publico
-    public Long authorNumber;
+    public String authorNumber;
     private long version;
     private Name name;
     private Bio bio;
@@ -32,7 +32,7 @@ public class Author extends EntityWithPhoto
     }
 
     // Getters
-    public Long getAuthorNumber() { return authorNumber; }
+    public String getAuthorNumber() { return authorNumber; }
     public long getVersion() { return version; }
     public Name getName() { return name; }
     public Bio getBio() { return bio; }
@@ -46,6 +46,16 @@ public class Author extends EntityWithPhoto
         }
 
         this.name = name;
+    }
+
+    public void setAuthorNumber(String authorNumber)
+    {
+        if (authorNumber == null)
+        {
+            throw new IllegalArgumentException("Name cannot be null");
+        }
+
+        this.authorNumber = authorNumber;
     }
 
     public void setBio(Bio bio)

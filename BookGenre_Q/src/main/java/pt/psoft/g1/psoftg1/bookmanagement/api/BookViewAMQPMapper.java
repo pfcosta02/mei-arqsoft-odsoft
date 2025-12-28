@@ -16,14 +16,15 @@ public abstract class BookViewAMQPMapper extends MapperInterface {
     @Mapping(target = "description", source = "description")
     @Mapping(target = "title", source = "title")
     @Mapping(target = "genre", source = "genre")
-    @Mapping(target = "authorIds", expression = "java(mapAuthors(book.getAuthors()))")
+    //    @Mapping(target = "authorIds", expression = "java(mapAuthors(book.getAuthors()))")
+    @Mapping(target = "authorIds", source = "authors")
     @Mapping(target = "version", source = "version")
 
     public abstract BookViewAMQP toBookViewAMQP(Book book);
 
     public abstract List<BookViewAMQP> toBookViewAMQP(List<Book> bookList);
 
-    protected List<Long> mapAuthors(List<Author> authors) {
-        return authors.stream().map(Author::getAuthorNumber).collect(Collectors.toList());
-    }
+//    protected List<Long> mapAuthors(List<Author> authors) {
+//        return authors.stream().map(Author::getAuthorNumber).collect(Collectors.toList());
+//    }
 }

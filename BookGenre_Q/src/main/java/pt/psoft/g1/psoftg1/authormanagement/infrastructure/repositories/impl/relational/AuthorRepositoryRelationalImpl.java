@@ -27,7 +27,7 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     private final AuthorEntityMapper authorEntityMapper;
 
     @Override
-    public Optional<Author> findByAuthorNumber(Long authorNumber)
+    public Optional<Author> findByAuthorNumber(String authorNumber)
     {
         Optional<AuthorEntity> entityOpt = authoRepo.findByAuthorNumber(authorNumber);
         if (entityOpt.isPresent())
@@ -92,17 +92,5 @@ public class AuthorRepositoryRelationalImpl implements AuthorRepository
     public void delete(Author author)
     {
         authoRepo.delete(authorEntityMapper.toEntity(author));
-    }
-
-    @Override
-    public List<Author> findCoAuthorsByAuthorNumber(Long authorNumber)
-    {
-        List<Author> authors = new ArrayList<>();
-        for (AuthorEntity a: authoRepo.findCoAuthorsByAuthorNumber(authorNumber))
-        {
-            authors.add(authorEntityMapper.toModel(a));
-        }
-
-        return authors;
     }
 }

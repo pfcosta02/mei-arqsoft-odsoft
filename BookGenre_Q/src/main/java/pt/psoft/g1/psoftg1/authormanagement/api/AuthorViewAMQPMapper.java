@@ -8,9 +8,9 @@ import pt.psoft.g1.psoftg1.shared.api.MapperInterface;
 @Mapper(componentModel = "spring")
 public abstract class AuthorViewAMQPMapper extends MapperInterface {
 
+    @Mapping(target = "authorNumber", source = "authorNumber")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "bio", source = "bio")
     @Mapping(target = "version", expression = "java(author.getVersion())")
-
     public abstract AuthorViewAMQP toAuthorViewAMQP(Author author);
 }

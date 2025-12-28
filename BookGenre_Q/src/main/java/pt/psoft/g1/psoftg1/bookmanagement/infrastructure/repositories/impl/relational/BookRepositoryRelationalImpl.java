@@ -102,7 +102,7 @@ public class BookRepositoryRelationalImpl implements BookRepository
     }
 
     @Override
-    public List<Book> findBooksByAuthorNumber(Long authorNumber)
+    public List<Book> findBooksByAuthorNumber(String authorNumber)
     {
         List<Book> books = new ArrayList<>();
         for (BookEntity b: bookRepo.findBooksByAuthorNumber(authorNumber))
@@ -173,29 +173,29 @@ public class BookRepositoryRelationalImpl implements BookRepository
         // Set the managed GenreEntity on the BookEntity
         entity.setGenre(genreEntity);
 
-        // Prepare a list to hold managed AuthorEntity instances
-        List<AuthorEntity> authors = new ArrayList<>();
-
-        // For each author in the Book model
-        for (var author : book.getAuthors())
-        {
-            // Retrieve the corresponding Author model from the repository by author number
-            //TODO: temos aqui uma questao, o searchByNameName retorna uma lista de nomes, entao pode nao ser o autor correto (no caso de haver varios autores com o mesmo nome)
-            Author auth  = authorRepo.searchByNameName(author.getName().getName()).get(0);
-            if (auth == null)
-            {
-                throw new RuntimeException("Author not found");
-            }
-
-            // Get a managed reference to the existing AuthorEntity by its author number
-            AuthorEntity authorEntity = em.getReference(AuthorEntity.class, auth.getAuthorNumber());
-
-            // Add the managed AuthorEntity to the list
-            authors.add(authorEntity);
-        }
+//        // Prepare a list to hold managed AuthorEntity instances
+//        List<AuthorEntity> authors = new ArrayList<>();
+//
+//        // For each author in the Book model
+//        for (var author : book.getAuthors())
+//        {
+//            // Retrieve the corresponding Author model from the repository by author number
+//            //TODO: temos aqui uma questao, o searchByNameName retorna uma lista de nomes, entao pode nao ser o autor correto (no caso de haver varios autores com o mesmo nome)
+//            Author auth  = authorRepo.searchByNameName(author.getName().getName()).get(0);
+//            if (auth == null)
+//            {
+//                throw new RuntimeException("Author not found");
+//            }
+//
+//            // Get a managed reference to the existing AuthorEntity by its author number
+//            AuthorEntity authorEntity = em.getReference(AuthorEntity.class, auth.getAuthorNumber());
+//
+//            // Add the managed AuthorEntity to the list
+//            authors.add(authorEntity);
+//        }
 
         // Associate all managed AuthorEntity objects with the BookEntity
-        entity.setAuthors(authors);
+        entity.setAuthors(book.getAuthors());
 
         // Persist the BookEntity and return the saved Book as a domain model
         BookEntity saved = bookRepo.save(entity);

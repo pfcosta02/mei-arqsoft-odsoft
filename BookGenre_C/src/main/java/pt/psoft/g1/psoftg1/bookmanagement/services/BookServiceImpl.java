@@ -240,17 +240,20 @@ public class BookServiceImpl implements BookService {
 			Book book = fromBookTempEntitytoBook(bookTemp);
 			bookRepository.save(book);
 
-			BookFinalizedDTO bookFinalizedDTO = new BookFinalizedDTO(
+			BookViewAMQP bookViewAMQP = new BookViewAMQP(
 					book.getIsbn().getIsbn(),
-					book.getAuthors()
+					book.getTitle().getTitle(),
+					book.getDescription().getDescription(),
+					book.getAuthors(),
+					book.getGenre().getGenre()
 			);
 
 			try {
-				String payload = objectMapper.writeValueAsString(bookFinalizedDTO);
+				String payload = objectMapper.writeValueAsString(bookViewAMQP);
 
 				OutboxEvent event = new OutboxEvent();
 				event.setAggregateId(book.getIsbn().getIsbn());
-				event.setEventType(BookEvents.BOOK_FINALIZED);
+				event.setEventType(BookEvents.BOOK_CREATED);
 				event.setPayload(payload);
 				event.setStatus(OutboxEnum.NEW);
 

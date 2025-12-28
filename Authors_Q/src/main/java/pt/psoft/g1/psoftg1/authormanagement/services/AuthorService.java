@@ -12,7 +12,7 @@ public interface AuthorService {
 
     Iterable<Author> findAll();
 
-    Optional<Author> findByAuthorNumber(Long authorNumber);
+    Optional<Author> findByAuthorNumber(String authorNumber);
 
     List<Author> findByName(String name);
 
@@ -26,9 +26,9 @@ public interface AuthorService {
 
     List<AuthorLendingView> findTopAuthorByLendings();
 
-    List<Book> findBooksByAuthorNumber(Long authorNumber);
+    List<Book> findBooksByAuthorNumber(String authorNumber);
 
-    List<Author> findCoAuthorsByAuthorNumber(Long authorNumber);
+    List<Author> findCoAuthorsByAuthorNumber(String authorNumber);
 
-    Optional<Author> removeAuthorPhoto(Long authorNumber, long desiredVersion);
+    Optional<Author> removeAuthorPhoto(String authorNumber, long desiredVersion);
 }

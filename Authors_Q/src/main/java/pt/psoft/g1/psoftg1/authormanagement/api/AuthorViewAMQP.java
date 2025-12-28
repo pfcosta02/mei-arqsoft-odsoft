@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 @Schema(description = "A Author form AMQP communication")
 @NoArgsConstructor
 public class AuthorViewAMQP {
+
+    @NotNull
+    private String authorNumber;
+
     @NotNull
     private String name;
 

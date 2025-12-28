@@ -16,10 +16,10 @@ import org.springframework.context.annotation.Profile;
 public class AuthorEntity extends EntityWithPhotoEntity
 {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    //@GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "AUTHOR_NUMBER")
     @Getter
-    private Long authorNumber;
+    private String authorNumber;
 
     @Version
     private Long version;
@@ -47,4 +47,7 @@ public class AuthorEntity extends EntityWithPhotoEntity
     // Setters
     public void setName(NameEntity name) { this.name = name; }
     public void setBio(BioEntity bio) { this.bio = bio; }
+    public void setAuthorNumber(String authorNumber) {
+        this.authorNumber = authorNumber;
+    }
 }

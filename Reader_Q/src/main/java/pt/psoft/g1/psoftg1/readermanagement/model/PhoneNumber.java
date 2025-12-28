@@ -1,16 +1,19 @@
 package pt.psoft.g1.psoftg1.readermanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class PhoneNumber
 {
     private String phoneNumber;
 
-    public PhoneNumber(String phoneNumber)
-    {
+    @JsonCreator
+    public PhoneNumber(@JsonProperty("phoneNumber") String phoneNumber) {
         setPhoneNumber(phoneNumber);
     }
 
     // Setter
-    private void setPhoneNumber(String phoneNumber)
+    public void setPhoneNumber(String phoneNumber)
     {
         if (phoneNumber == null || phoneNumber.isBlank())
         {

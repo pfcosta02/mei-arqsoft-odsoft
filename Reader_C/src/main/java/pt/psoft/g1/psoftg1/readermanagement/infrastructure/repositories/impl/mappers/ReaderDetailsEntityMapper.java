@@ -23,6 +23,7 @@ public interface ReaderDetailsEntityMapper
     @Mapping(target = "marketingConsent", source = "marketingConsent")
     @Mapping(target = "thirdPartySharingConsent", source = "thirdPartySharingConsent")
     @Mapping(target = "photo", source = "photo")
+    @Mapping(target = "version", source = "version")
     ReaderDetailsEntity toEntity(ReaderDetails model);
 
     @Mapping(target = "phoneNumber", source = "phoneNumber", qualifiedByName = "toPhoneNumberEntity")
@@ -56,7 +57,6 @@ public interface ReaderDetailsEntityMapper
         return value == null ? null : new BirthDate(value.getBirthDate().toString());
     }
 
-    @Named("toBirthDate")
     default BirthDate toBirthDate(String value)
     {
         return new BirthDate(value);
@@ -72,8 +72,7 @@ public interface ReaderDetailsEntityMapper
         return new ReaderNumber(value);
     }
 
-    @Named("toPhoneNumber")
-    default PhoneNumber tPhoneNumber(String value)
+    default PhoneNumber toPhoneNumber(String value)
     {
         return value == null ? null : new PhoneNumber(value);
     }

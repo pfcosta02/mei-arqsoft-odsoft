@@ -21,7 +21,6 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
     @Setter
     private String id;
 
-    @Embedded
     @Getter
     @Setter
     @OneToOne

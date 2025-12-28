@@ -8,7 +8,6 @@ import java.util.List;
 
 @Data
 @Schema(description = "A Reader form AMQP communication")
-@NoArgsConstructor
 public class ReaderViewAMQP {
     private String email;
     private String fullName;

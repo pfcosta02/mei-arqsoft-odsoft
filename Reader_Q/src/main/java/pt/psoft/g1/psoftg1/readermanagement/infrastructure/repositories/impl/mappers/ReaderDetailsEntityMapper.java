@@ -57,7 +57,6 @@ public interface ReaderDetailsEntityMapper
         return value == null ? null : new BirthDate(value.getBirthDate().toString());
     }
 
-    @Named("toBirthDate")
     default BirthDate toBirthDate(String value)
     {
         return new BirthDate(value);
@@ -73,8 +72,7 @@ public interface ReaderDetailsEntityMapper
         return new ReaderNumber(value);
     }
 
-    @Named("toPhoneNumber")
-    default PhoneNumber tPhoneNumber(String value)
+    default PhoneNumber toPhoneNumber(String value)
     {
         return value == null ? null : new PhoneNumber(value);
     }

@@ -13,7 +13,7 @@ public class FeatureService {
     private static final Logger logger = LoggerFactory.getLogger(FeatureService.class);
 
     private int rolloutPercentage = 0;
-    private final Set<String> betaUsers = Set.of("maria@gmail.com", "user2");
+    private final Set<String> betaUsers = Set.of("admin@gmail.com");
     private boolean killSwitch = false;
 
     // DARK LAUNCH: Feature executa mas não mostra ao user

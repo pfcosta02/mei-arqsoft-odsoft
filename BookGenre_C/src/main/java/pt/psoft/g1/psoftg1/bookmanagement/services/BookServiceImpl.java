@@ -131,6 +131,7 @@ public class BookServiceImpl implements BookService {
 	}
 
 	@Override
+	@Transactional
 	public Book create(BookViewAMQP bookViewAMQP) {
 
 		final String isbn = bookViewAMQP.getIsbn();
@@ -145,12 +146,12 @@ public class BookServiceImpl implements BookService {
 		return bookCreated;
 	}
 
-	private Book create( String isbn,
-						 String title,
-						 String description,
-						 String photoURI,
-						 String genreName,
-						 List<String> authorIds) {
+    protected Book create(String isbn,
+                          String title,
+                          String description,
+                          String photoURI,
+                          String genreName,
+                          List<String> authorIds) {
 
 		if (bookRepository.findByIsbn(isbn).isPresent()) {
 			throw new ConflictException("Book with ISBN " + isbn + " already exists");
@@ -238,22 +239,19 @@ public class BookServiceImpl implements BookService {
 		// Verificar se a saga pode avançar
 		if (bookTemp.isReadyToFinalize()) {
 			Book book = fromBookTempEntitytoBook(bookTemp);
-			bookRepository.save(book);
+			Book savedBook = bookRepository.save(book);
 
-			BookViewAMQP bookViewAMQP = new BookViewAMQP(
+			BookFinalizedDTO bookFinalizedDTO = new BookFinalizedDTO(
 					book.getIsbn().getIsbn(),
-					book.getTitle().getTitle(),
-					book.getDescription().getDescription(),
-					book.getAuthors(),
-					book.getGenre().getGenre()
+					book.getAuthors()
 			);
 
 			try {
-				String payload = objectMapper.writeValueAsString(bookViewAMQP);
+				String payload = objectMapper.writeValueAsString(bookFinalizedDTO);
 
 				OutboxEvent event = new OutboxEvent();
 				event.setAggregateId(book.getIsbn().getIsbn());
-				event.setEventType(BookEvents.BOOK_CREATED);
+				event.setEventType(BookEvents.BOOK_FINALIZED);
 				event.setPayload(payload);
 				event.setStatus(OutboxEnum.NEW);
 
@@ -261,6 +259,11 @@ public class BookServiceImpl implements BookService {
 			} catch (Exception e) {
 				throw new RuntimeException("Erro ao salvar evento Outbox", e);
 			}
+
+			if(savedBook != null) {
+				bookEventsPublisher.sendBookCreated(savedBook);
+			}
+
 			// Importante: remover o temporário
 			bookTempRepository.delete(bookTemp);
 		}

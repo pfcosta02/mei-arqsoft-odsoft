@@ -6,5 +6,6 @@ import java.util.Optional;
 
 public interface AuthorTempRepository {
     AuthorTempEntity save(AuthorTempEntity authorTempEntity);
-    Optional<AuthorTempEntity> findByIsbn(String isbn);
+    void delete(AuthorTempEntity authorTempEntity);
+    Optional<AuthorTempEntity> findByAuthorNumber(String authorNumber);
 }

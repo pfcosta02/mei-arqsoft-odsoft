@@ -38,14 +38,17 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
     @Query("SELECT b FROM BookEntity b WHERE b.title.title LIKE %:title%")
     List<BookEntity> findByTitle(@Param("title") String title);
 
-    @Query(value =
-            "SELECT b.* " +
-                    "FROM Book b " +
-                    "JOIN BOOK_AUTHORS on b.pk = BOOK_AUTHORS.BOOK_PK " +
-                    "JOIN AUTHOR a on BOOK_AUTHORS.AUTHORS_AUTHOR_NUMBER = a.AUTHOR_NUMBER " +
-                    "WHERE a.NAME LIKE :authorName"
-            , nativeQuery = true)
-    List<BookEntity> findByAuthorName(@Param("authorName") String authorName);
+    @Query("""
+            SELECT b
+            FROM BookEntity b
+            JOIN b.authorNumbers an
+            WHERE an IN (
+                SELECT a.authorNumber
+                FROM AuthorEntity a
+                WHERE a.name.name LIKE %:name%
+            )
+        """)
+    List<BookEntity> findByAuthorName(@Param("name") String name);
 
     @Query("""
             SELECT b

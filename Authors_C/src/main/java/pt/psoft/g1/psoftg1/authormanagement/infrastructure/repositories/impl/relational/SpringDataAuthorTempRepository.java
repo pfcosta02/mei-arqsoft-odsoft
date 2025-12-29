@@ -11,6 +11,6 @@ import java.util.Optional;
 
 public interface SpringDataAuthorTempRepository extends CrudRepository<AuthorTempEntity, String> {
 
-    @Query("SELECT a FROM AuthorTempEntity a where a.isbn = :isbn")
-    Optional<AuthorTempEntity> findByIsbn(@Param("isbn") @NotNull String isbn);
+    @Query("SELECT a FROM AuthorTempEntity a where a.authorNumber = :authorNumber")
+    Optional<AuthorTempEntity> findByAuthorNumber(@Param("authorNumber") @NotNull String authorNumber);
 }

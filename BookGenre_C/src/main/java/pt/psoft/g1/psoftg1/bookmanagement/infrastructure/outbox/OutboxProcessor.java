@@ -31,21 +31,12 @@ public class OutboxProcessor {
             {
                 switch (event.getEventType())
                 {
-                    case BookEvents.BOOK_CREATED:
-                        publisher.publishBookCreatedEvent(event.getPayload());
-                        break;
-//                    case BookEvents.BOOK_UPDATED:
-//                        publisher.publishBookUpdatedEvent(event.getPayload());
-//                        break;
-//                    case BookEvents.BOOK_DELETED:
-//                        publisher.publishBookDeletedEvent(event.getPayload());
-//                        break;
                     case BookEvents.TEMP_BOOK_CREATED:
                         publisher.sendBookTempCreated(event.getPayload());
                         break;
-//                    case BookEvents.BOOK_FINALIZED:
-//                        publisher.publishReaderPersistedEvent(event.getPayload());
-//                        break;
+                    case BookEvents.BOOK_FINALIZED:
+                        publisher.sendBookFinalized(event.getPayload());
+                        break;
                     default:
                         throw new IllegalArgumentException("Unknown event type: " + event.getEventType());
                 }

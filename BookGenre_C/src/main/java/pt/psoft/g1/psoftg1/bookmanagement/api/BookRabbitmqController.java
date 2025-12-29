@@ -40,7 +40,7 @@ public class BookRabbitmqController {
         }
     }
 
-    @RabbitListener(queues = "#{autoDeleteQueue_Author_Temp_Created.name}")
+    @RabbitListener(queues = "#{autoDeleteQueue_Authors_Temp_Created.name}")
     public void receiveAuthorTempCreatedMsg(Message msg) {
 
         try {

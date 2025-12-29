@@ -5,11 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorViewAMQP;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.AuthorTempCreatedDTO;
+import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookFinalizedDTO;
 import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookTempCreatedAuthorsDTO;
 import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookTempCreatedDTO;
 import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorTempEntity;
@@ -141,6 +143,31 @@ public class AuthorServiceImpl implements AuthorService {
         }
     }
 
+    @Transactional
+    @Override
+    public void updateTemp(BookFinalizedDTO bookFinalizedDTO) {
+        // Encontrar AuthorTemp pelo AuthorNumber
+        for(String authorNumber : bookFinalizedDTO.getAuthorNumbers()) {
+            AuthorTempEntity authorTemp = authorTempRepository
+                    .findByAuthorNumber(authorNumber)
+                    .orElseThrow(() ->
+                            new IllegalStateException(
+                                    "AuthorTemp not found for authorNumber " + authorNumber
+                            )
+                    );
+
+            Author author = fromAuthorTempEntitytoAuthor(authorTemp);
+            author.setAuthorNumber(authorNumber);
+            Author savedAuthor = authorRepository.save(author);
+
+            if( savedAuthor!=null ) {
+                authorEventsPublisher.sendAuthorCreated(savedAuthor);
+            }
+            // Importante: remover o temporário
+            authorTempRepository.delete(authorTemp);
+        }
+    }
+
     @Override
     public Author partialUpdate(final String authorNumber, final UpdateAuthorRequest request, final long desiredVersion) {
         // first let's check if the object exists so we don't create a new object with
@@ -206,6 +233,16 @@ public class AuthorServiceImpl implements AuthorService {
         Optional<Author> updatedAuthor = Optional.of(authorRepository.save(author));
         photoRepository.deleteByPhotoFile(photoFile);
         return updatedAuthor;
+    }
+
+    protected Author fromAuthorTempEntitytoAuthor(AuthorTempEntity authorTempEntity) {
+
+        Author author = new Author(
+                authorTempEntity.getName().getName(),
+                authorTempEntity.getBio().getBio(),
+                null
+        );
+        return author;
     }
 
 }

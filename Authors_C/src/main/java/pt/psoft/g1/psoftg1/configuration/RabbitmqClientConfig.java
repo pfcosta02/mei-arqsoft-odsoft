@@ -58,6 +58,11 @@ public  class RabbitmqClientConfig {
         return new AnonymousQueue();
     }
 
+    @Bean
+    public Queue autoDeleteQueue_Book_Finalized() {
+        return new AnonymousQueue();
+    }
+
     /* ========= Bindings ========= */
 
     @Bean
@@ -90,5 +95,13 @@ public  class RabbitmqClientConfig {
         return BindingBuilder.bind(autoDeleteQueue_Book_Temp_Created)
                 .to(new DirectExchange("Books.Events"))
                 .with(BookEvents.TEMP_BOOK_CREATED);
+    }
+
+    @Bean
+    public Binding bindBookFinalized(
+            Queue autoDeleteQueue_Book_Finalized) {
+        return BindingBuilder.bind(autoDeleteQueue_Book_Finalized)
+                .to(new DirectExchange("Books.Events"))
+                .with(BookEvents.BOOK_FINALIZED);
     }
 }

@@ -9,7 +9,7 @@ public interface BookEventsPublisher {
 
     void sendBookTempCreated(String payload); // temporario
 
-    void publishBookCreatedEvent(String payload);
+    void sendBookFinalized(String payload);
 
     BookViewAMQP sendBookUpdated(Book book, Long currentVersion);
 

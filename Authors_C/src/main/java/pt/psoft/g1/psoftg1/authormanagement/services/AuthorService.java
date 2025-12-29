@@ -3,6 +3,7 @@ package pt.psoft.g1.psoftg1.authormanagement.services;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorViewAMQP;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
+import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookFinalizedDTO;
 import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookTempCreatedDTO;
 
 import java.util.List;
@@ -21,6 +22,8 @@ public interface AuthorService {
     Author create(AuthorViewAMQP authorViewAMQP); // AMQP request
 
     void createTemp(BookTempCreatedDTO bookTempCreatedDTO); // SAGA
+
+    void updateTemp(BookFinalizedDTO bookFinalizedDTO);
 
     Author partialUpdate(String authorNumber, UpdateAuthorRequest resource, long desiredVersion);
 

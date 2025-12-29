@@ -47,7 +47,7 @@ public class BookEventsRabbitmqPublisherImpl implements BookEventsPublisher {
     }
 
     @Override
-    public void sendBookTempCreated(String  payload) {
+    public void sendBookTempCreated(String payload) {
 
         try
         {
@@ -64,15 +64,15 @@ public class BookEventsRabbitmqPublisherImpl implements BookEventsPublisher {
     }
 
     @Override
-    public void publishBookCreatedEvent(String  payload) {
+    public void sendBookFinalized(String payload) {
 
         try
         {
-            System.out.println(" [x] Publish Book Temp CREATED into AMQP.");
+            System.out.println(" [x] Publish Book FINALIZED into AMQP.");
             MessageProperties props = new MessageProperties();
             props.setContentType("application/json");
             Message message = new Message(payload.getBytes(StandardCharsets.UTF_8), props);
-            template.send(BookEvents.BOOK_CREATED, "", message);
+            template.send("Books.Events", BookEvents.BOOK_FINALIZED, message);
         }
         catch (Exception e)
         {

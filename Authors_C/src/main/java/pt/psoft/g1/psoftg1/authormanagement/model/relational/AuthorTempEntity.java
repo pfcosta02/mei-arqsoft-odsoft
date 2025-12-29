@@ -2,6 +2,7 @@ package pt.psoft.g1.psoftg1.authormanagement.model.relational;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 import pt.psoft.g1.psoftg1.authormanagement.model.Bio;
 import pt.psoft.g1.psoftg1.shared.model.relational.NameEntity;
 
@@ -14,9 +15,11 @@ public class AuthorTempEntity {
     private String authorNumber;
 
     @Embedded
+    @Getter
     private NameEntity name;
 
     @Embedded
+    @Getter
     private BioEntity bio;
 
     // correlation id

@@ -23,7 +23,12 @@ public class AuthorTempRepositoryImpl implements AuthorTempRepository {
     }
 
     @Override
-    public Optional<AuthorTempEntity> findByIsbn(String isbn) {
-        return authorTempRepository.findByIsbn(isbn);
+    public void delete(AuthorTempEntity authorTempEntity) {
+        authorTempRepository.delete(authorTempEntity);
+    }
+
+    @Override
+    public Optional<AuthorTempEntity> findByAuthorNumber(String authorNumber) {
+        return authorTempRepository.findByAuthorNumber(authorNumber);
     }
 }

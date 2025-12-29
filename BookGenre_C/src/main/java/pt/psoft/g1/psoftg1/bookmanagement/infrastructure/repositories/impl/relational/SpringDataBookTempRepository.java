@@ -10,6 +10,6 @@ import java.util.Optional;
 
 public interface SpringDataBookTempRepository extends CrudRepository<BookTempEntity, Long> {
 
-    @Query("SELECT b FROM BookTempEntity b where b.isbn = :isbn")
+    @Query("SELECT b FROM BookTempEntity b where b.isbn.isbn = :isbn")
     Optional<BookTempEntity> findByIsbn(@Param("isbn") @NotNull String isbn);
 }

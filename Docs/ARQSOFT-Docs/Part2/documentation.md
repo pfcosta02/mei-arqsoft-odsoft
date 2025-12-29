@@ -25,7 +25,7 @@ Nesta nova iteração, devem ser resolvidos os seguintes problemas:
 #### US1 - Tiago Oliveira (1201360)
 Como bibliotecário, quero criar um Livro, Autor e Género no mesmo processo, de forma atómica e consistente.
 
-**Documentação detalhada**: [US1.md](ADD/US1.md) - TODO
+**Documentação detalhada**: [US1.md](ADD/US1.md) 
 
 #### US2 - Pedro Costa (1201576)
 Como bibliotecário, quero criar um Leitor e o respetivo Utilizador no mesmo pedido, garantindo atomicidade entre os microserviços de autenticação e leitores.
@@ -35,7 +35,7 @@ Como bibliotecário, quero criar um Leitor e o respetivo Utilizador no mesmo ped
 #### US3 - Diogo Pereira (1221137)
 Como leitor, quando retorno um livro, quero deixar um comentário de texto sobre o livro e avaliá-lo, de forma atómica e consistente.
 
-**Documentação detalhada**: [US3.md](ADD/US3.md)
+**Documentação detalhada**: [US3.md](ADD/US3.md) - TODO
 
 ### Requisitos Não Funcionais
 

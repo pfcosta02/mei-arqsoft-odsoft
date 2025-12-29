@@ -1,0 +1,4 @@
+CREATE DATABASE authors_c;
+CREATE DATABASE authors_q;
+CREATE DATABASE bookgenre_c;
+CREATE DATABASE bookgenre_q;

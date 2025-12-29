@@ -82,7 +82,7 @@ public class BookServiceImpl implements BookService {
 	// NOVO METODO PARA SAGA
 	@Transactional
 	@Override
-	public Book create(CreateBookAuthorGenreRequest request, String isbn) {
+	public BookAuthorGenreDTO createSAGA(CreateBookAuthorGenreRequest request, String isbn) {
 
 		final String title = request.getTitle();
 		final String description = request.getDescription();
@@ -127,7 +127,9 @@ public class BookServiceImpl implements BookService {
 			throw new RuntimeException("Erro ao salvar evento Outbox", e);
 		}
 
-		return null;
+		List<String> authorNames = authors.stream().map(a -> a.getName()).toList();
+
+		return new BookAuthorGenreDTO(isbn, title, description, genreFromReq, authorNames);
 	}
 
 	@Override

@@ -14,7 +14,7 @@ import java.util.List;
  */
 public interface BookService {
     Book create(CreateBookRequest request, String isbn);
-    Book create(CreateBookAuthorGenreRequest request, String isbn); // SAGA
+    BookAuthorGenreDTO createSAGA(CreateBookAuthorGenreRequest request, String isbn); // SAGA
     Book create(BookViewAMQP bookViewAMQP); //AMQP request
     Book save(Book book);
     Book findByIsbn(String isbn);

@@ -141,7 +141,7 @@ public class BookServiceImpl implements BookService {
 		final String genre = bookViewAMQP.getGenre();
 		final List<String> authorIds = bookViewAMQP.getAuthorIds();
 
-		Book bookCreated = create(isbn, title, description, photoURI, genre, authorIds);
+		Book bookCreated = createFromAMQP(isbn, title, description, photoURI, genre, authorIds);
 
 		return bookCreated;
 	}
@@ -161,6 +161,33 @@ public class BookServiceImpl implements BookService {
 
 		final Genre genre = genreRepository.findByString(String.valueOf(genreName))
 				.orElseThrow(() -> new NotFoundException("Genre not found"));
+
+		Book newBook = new Book(isbn, title, description, genre, authorIds, photoURI);
+
+		Book savedBook = bookRepository.save(newBook);
+
+		return savedBook;
+	}
+
+	protected Book createFromAMQP(String isbn,
+						  String title,
+						  String description,
+						  String photoURI,
+						  String genreName,
+						  List<String> authorIds) {
+
+		if (bookRepository.findByIsbn(isbn).isPresent()) {
+			throw new ConflictException("Book with ISBN " + isbn + " already exists");
+		}
+
+		//List<Author> authors = getAuthors(authorIds);
+
+		final Genre genre = genreRepository.findByString(String.valueOf(genreName))
+				.orElseGet(() -> {
+					Genre g = new Genre(genreName);
+					g.setPk(idGenerator.generateId());
+					return genreRepository.save(g);
+				});
 
 		Book newBook = new Book(isbn, title, description, genre, authorIds, photoURI);
 

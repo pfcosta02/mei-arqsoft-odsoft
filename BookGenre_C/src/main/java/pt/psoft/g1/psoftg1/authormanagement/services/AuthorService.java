@@ -16,7 +16,7 @@ public interface AuthorService {
 
     List<Author> findByName(String name);
 
-    Author create(CreateAuthorRequest resource);
+//    Author create(CreateAuthorRequest resource);
 
     Author create(AuthorViewAMQP authorViewAMQP); // AMQP request
 

@@ -63,6 +63,79 @@ O padrão **CQRS** facilita a escalabilidade e organização dos serviços, sepa
 - **Transações Distribuídas (ACID)**: Usar 2PC para garantir atomicidade global (descartado por complexidade e impacto negativo na performance).
 - **Orquestração com Serviço Central**: Um serviço orquestrador controla todo o fluxo da criação (Maior visibilidade e controlo, mas introduz acoplamento e ponto único de falha)
 
+### Questões Pendentes
+- Como garantir que as compensações sejam tratadas corretamente em todos os serviços?
+- Como monitorizar o estado da Saga e detetar falhas rapidamente?
+- Como lidar com falhas no broker durante a publicação de eventos?
+
+---
+
+
+## Vista de processos
+
+## Vista de processos
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    actor Client
+    participant BooksGenreCmd
+    participant MessageBroker
+    participant AuthorsCmd
+    participant GenresCmd
+
+    %% --- 1. Client triggers saga ---
+    Client ->> BooksGenreCmd: POST books/saga {title, description, genreName, list(authorName, bio)}
+    activate BooksGenreCmd
+    BooksGenreCmd ->> BooksGenreCmd: create BookTemp
+    BooksGenreCmd ->> MessageBroker: sendBookTempCreated(isbn, list(authorName, bio))
+    BooksGenreCmd ->> Client: 202 Accepted
+    deactivate BooksGenreCmd
+
+    %% --- 2. AuthorsCmd reacts to BookRequested ---
+    MessageBroker ->> AuthorsCmd: sendBookTempCreated(isbn, list(authorName, bio))
+    activate AuthorsCmd
+    AuthorsCmd ->> AuthorsCmd: create AuthorTemp
+    alt Author creation success
+        AuthorsCmd ->> MessageBroker: sendAuthorTempCreated(list(authorNumber), isbn)
+    else Author creation failed
+        AuthorsCmd ->> MessageBroker: AuthorCreationFailed(bookId, reason)
+    end
+    deactivate AuthorsCmd
+
+    %% --- 4. BooksGenreCmd processes AuthorPendingCreated independently ---
+    MessageBroker ->> BooksGenreCmd: sendAuthorTempCreated(list(authorNumber), isbn)
+    activate BooksGenreCmd
+    BooksGenreCmd ->> BooksGenreCmd: updateTemp(list(authorNumber))
+    BooksGenreCmd ->> BooksGenreCmd: createGenre(temp.genre)
+    BooksGenreCmd ->> BooksGenreCmd: check if all steps done
+    alt All steps completed
+      BooksGenreCmd ->> MessageBroker: BookFinalized(bookId)
+    end
+    deactivate BooksGenreCmd
+
+    %% --- 6. AuthorsCmd finalizes pending author after BookFinalized ---
+    MessageBroker ->> AuthorsCmd: sendBookFinalized(isbn, list(authorNumbers))
+    activate AuthorsCmd
+    AuthorsCmd ->> AuthorsCmd: updateTemp(authorNumber)
+    deactivate AuthorsCmd
+
+    %% --- 8. COMPENSATION: Author creation failed ---
+    MessageBroker ->> BooksGenreCmd: AuthorCreationFailed(isbn, reason)
+    activate BooksGenreCmd
+    BooksGenreCmd ->> BooksGenreCmd: cancel Book(PENDING → CANCELLED)
+    BooksGenreCmd ->> MessageBroker: BookCancelled(bookId)
+    deactivate BooksGenreCmd
+
+    %% --- 10. AuthorsCmd rollback pending author ---
+    MessageBroker ->> AuthorsCmd: BookCancelled(bookId)
+    activate AuthorsCmd
+    AuthorsCmd ->> AuthorsCmd: deleteTemp(authorNumber)
+    deactivate AuthorsCmd
+```
+
+
 
 ### Tabela de Decisões de Design
 
@@ -76,9 +149,3 @@ O padrão **CQRS** facilita a escalabilidade e organização dos serviços, sepa
 | **Database** | Database per Service        | Shared Database         | Isolamento, autonomia, bounded contexts |
 | **Message Broker** | RabbitMQ                    | Kafka, Redis Streams    | Mais simples para use case, suporta routing flexível |
 | **Compensação** | Automática via Saga         | Manual                  | Reduz erros humanos, resposta rápida |
-
-
-### Questões Pendentes
-- Como garantir que as compensações sejam tratadas corretamente em todos os serviços?
-- Como monitorizar o estado da Saga e detetar falhas rapidamente?
-- Como lidar com falhas no broker durante a publicação de eventos?

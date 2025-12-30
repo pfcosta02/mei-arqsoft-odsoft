@@ -9,8 +9,8 @@ import pt.psoft.g1.psoftg1.usermanagement.model.User;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-24T12:10:11+0000",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.9 (Microsoft)"
+    date = "2025-12-30T16:59:33+0000",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.1 (Oracle Corporation)"
 )
 @Component
 public class UserViewMapperImpl extends UserViewMapper {

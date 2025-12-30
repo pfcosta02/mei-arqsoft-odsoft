@@ -10,8 +10,8 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-23T15:24:48+0000",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.9 (Microsoft)"
+    date = "2025-12-30T16:59:33+0000",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.1 (Oracle Corporation)"
 )
 @Component
 public class LendingViewMapperImpl extends LendingViewMapper {

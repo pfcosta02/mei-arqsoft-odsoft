@@ -63,3 +63,66 @@ O padrão **CQRS** facilita a escalabilidade e organização dos serviços, sepa
 - Como garantir que as compensações sejam tratadas corretamente em todos os serviços?
 - Como monitorizar o estado da Saga e detetar falhas rapidamente?
 - Como lidar com falhas no broker durante a publicação de eventos?
+
+---
+
+Vista de Processo
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    actor Client
+    participant Readers_C
+    participant MessageBroker
+    participant AuthNUsers_C
+
+    %% --- 1. Client triggers saga ---
+    Client ->> Readers_C: POST reader/saga {username, password, fullName, birthDate, phoneNumber, gdpr, marketing, thirdParty, list(interestList)}
+    activate Readers_C
+    Readers_C ->> Readers_C: create readerTemp
+    Readers_C ->> MessageBroker: publishReaderTempCreatedEvent(readerDetailsInfo)
+    Readers_C ->> Client: 202 Accepted
+    deactivate Readers_C
+
+    %% --- 2. AuthorsCmd reacts to BookRequested ---
+    MessageBroker ->> AuthNUsers_C: publishReaderTempCreatedEvent(readerDetailsInfo)
+    activate AuthNUsers_C
+    AuthNUsers_C ->> AuthNUsers_C: create UserTemp
+    alt User creation success
+      AuthNUsers_C ->> MessageBroker: publishUserTempCreatedEvent(readerId, username, password, name, version)
+    else User creation failed
+        AuthNUsers_C ->> MessageBroker: UserTempCreationFailed(readerId, reason)
+    end
+    deactivate AuthNUsers_C
+
+    %% --- 4. BooksGenreCmd processes AuthorPendingCreated independently ---
+    MessageBroker ->> Readers_C: publishUserTempCreatedEvent(readerId, username, password, name, version)
+    activate Readers_C
+    Readers_C ->> Readers_C: updateTemp(readerId, username, password, name, version)
+    Readers_C ->> Readers_C: createReader(temp.reader)
+    Readers_C ->> Readers_C: check if all steps done
+    alt All steps completed
+      Readers_C ->> MessageBroker: ReaderFinalized(readerId)
+    end
+    deactivate Readers_C
+
+    %% --- 6. AuthorsCmd finalizes pending author after BookFinalized ---
+    MessageBroker ->> AuthNUsers_C: publishReaderPersistedEvent(readerDetailsInfo)
+    activate AuthNUsers_C
+    AuthNUsers_C ->> AuthNUsers_C: updateTemp(userId)
+    deactivate AuthNUsers_C
+
+    %% --- 8. COMPENSATION: Author creation failed ---
+    MessageBroker ->> Readers_C: ReaderCreationFailed(readerId, reason)
+    activate Readers_C
+    Readers_C ->> Readers_C: cancel Reader(PENDING → CANCELLED)
+    Readers_C ->> MessageBroker: ReaderCancelled(readerId)
+    deactivate Readers_C
+
+    %% --- 10. AuthorsCmd rollback pending author ---
+    MessageBroker ->> AuthNUsers_C: ReaderCancelled(readerId)
+    activate AuthNUsers_C
+    AuthNUsers_C ->> AuthNUsers_C: deleteTemp(userId)
+    deactivate AuthNUsers_C
+```

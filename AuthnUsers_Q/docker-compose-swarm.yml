@@ -1,0 +1,51 @@
+services:
+  lmsauthusersquery:
+    build: .
+    image: lmsauthusersquery:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
+      - spring.datasource.url=jdbc:postgresql://postgresauthusersquery:5432/postgres
+      - spring.datasource.username=postgres
+      - spring.datasource.password=password
+      - spring.datasource.driver-class-name=org.postgresql.Driver
+      - spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+      - spring.jpa.hibernate.ddl-auto=update
+      - file.upload-dir=/tmp/uploads-psoft-g1-instance1
+      - spring.rabbitmq.host=rabbitmq
+      - spring.rabbitmq.port=5672
+      - spring.rabbitmq.username=guest
+      - spring.rabbitmq.password=guest
+    volumes:
+      - uploaded_files_volume_1:/tmp
+    deploy:
+      replicas: 2
+    networks:
+      - lms_network
+    ports:
+      - target: 8281      # server.port do Spring Boot
+        published: 8281   # porta externa
+        protocol: tcp
+        mode: ingress
+    depends_on:
+      - postgresauthusersquery
+
+  postgresauthusersquery:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    deploy:
+      replicas: 1
+    networks:
+      - lms_network
+    volumes:
+      - postgres_data_query:/var/lib/postgresql
+
+networks:
+  lms_network:
+    external: true
+
+volumes:
+  uploaded_files_volume_1:
+  postgres_data_query:

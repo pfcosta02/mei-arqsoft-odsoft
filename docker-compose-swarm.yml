@@ -2,69 +2,118 @@ version: "3.8"
 
 services:
 
-  # -------- BookGenre_C --------
-  bookgenre_c:
-    image: bookgenre_c:latest
-    build:
-      context: ./BookGenre_C
-    deploy:
-      replicas: 1
-    environment:
-      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
-    ports:
-      - "8083:8080"  # Porta externa do serviço
-    networks:
-      - lms_network
-    volumes:
-      - uploaded_files_bookgenre_c:/tmp
+#  # -------- BookGenre_C --------
+#  bookgenre_c:
+#    image: bookgenre_c:latest
+#    build:
+#      context: ./BookGenre_C
+#    deploy:
+#      replicas: 1
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
+#    ports:
+#      - "8083:8080"  # Porta externa do serviço
+#    networks:
+#      - lms_network
+#    volumes:
+#      - uploaded_files_bookgenre_c:/tmp
+#
+#  # -------- BookGenre_Q --------
+#  bookgenre_q:
+#    image: bookgenre_q:latest
+#    build:
+#      context: ./BookGenre_Q
+#    deploy:
+#      replicas: 1
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
+#    ports:
+#      - "8084:8080"
+#    networks:
+#      - lms_network
+#    volumes:
+#      - uploaded_files_bookgenre_q:/tmp
+#
+#  # -------- Authors_C --------
+#  authors_c:
+#    image: authors_c:latest
+#    build:
+#      context: ./Authors_C
+#    deploy:
+#      replicas: 1
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
+#    ports:
+#      - "8085:8080"
+#    networks:
+#      - lms_network
+#    volumes:
+#      - uploaded_files_authors_c:/tmp
+#
+#  # -------- Authors_Q --------
+#  authors_q:
+#    image: authors_q:latest
+#    build:
+#      context: ./Authors_Q
+#    deploy:
+#      replicas: 1
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
+#    ports:
+#      - "8086:8080"
+#    networks:
+#      - lms_network
+#    volumes:
+#      - uploaded_files_authors_q:/tmp
 
-  # -------- BookGenre_Q --------
-  bookgenre_q:
-    image: bookgenre_q:latest
-    build:
-      context: ./BookGenre_Q
-    deploy:
-      replicas: 1
-    environment:
-      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
-    ports:
-      - "8084:8080"
-    networks:
-      - lms_network
-    volumes:
-      - uploaded_files_bookgenre_q:/tmp
 
-  # -------- Authors_C --------
-  authors_c:
-    image: authors_c:latest
+  # -------- Readers_C --------
+  reader_c:
+    image: reader_c:latest
     build:
-      context: ./Authors_C
+      context: ./Reader_C
     deploy:
-      replicas: 1
+      replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8085:8080"
+      - "8087:8080"  # Porta externa do serviço
     networks:
       - lms_network
     volumes:
-      - uploaded_files_authors_c:/tmp
+      - uploaded_files_reader_c:/tmp
 
-  # -------- Authors_Q --------
-  authors_q:
-    image: authors_q:latest
+  # -------- Reader_Q --------
+  reader_q:
+    image: reader_q:latest
     build:
-      context: ./Authors_Q
+      context: ./Reader_Q
     deploy:
-      replicas: 1
+      replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8086:8080"
+      - "8088:8080"
     networks:
       - lms_network
     volumes:
-      - uploaded_files_authors_q:/tmp
+      - uploaded_files_reader_q:/tmp
+
+  # -------- AuthNUsers_C --------
+  authnusers_c:
+    image: authnusers_c:latest
+    build:
+      context: ./AuthnUsers_C
+    deploy:
+      replicas: 2
+    environment:
+      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
+    ports:
+      - "8089:8080"  # Porta externa do serviço
+    networks:
+      - lms_network
+    volumes:
+      - uploaded_files_authnusers_c:/tmp
 
   # -------- Postgres --------
   postgres:
@@ -102,8 +151,11 @@ networks:
     driver: overlay
 
 volumes:
-  uploaded_files_bookgenre_c:
-  uploaded_files_bookgenre_q:
-  uploaded_files_authors_c:
-  uploaded_files_authors_q:
+#  uploaded_files_bookgenre_c:
+#  uploaded_files_bookgenre_q:
+#  uploaded_files_authors_c:
+#  uploaded_files_authors_q:
+  uploaded_files_reader_c:
+  uploaded_files_reader_q:
+  uploaded_files_authnusers_c:
   postgres_data:

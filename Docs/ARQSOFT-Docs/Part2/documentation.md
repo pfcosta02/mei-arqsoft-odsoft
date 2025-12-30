@@ -55,3 +55,11 @@ Os clientes de software não devem ser afetados por eventuais alterações na AP
 O sistema deve aderir à estratégia SOA da empresa, nomeadamente API-led connectivity.
 
 ---
+
+## System-to-be
+
+### Vista Física
+
+#### Nível 2
+
+![VF_Level2.jpg](System-to-be/VF_Level2.jpg)

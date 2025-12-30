@@ -24,7 +24,7 @@ services:
     build:
       context: ./BookGenre_Q
     deploy:
-      replicas: 1
+      replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
@@ -56,7 +56,7 @@ services:
     build:
       context: ./Authors_Q
     deploy:
-      replicas: 1
+      replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
@@ -151,10 +151,10 @@ networks:
     driver: overlay
 
 volumes:
-#  uploaded_files_bookgenre_c:
-#  uploaded_files_bookgenre_q:
-#  uploaded_files_authors_c:
-#  uploaded_files_authors_q:
+  uploaded_files_bookgenre_c:
+  uploaded_files_bookgenre_q:
+  uploaded_files_authors_c:
+  uploaded_files_authors_q:
   uploaded_files_reader_c:
   uploaded_files_reader_q:
   uploaded_files_authnusers_c:

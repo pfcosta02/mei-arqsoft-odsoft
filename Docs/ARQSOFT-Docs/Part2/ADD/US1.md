@@ -83,7 +83,6 @@ sequenceDiagram
     participant BooksGenreCmd
     participant MessageBroker
     participant AuthorsCmd
-    participant GenresCmd
 
     %% --- 1. Client triggers saga ---
     Client ->> BooksGenreCmd: POST books/saga {title, description, genreName, list(authorName, bio)}

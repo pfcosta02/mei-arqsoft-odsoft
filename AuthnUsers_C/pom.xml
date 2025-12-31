@@ -22,6 +22,14 @@
 
 		<!-- automatically run annotation processors within the incremental compilation -->
 		<m2e.apt.activation>jdt_apt</m2e.apt.activation>
+
+		<spring-cloud-contract.version>4.1.4</spring-cloud-contract.version>
+		<PACT_FOLDER>./target/pacts</PACT_FOLDER>
+
+		<!-- Pact Broker Configuration -->
+		<pact.broker.url>http://localhost:9292</pact.broker.url>
+		<pact.broker.username>admin</pact.broker.username>
+		<pact.broker.password>admin</pact.broker.password>
 	</properties>
 
 	<dependencies>
@@ -141,7 +149,17 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
-        <!-- Spring Rabbit Test for mocking RabbitMQ components -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+
+		<!-- Spring Rabbit Test for mocking RabbitMQ components -->
         <dependency>
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-rabbit-test</artifactId>
@@ -168,6 +186,21 @@
             <version>1.0.14</version>
             <scope>test</scope>
         </dependency>
+
+		<!-- spring cloud contract test dependencies -->
+		<dependency>
+			<groupId>au.com.dius.pact.provider</groupId>
+			<artifactId>junit5</artifactId>
+			<version>4.6.15</version> <!-- Use the latest version -->
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -210,8 +243,34 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-
 		</plugins>
 	</build>
+
+	<profiles>
+		<!-- Profile to run only Pact Provider Tests -->
+		<profile>
+			<id>pact-provider-tests</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<includes>
+								<include>**/CDC/producer/**/*IT.java</include>
+							</includes>
+							<systemPropertyVariables>
+								<pact.broker.url>${pact.broker.url}</pact.broker.url>
+								<pact.broker.username>${pact.broker.username}</pact.broker.username>
+								<pact.broker.password>${pact.broker.password}</pact.broker.password>
+								<pact.verifier.publishResults>true</pact.verifier.publishResults>
+								<pact.provider.version>${project.version}</pact.provider.version>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

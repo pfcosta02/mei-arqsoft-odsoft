@@ -9,10 +9,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.readermanagement.api.ReaderViewAMQP;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 import pt.psoft.g1.psoftg1.shared.repositories.PhotoRepository;
+import pt.psoft.g1.psoftg1.usermanagement.model.FactoryUser;
 import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 
@@ -28,6 +30,8 @@ public class ReaderServiceImpl implements ReaderService {
     private final ReaderRepository readerRepo;
     private final UserRepository userRepo;
     private final ReaderMapper readerMapper;
+
+    private final FactoryUser _factoryUser;
 
     private final ForbiddenNameRepository forbiddenNameRepository;
     private final PhotoRepository photoRepository;
@@ -77,6 +81,17 @@ public class ReaderServiceImpl implements ReaderService {
         return readerRepo.save(rd);
     }
 
+    @Override
+    public void create(ReaderViewAMQP request) {
+        if (readerRepo.findByReaderNumber(request.getReaderNumber()).isPresent()) {
+            throw new ConflictException("ReaderDetails with number " + request.getReaderNumber() + " already exists");
+        }
+        ReaderDetails rd = new ReaderDetails(request.getReaderNumber(), _factoryUser);
+        rd.defineReader(request.getReaderUsername());
+
+        readerRepo.save(rd);
+    }
+
 
 
     @Override
@@ -111,15 +126,9 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
 
-    @Override
-    public Optional<ReaderDetails> findByReaderNumber(String readerNumber) {
-        return this.readerRepo.findByReaderNumber(readerNumber);
-    }
 
-    @Override
-    public List<ReaderDetails> findByPhoneNumber(String phoneNumber) {
-        return this.readerRepo.findByPhoneNumber(phoneNumber);
-    }
+
+
 
     @Override
     public Optional<ReaderDetails> findByUsername(final String username) {
@@ -132,16 +141,7 @@ public class ReaderServiceImpl implements ReaderService {
         return this.readerRepo.findAll();
     }
 
-    @Override
-    public List<ReaderDetails> findTopReaders(int minTop) {
-        if(minTop < 1) {
-            throw new IllegalArgumentException("Minimum top reader must be greater than 0");
-        }
 
-        Pageable pageableRules = PageRequest.of(0,minTop);
-        Page<ReaderDetails> page = readerRepo.findTopReaders(pageableRules);
-        return page.getContent();
-    }
 
     private List<String> getStringListFromStringList(List<String> interestList) {
         if(interestList == null) {
@@ -158,31 +158,6 @@ public class ReaderServiceImpl implements ReaderService {
         return genreList;
     }
 
-    @Override
-    public Optional<ReaderDetails> removeReaderPhoto(String readerNumber, long desiredVersion) {
-        ReaderDetails readerDetails = readerRepo.findByReaderNumber(readerNumber)
-                .orElseThrow(() -> new NotFoundException("Cannot find reader"));
 
-        String photoFile = readerDetails.getPhoto().getPhotoFile();
-        readerDetails.removePhoto(desiredVersion);
-        Optional<ReaderDetails> updatedReader = Optional.of(readerRepo.save(readerDetails));
-        photoRepository.deleteByPhotoFile(photoFile);
-        return updatedReader;
-    }
 
-    @Override
-    public List<ReaderDetails> searchReaders(pt.psoft.g1.psoftg1.shared.services.Page page, SearchReadersQuery query) {
-        if (page == null)
-            page = new pt.psoft.g1.psoftg1.shared.services.Page(1, 10);
-
-        if (query == null)
-            query = new SearchReadersQuery("", "","");
-
-        final var list = readerRepo.searchReaderDetails(page, query);
-
-        if(list.isEmpty())
-            throw new NotFoundException("No results match the search query");
-
-        return list;
-    }
 }

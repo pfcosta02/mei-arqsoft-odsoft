@@ -2,13 +2,17 @@ package pt.psoft.g1.psoftg1.usermanagement.model;
 
 public class Reader extends User {
 
-    protected Reader()
-    {
-
+    public Reader() {
+        super();
     }
 
     public Reader(String username, String password) {
         super(username, password);
+        this.addAuthority(new Role(Role.READER));
+    }
+
+    public Reader(String username) {
+        super(username);
         this.addAuthority(new Role(Role.READER));
     }
 
@@ -23,6 +27,16 @@ public class Reader extends User {
     public static Reader newReader(final String username, final String password, final String name) {
         final var u = new Reader(username, password);
         u.setName(name);
+        return u;
+    }
+
+    public static Reader newReader(final String username) {
+        return new Reader(username);
+    }
+
+    public static Reader newReader(final String pk, final String username) {
+        final var u = new Reader(username);
+//        u.setId(pk);
         return u;
     }
 }

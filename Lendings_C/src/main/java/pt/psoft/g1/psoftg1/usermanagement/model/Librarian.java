@@ -5,12 +5,20 @@ import pt.psoft.g1.psoftg1.shared.model.Name;
 
 
 public class Librarian extends User {
-    protected Librarian() {
-        // for ORM only
+//    protected Librarian() {
+//        // for ORM only
+//    }
+    public Librarian() {
+        super();
     }
     public Librarian(String username, String password) {
         super(username, password);
     }
+
+    public Librarian(String username) {
+        super(username);
+    }
+
 
     /**
      * factory method. since mapstruct does not handle protected/private setters
@@ -26,6 +34,12 @@ public class Librarian extends User {
     public static Librarian newLibrarian(final String username, final String password, final String name) {
         final var u = new Librarian(username, password);
         u.setName(name);
+        u.addAuthority(new Role(Role.LIBRARIAN));
+        return u;
+    }
+
+    public static Librarian newLibrarian(final String username) {
+        final var u = new Librarian(username);
         u.addAuthority(new Role(Role.LIBRARIAN));
         return u;
     }

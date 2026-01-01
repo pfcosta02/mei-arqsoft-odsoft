@@ -2,6 +2,7 @@ package pt.psoft.g1.psoftg1.readermanagement.model;
 
 
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
+import pt.psoft.g1.psoftg1.usermanagement.model.FactoryUser;
 import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.readermanagement.services.UpdateReaderRequest;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
@@ -20,6 +21,8 @@ public class ReaderDetails extends EntityWithPhoto {
     private boolean thirdPartySharingConsent;
     private Long version;
     private List<String> interestList;
+
+    FactoryUser _factoryUser;
 
     public ReaderDetails() {}
 
@@ -47,6 +50,16 @@ public class ReaderDetails extends EntityWithPhoto {
         setMarketingConsent(marketing);
         setThirdPartySharingConsent(thirdParty);
         setInterestList(interestList);
+    }
+
+    public ReaderDetails(String readerNumber, FactoryUser factoryUser) {
+        setReaderNumber(new ReaderNumber(readerNumber));
+        _factoryUser = factoryUser;
+    }
+
+    public Reader defineReader(String username) {
+        this.reader = _factoryUser.newReader(username);
+        return this.reader;
     }
 
     public ReaderDetails(int readerNumber, Reader reader, String birthDate, String phoneNumber,

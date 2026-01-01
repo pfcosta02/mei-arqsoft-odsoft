@@ -16,7 +16,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@PropertySource({"classpath:config/library.properties"})
+
 class LendingTest {
     private static final ArrayList<Author> authors = new ArrayList<>();
     private static Book book;

@@ -12,7 +12,7 @@ import lombok.Setter;
 
 @Getter
 @Embeddable
-@PropertySource({"classpath:config/library.properties"})
+
 @Profile("jpa")
 @Primary
 public class NameEntity {

@@ -12,7 +12,7 @@ import org.springframework.context.annotation.PropertySource;
 
 //@Entity
 @Embeddable
-@PropertySource({"classpath:config/library.properties"})
+
 @Profile("jpa")
 @Primary
 public class BirthDateEntity implements Serializable

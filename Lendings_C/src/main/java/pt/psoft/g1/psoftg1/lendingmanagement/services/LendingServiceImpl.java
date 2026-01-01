@@ -22,7 +22,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@PropertySource({"classpath:config/library.properties"})
+
 public class LendingServiceImpl implements LendingService{
     private final LendingRepository lendingRepository;
     private final FineRepository fineRepository;

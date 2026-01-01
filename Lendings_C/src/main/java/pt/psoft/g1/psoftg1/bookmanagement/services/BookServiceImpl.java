@@ -31,12 +31,10 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@PropertySource({"classpath:config/library.properties"})
+
 public class BookServiceImpl implements BookService {
 
 	private final BookRepository bookRepository;
-	@Value("${suggestionsLimitPerGenre}")
-	private long suggestionsLimitPerGenre;
 
     @Override
     public void create(BookViewAMQP request) {

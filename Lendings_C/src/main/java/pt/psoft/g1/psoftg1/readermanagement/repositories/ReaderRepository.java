@@ -24,7 +24,6 @@ public interface ReaderRepository {
     ReaderDetails save(ReaderDetails readerDetails);
     Iterable<ReaderDetails> findAll();
     Page<ReaderDetails> findTopReaders(Pageable pageable);
-    Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate);
     void delete(ReaderDetails readerDetails);
     List<ReaderDetails> searchReaderDetails(pt.psoft.g1.psoftg1.shared.services.Page page, SearchReadersQuery query);
 }

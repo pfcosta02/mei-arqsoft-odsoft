@@ -143,11 +143,6 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
         return readerRepo.findTopReaders(pageable).map(readerEntityMapper::toModel);
     }
 
-    @Override
-    public Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate)
-    {
-        return readerRepo.findTopByGenre(pageable, genre, startDate, endDate);
-    }
 
     @Override
     public void delete(ReaderDetails readerDetails)

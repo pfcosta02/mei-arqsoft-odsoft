@@ -53,19 +53,6 @@ public interface SpringDataReaderRepositoryImpl extends CrudRepository<ReaderDet
             "ORDER BY COUNT(l) DESC")
     Page<ReaderDetailsEntity> findTopReaders(Pageable pageable);
 
-    @Query("SELECT NEW pt.psoft.g1.psoftg1.readermanagement.services.ReaderBookCountDTO(rd, count(l)) " +
-            "FROM ReaderDetailsEntity rd " +
-            "JOIN LendingEntity l ON l.readerDetails.pk = rd.pk " +
-            "JOIN BookEntity b ON b.pk = l.book.pk " +
-            "JOIN GenreEntity g ON g.pk = b.genre.pk " +
-            "WHERE g.genre = :genre " +
-            "AND l.startDate >= :startDate " +
-            "AND l.startDate <= :endDate " +
-            "GROUP BY rd.pk " +
-            "ORDER BY COUNT(l.pk) DESC")
-    Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate);
-
-    @Query("SELECT r FROM ReaderDetailsEntity r")
     Iterable<ReaderDetailsEntity> findAll();
 }
 

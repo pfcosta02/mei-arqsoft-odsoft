@@ -23,7 +23,7 @@ class LendingTest {
     private static ReaderDetails readerDetails;
     @Value("${lendingDurationInDays}")
     private int lendingDurationInDays;
-    @Value("${fineValuePerDayInCents}")
+    @Value("200")
     private int fineValuePerDayInCents;
 
     @BeforeAll

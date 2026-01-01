@@ -15,6 +15,7 @@ import lombok.Setter;
 
 @Profile("jpa")
 @Primary
+@PropertySource({"classpath:config/library.properties"})
 public class NameEntity {
 //    @Id
 //    @GeneratedValue(strategy = GenerationType.AUTO)

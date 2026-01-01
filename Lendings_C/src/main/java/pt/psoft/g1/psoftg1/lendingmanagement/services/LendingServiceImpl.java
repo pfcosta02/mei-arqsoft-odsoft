@@ -22,16 +22,16 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-
+@PropertySource({"classpath:config/library.properties"})
 public class LendingServiceImpl implements LendingService{
     private final LendingRepository lendingRepository;
     private final FineRepository fineRepository;
     private final BookRepository bookRepository;
     private final ReaderRepository readerRepository;
 
-    @Value("${lendingDurationInDays}")
+    @Value("15")
     private int lendingDurationInDays;
-    @Value("${fineValuePerDayInCents}")
+    @Value("200")
     private int fineValuePerDayInCents;
 
     @Override

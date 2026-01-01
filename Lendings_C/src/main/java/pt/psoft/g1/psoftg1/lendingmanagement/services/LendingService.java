@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.services;
 
+import pt.psoft.g1.psoftg1.lendingmanagement.api.LendingViewAMQP;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 
@@ -19,7 +20,9 @@ public interface LendingService {
      * @return {@code Iterable<Lending>}
      */
     List<Lending> listByReaderNumberAndIsbn(String readerNumber, String isbn, Optional<Boolean> returned);
-    Lending create(CreateLendingRequest resource); //No ID passed, as it is auto generated
+    Lending create(CreateLendingRequest resource);
+    Lending create(LendingViewAMQP resource);
+    Lending update(LendingViewAMQP resource);//No ID passed, as it is auto generated
     Lending setReturned(String id, SetLendingReturnedRequest resource, long desiredVersion);
     Double getAverageDuration();
     List<Lending> getOverdue(Page page);

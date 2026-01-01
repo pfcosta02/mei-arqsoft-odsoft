@@ -5,14 +5,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
+import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.LendingForbiddenException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.lendingmanagement.api.LendingViewAMQP;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.services.Page;
+import pt.psoft.g1.psoftg1.shared.util.DateUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -78,6 +81,33 @@ public class LendingServiceImpl implements LendingService{
                 .orElseThrow(() -> new NotFoundException("Reader not found"));
         int seq = lendingRepository.getCountFromCurrentYear()+1;
         final Lending l = new Lending(b,r,seq, lendingDurationInDays, fineValuePerDayInCents );
+
+        return lendingRepository.save(l);
+    }
+
+    @Override
+    public Lending create(LendingViewAMQP resource) {
+        if (lendingRepository.findByLendingNumber(resource.getLendingNumber()).isPresent()) {
+            throw new ConflictException("Lending with number " + resource.getLendingNumber() + " already exists");
+        }
+
+        final var b = bookRepository.findByIsbn(resource.getBookIsbn())
+                .orElseThrow(() -> new NotFoundException("Book not found"));
+        final var r = readerRepository.findByReaderNumber(resource.getReaderNumber())
+                .orElseThrow(() -> new NotFoundException("Reader not found"));
+        final Lending l = new Lending(b, r, resource.getLendingNumber(),
+                LocalDate.parse(resource.getStartDate(), DateUtils.ISO_DATE_FORMATTER),
+                LocalDate.parse(resource.getLimitDate(), DateUtils.ISO_DATE_FORMATTER),
+                resource.getFineValuePerDayInCents());
+
+        return lendingRepository.save(l);
+    }
+
+    @Override
+    public Lending update(LendingViewAMQP resource) {
+        final var l = lendingRepository.findByLendingNumber(resource.getLendingNumber())
+                .orElseThrow(() -> new NotFoundException("Lending not found"));
+        l.setReturned(resource.getVersion(), resource.getCommentary());
 
         return lendingRepository.save(l);
     }

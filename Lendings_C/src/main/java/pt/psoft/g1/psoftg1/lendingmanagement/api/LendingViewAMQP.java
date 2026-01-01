@@ -6,12 +6,12 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
-@Schema(description = "A Lending")
-public class LendingView {
-
+@Schema(description = "A Lending form AMQP communication")
+public class LendingViewAMQP {
     @NotNull
     private String lendingNumber;
 
@@ -22,20 +22,20 @@ public class LendingView {
     private String readerNumber;
 
     @NotNull
-    private LocalDate startDate;
+    private String startDate;
 
     @NotNull
-    private LocalDate limitDate;
+    private String limitDate;
 
-    private LocalDate returnedDate;
+    @NotNull
+    private int fineValuePerDayInCents;
 
-    private Integer daysUntilReturn;
+    @NotNull
+    private Long version;
 
-    private Integer daysOverdue;
-
-    private Integer fineValueInCents;
+    private String commentary;
 
     @Setter
     @Getter
-    private LendingLinksView _links;
+    private Map<String, Object> _links = new HashMap<>();
 }

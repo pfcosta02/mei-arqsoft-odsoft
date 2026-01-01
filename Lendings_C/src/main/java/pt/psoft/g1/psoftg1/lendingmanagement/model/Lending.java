@@ -68,6 +68,23 @@ public class Lending
         setDaysOverdue();
     }
 
+    public Lending(Book book, ReaderDetails readerDetails, String lendingNumber, LocalDate startDate,
+                   LocalDate limitDate, int fineValuePerDayInCents){
+        try {
+            this.book = Objects.requireNonNull(book);
+            this.readerDetails = Objects.requireNonNull(readerDetails);
+        }catch (NullPointerException e){
+            throw new IllegalArgumentException("Null objects passed to lending");
+        }
+        this.lendingNumber = new LendingNumber(lendingNumber);
+        this.startDate = startDate;
+        this.limitDate = limitDate;
+        this.returnedDate = null;
+        this.fineValuePerDayInCents = fineValuePerDayInCents;
+        setDaysUntilReturn();
+        setDaysOverdue();
+    }
+
     // Getters
     public Book getBook() { return book; }
     public ReaderDetails getReaderDetails() { return readerDetails; }

@@ -20,7 +20,6 @@ import pt.psoft.g1.psoftg1.lendingmanagement.services.CreateLendingRequest;
 import pt.psoft.g1.psoftg1.lendingmanagement.services.LendingService;
 import pt.psoft.g1.psoftg1.lendingmanagement.services.SearchLendingQuery;
 import pt.psoft.g1.psoftg1.lendingmanagement.services.SetLendingReturnedRequest;
-import pt.psoft.g1.psoftg1.readermanagement.api.ReaderLendingsAvgPerMonthView;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderService;
 import pt.psoft.g1.psoftg1.shared.api.ListResponse;
@@ -160,14 +159,4 @@ public class LendingController {
         final var readerList = lendingService.searchLendings(request.getPage(), request.getQuery());
         return new ListResponse<>(lendingViewMapper.toLendingView(readerList));
     }
-
-/*    @Operation(summary = "Get list monthly average lendings per reader")
-    @GetMapping(value = "/averageMonthlyPerReader")
-    public ListResponse<ReaderLendingsAvgPerMonthView>getAverageMonthlyPerReader(
-            @RequestParam("startDate") final String start,
-            @RequestParam("endDate") final String end){
-
-
-    }*/
-
 }

@@ -1,6 +1,6 @@
 package pt.psoft.g1.psoftg1.readermanagement.model.relational;
 
-import jakarta.annotation.Nullable;
+import com.mongodb.lang.Nullable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

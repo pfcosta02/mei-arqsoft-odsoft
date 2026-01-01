@@ -30,31 +30,8 @@ public interface SpringDataBookRepository extends CrudRepository<BookEntity, Isb
             "ORDER BY COUNT(l) DESC")
     Page<BookCountDTO> findTop5BooksLent(@Param("oneYearAgo") LocalDate oneYearAgo, Pageable pageable);
 
-    @Query("SELECT b " +
-            "FROM BookEntity b " +
-            "WHERE b.genre.genre LIKE %:genre%")
-    List<BookEntity> findByGenre(@Param("genre") String genre);
 
-    @Query("SELECT b FROM BookEntity b WHERE b.title.title LIKE %:title%")
-    List<BookEntity> findByTitle(@Param("title") String title);
 
-    @Query(value =
-            "SELECT b.* " +
-                    "FROM Book b " +
-                    "JOIN BOOK_AUTHORS on b.pk = BOOK_AUTHORS.BOOK_PK " +
-                    "JOIN AUTHOR a on BOOK_AUTHORS.AUTHORS_AUTHOR_NUMBER = a.AUTHOR_NUMBER " +
-                    "WHERE a.NAME LIKE :authorName"
-            , nativeQuery = true)
-    List<BookEntity> findByAuthorName(@Param("authorName") String authorName);
-
-    @Query(value =
-            "SELECT b.* " +
-                    "FROM Book b " +
-                    "JOIN BOOK_AUTHORS on b.pk = BOOK_AUTHORS.BOOK_PK " +
-                    "JOIN AUTHOR a on BOOK_AUTHORS.AUTHORS_AUTHOR_NUMBER = a.AUTHOR_NUMBER " +
-                    "WHERE a.AUTHOR_NUMBER = :authorNumber "
-            , nativeQuery = true)
-    List<BookEntity> findBooksByAuthorNumber(Long authorNumber);
 
 }
 

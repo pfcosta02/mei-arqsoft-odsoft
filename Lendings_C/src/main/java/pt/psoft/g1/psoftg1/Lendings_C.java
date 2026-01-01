@@ -2,12 +2,12 @@ package pt.psoft.g1.psoftg1;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class Lendings_C {
-
-	public static void main(String[] args) {
-		SpringApplication.run(Lendings_C.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(Lendings_C.class, args);
+    }
 }

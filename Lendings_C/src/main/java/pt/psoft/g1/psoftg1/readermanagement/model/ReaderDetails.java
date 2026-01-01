@@ -1,6 +1,6 @@
 package pt.psoft.g1.psoftg1.readermanagement.model;
 
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
+
 import pt.psoft.g1.psoftg1.shared.model.EntityWithPhoto;
 import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.readermanagement.services.UpdateReaderRequest;
@@ -19,14 +19,14 @@ public class ReaderDetails extends EntityWithPhoto {
     private boolean marketingConsent;
     private boolean thirdPartySharingConsent;
     private Long version;
-    private List<Genre> interestList;
+    private List<String> interestList;
 
     public ReaderDetails() {}
 
     // Construtor principal
     public ReaderDetails(ReaderNumber readerNumber, Reader reader, BirthDate birthDate, PhoneNumber phoneNumber,
                          boolean gdpr, boolean marketing, boolean thirdParty,
-                         String photoURI, List<Genre> interestList)
+                         String photoURI, List<String> interestList)
     {
         if (reader == null || phoneNumber == null)
         {
@@ -51,7 +51,7 @@ public class ReaderDetails extends EntityWithPhoto {
 
     public ReaderDetails(int readerNumber, Reader reader, String birthDate, String phoneNumber,
                          boolean gdpr, boolean marketing, boolean thirdParty,
-                         String photoURI, List<Genre> interestList)
+                         String photoURI, List<String> interestList)
     {
         this(new ReaderNumber(readerNumber), reader, new BirthDate(birthDate), new PhoneNumber(phoneNumber), gdpr, marketing, thirdParty, photoURI, interestList);
     }
@@ -94,11 +94,11 @@ public class ReaderDetails extends EntityWithPhoto {
     public void setThirdPartySharingConsent(boolean thirdPartySharingConsent) { this.thirdPartySharingConsent = thirdPartySharingConsent; }
 
     public Long getVersion() { return version; }
-    public List<Genre> getInterestList() { return interestList; }
-    public void setInterestList(List<Genre> interestList) { this.interestList = interestList; }
+    public List<String> getInterestList() { return interestList; }
+    public void setInterestList(List<String> interestList) { this.interestList = interestList; }
 
     // Método de patch
-    public void applyPatch(long currentVersion, UpdateReaderRequest request, String photoURI, List<Genre> interestList)
+    public void applyPatch(long currentVersion, UpdateReaderRequest request, String photoURI, List<String> interestList)
     {
         if (currentVersion != this.version)
         {

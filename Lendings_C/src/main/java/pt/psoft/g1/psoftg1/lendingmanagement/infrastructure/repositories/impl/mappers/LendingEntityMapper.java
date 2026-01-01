@@ -2,9 +2,9 @@ package pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.m
 
 import org.mapstruct.Mapper;
 
-import pt.psoft.g1.psoftg1.authormanagement.model.Author;
-import pt.psoft.g1.psoftg1.authormanagement.model.Bio;
-import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
+
+
+
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappers.BookEntityMapper;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.LendingNumber;
@@ -44,18 +44,11 @@ public interface LendingEntityMapper
         return Optional.ofNullable(value);
     }
 
-    default Author map(AuthorEntity value)
-    {
-        return value == null ? null : new Author(value.getName().toString(), value.getBio().toString(), value.getPhoto().toString());
-    }
+
 
     default String map(NameEntity value)
     {
         return value == null ? null : value.getName();
     }
 
-    default String map(Bio value)
-    {
-        return value == null ? null : value.getValue();
-    }
 }

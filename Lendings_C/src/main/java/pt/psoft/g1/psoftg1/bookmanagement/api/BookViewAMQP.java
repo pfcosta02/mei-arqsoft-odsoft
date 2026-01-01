@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.bookmanagement.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -10,14 +11,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Data
-@Schema(description = "A Book")
-public class BookView {
+@Schema(description = "A Book form AMQP communication")
+public class BookViewAMQP {
     @NotNull
     private String title;
 
     @NotNull
-    private List<String> authors;
+    private List<String> authorIds;
 
     @NotNull
     private String genre;
@@ -26,6 +28,9 @@ public class BookView {
 
     @NotNull
     private String isbn;
+
+    @NotNull
+    private Long version;
 
     @Setter
     @Getter

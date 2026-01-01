@@ -329,19 +329,7 @@ class ReaderController {
         return new ListResponse<>(readerViewMapper.toReaderView(readerService.findTopReaders(5)));
     }
 
-    @GetMapping("/top5ByGenre")
-    public ListResponse<ReaderCountView> getTop5ReaderByGenre(
-            @RequestParam("genre") String genre,
-            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate)
-    {
-        final var books = readerService.findTopByGenre(genre,startDate,endDate);
 
-        if(books.isEmpty())
-            throw new NotFoundException("No lendings found with provided parameters");
-
-        return new ListResponse<>(readerViewMapper.toReaderCountViewList(books));
-    }
 
     @PostMapping("/search")
     public ListResponse<ReaderView> searchReaders(

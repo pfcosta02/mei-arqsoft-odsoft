@@ -18,7 +18,6 @@ public interface ReaderService {
     List<ReaderDetails> findByPhoneNumber(String phoneNumber);
     Iterable<ReaderDetails> findAll();
     List<ReaderDetails> findTopReaders(int minTop);
-    List<ReaderBookCountDTO> findTopByGenre(String genre, LocalDate startDate, LocalDate endDate);
     //Optional<Reader> update(UpdateReaderRequest request) throws Exception;
     Optional<ReaderDetails> removeReaderPhoto(String readerNumber, long desiredVersion);
     List<ReaderDetails> searchReaders(Page page, SearchReadersQuery query);

@@ -3,8 +3,8 @@ package pt.psoft.g1.psoftg1.bookmanagement.model.relational;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import pt.psoft.g1.psoftg1.authormanagement.model.relational.AuthorEntity;
-import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
+
+
 import pt.psoft.g1.psoftg1.shared.model.relational.EntityWithPhotoEntity;
 
 import java.util.ArrayList;
@@ -32,32 +32,10 @@ public class BookEntity extends EntityWithPhotoEntity
     @Embedded
     private IsbnEntity isbn;
 
-    @Getter
-    @Embedded
-    @NotNull
-    private TitleEntity title;
 
-    @Embedded
-    private DescriptionEntity description;
-
-    @Getter
-    @ManyToOne
-    @NotNull
-    private GenreEntity genre;
-
-    @Getter
-    @ManyToMany
-    @JoinTable(joinColumns = @JoinColumn(name = "BOOK_PK"))
-    private List<AuthorEntity> authors = new ArrayList<>();
-
-    public BookEntity(IsbnEntity isbn, TitleEntity title, DescriptionEntity description, GenreEntity genre, List<AuthorEntity> authors, String photoURI)
+    public BookEntity(IsbnEntity isbn)
     {
-        setTitle(title);
         setIsbn(isbn);
-        setDescription(description);
-        setAuthors(authors);
-        setGenre(genre);
-        setPhotoInternal(photoURI);
 
         this.version = 0L;
     }
@@ -65,14 +43,9 @@ public class BookEntity extends EntityWithPhotoEntity
     protected BookEntity() {}
 
     // Setters
-    public void setTitle(TitleEntity title) { this.title = title; }
     public void setIsbn(IsbnEntity isbn) { this.isbn = isbn; }
-    public void setDescription(DescriptionEntity description) { this.description = description; }
-    public void setGenre(GenreEntity genre) { this.genre = genre; }
-    public void setAuthors(List<AuthorEntity> authors) { this.authors = authors; }
 
     // Getters
-    public String getDescription(){ return this.description.toString(); }
     public String getIsbn(){ return this.isbn.toString(); }
     public Long getPk() { return pk; }
 }

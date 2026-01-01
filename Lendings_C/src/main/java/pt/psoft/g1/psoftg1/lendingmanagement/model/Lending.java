@@ -77,10 +77,6 @@ public class Lending
     public String getCommentary() { return commentary; }
     public String getLendingNumber() { return lendingNumber.toString(); }
     public long getVersion() { return version; }
-    public String getTitle()
-    {
-        return this.book.getTitle().toString();
-    }
 
     /**
      * <p>Returns the number of days that the lending is/was past its due date</p>

@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.services.CreateAuthorRequest;
+import pt.psoft.g1.psoftg1.bookmanagement.api.BookView;
 import pt.psoft.g1.psoftg1.bookmanagement.api.BookViewAMQP;
+import pt.psoft.g1.psoftg1.bookmanagement.api.BookViewAMQPMapper;
 import pt.psoft.g1.psoftg1.bookmanagement.model.*;
 import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.AuthorTempCreatedDTO;
 import pt.psoft.g1.psoftg1.bookmanagement.model.DTOs.BookFinalizedDTO;
@@ -56,6 +58,7 @@ public class BookServiceImpl implements BookService {
 	private final GenreTempRepository genreTempRepository;
 	private final OutboxEventRepository outboxEventRepository;
 	private final ObjectMapper objectMapper;
+	private final BookViewAMQPMapper bookViewAMQPMapper;
 
 	@Value("${suggestionsLimitPerGenre}")
 	private long suggestionsLimitPerGenre;
@@ -289,8 +292,21 @@ public class BookServiceImpl implements BookService {
 				throw new RuntimeException("Erro ao salvar evento Outbox", e);
 			}
 
-			if(savedBook != null) {
-				bookEventsPublisher.sendBookCreated(savedBook);
+			BookViewAMQP bookViewAMQP = bookViewAMQPMapper.toBookViewAMQP(savedBook);
+			bookViewAMQP.setVersion(savedBook.getVersion());
+
+			try {
+				String payload = objectMapper.writeValueAsString(bookViewAMQP);
+
+				OutboxEvent event = new OutboxEvent();
+				event.setAggregateId(book.getIsbn().getIsbn());
+				event.setEventType(BookEvents.BOOK_CREATED);
+				event.setPayload(payload);
+				event.setStatus(OutboxEnum.NEW);
+
+				outboxEventRepository.save(event);
+			} catch (Exception e) {
+				throw new RuntimeException("Erro ao salvar evento Outbox", e);
 			}
 
 			// Importante: remover o temporário

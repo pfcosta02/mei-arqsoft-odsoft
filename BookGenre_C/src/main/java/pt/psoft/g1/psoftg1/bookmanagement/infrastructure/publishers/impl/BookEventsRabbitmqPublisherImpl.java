@@ -80,6 +80,23 @@ public class BookEventsRabbitmqPublisherImpl implements BookEventsPublisher {
         }
     }
 
+    @Override
+    public void sendBookCreated(String payload) {
+
+        try
+        {
+            System.out.println(" [x] Publish Book CREATED into AMQP.");
+            MessageProperties props = new MessageProperties();
+            props.setContentType("application/json");
+            Message message = new Message(payload.getBytes(StandardCharsets.UTF_8), props);
+            template.send(BookEvents.BOOK_CREATED, "", message);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     private BookViewAMQP sendBookEvent(Book book, Long currentVersion, FanoutExchange exchange) {
 
         System.out.println("Send Book event to AMQP Broker: " + book.getTitle());

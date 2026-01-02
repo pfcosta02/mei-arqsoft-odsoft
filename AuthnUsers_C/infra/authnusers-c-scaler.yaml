@@ -3,16 +3,16 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: lms-authnusers-query-scaler-blue
-  namespace: dev
+  name: authnusers-c-scaler-blue
+  namespace: {{NAMESPACE}}
   labels:
-    app: lms-authnusers-query
+    app: authnusers-c
     color: blue
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: lms-authnusers-query-blue
+    name: authnusers-c-blue
   minReplicas: 1
   maxReplicas: 5
   metrics:
@@ -27,16 +27,16 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: lms-authnusers-query-scaler-green
-  namespace: dev
+  name: authnusers-c-scaler-green
+  namespace: {{NAMESPACE}}
   labels:
-    app: lms-authnusers-query
+    app: authnusers-c
     color: green
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: lms-authnusers-query-green
+    name: authnusers-c-green
   minReplicas: 1
   maxReplicas: 5
   metrics:

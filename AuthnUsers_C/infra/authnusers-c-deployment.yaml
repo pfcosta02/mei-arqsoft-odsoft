@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lms-readers-command-{{COLOR}}
-  namespace: dev
+  name: authnusers-c-{{COLOR}}
+  namespace: {{NAMESPACE}}
   labels:
-    app: lms-readers-command
+    app: authnusers-c
     color: {{COLOR}}
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: lms-readers-command
+      app: authnusers-c
       color: {{COLOR}}
   template:
     metadata:
       labels:
-        app: lms-readers-command
+        app: authnusers-c
         color: {{COLOR}}
         version: {{COLOR}}
     spec:
       containers:
-      - name: lms-readers-command
+      - name: authnusers-c
         image: {{IMAGE}}
         ports:
         - containerPort: 8083

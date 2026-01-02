@@ -5,7 +5,7 @@ FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # Copy the JAR file into the container
-COPY target/authnusers_c-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY target/authnusers-c-0.0.1-SNAPSHOT.jar /app/app.jar
 
 ENV JAVA_OPTS=""
 

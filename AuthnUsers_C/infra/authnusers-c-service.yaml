@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: lms-authnusers-command-service
+  name: authnusers-c-service
   namespace: {{NAMESPACE}}
   labels:
-    app: lms-authnusers-command
+    app: authnusers-c
 spec:
   type: LoadBalancer
   selector:
-    app: lms-authnusers-command
+    app: authnusers-c
     color: blue  # Inicialmente aponta para blue. Será alterado via kubectl patch durante o deployment
   ports:
     - protocol: TCP

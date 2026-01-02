@@ -3,16 +3,16 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: lms-authnusers-command-scaler-blue
-  namespace: {{NAMESPACE}}
+  name: reader-c-scaler-blue
+  namespace: dev
   labels:
-    app: lms-authnusers-command
+    app: reader-c
     color: blue
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: lms-authnusers-command-blue
+    name: reader-c-blue
   minReplicas: 1
   maxReplicas: 5
   metrics:
@@ -27,16 +27,16 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: lms-authnusers-command-scaler-green
-  namespace: {{NAMESPACE}}
+  name: reader-c-scaler-green
+  namespace: dev
   labels:
-    app: lms-authnusers-command
+    app: reader-c
     color: green
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: lms-authnusers-command-green
+    name: reader-c-green
   minReplicas: 1
   maxReplicas: 5
   metrics:

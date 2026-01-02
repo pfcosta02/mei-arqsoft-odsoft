@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>pt.psoft.g1</groupId>
-	<artifactId>reader_q</artifactId>
+	<artifactId>reader-q</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>readers_q</name>
 	<description>Demo project for Spring Boot</description>

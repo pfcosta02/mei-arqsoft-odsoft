@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.shared.repositories.ForbiddenNameRepository;
 import pt.psoft.g1.psoftg1.shared.services.Page;
+import pt.psoft.g1.psoftg1.usermanagement.api.UserViewAMQP;
 import pt.psoft.g1.psoftg1.usermanagement.model.Librarian;
 import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 import pt.psoft.g1.psoftg1.usermanagement.model.Role;
@@ -41,6 +42,7 @@ import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Based on https://github.com/Yoh0xFF/java-spring-security-example
@@ -96,6 +98,24 @@ public class UserService implements UserDetailsService {
 
 		return userRepo.save(user);
 	}
+
+    @Transactional
+    public User create(UserViewAMQP userViewAMQP) {
+        String username = userViewAMQP.getUsername();
+        Set<String> authorities = userViewAMQP.getAuthorities();
+
+        if (userRepo.findByUsername(username).isPresent()) {
+            throw new ConflictException("User already exists!");
+        }
+
+        User user = new User(username);
+
+        for (String role : authorities) {
+            user.addAuthority(new Role(role));
+        }
+
+        return userRepo.save(user);
+    }
 
 	@Transactional
 	public User update(final Long id, final EditUserRequest request) {

@@ -1,11 +1,12 @@
 package pt.psoft.g1.psoftg1.readermanagement.model.relational;
 
+import com.mongodb.lang.Nullable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import pt.psoft.g1.psoftg1.shared.model.relational.EntityWithPhotoEntity;
 import pt.psoft.g1.psoftg1.shared.model.relational.PhotoEntity;
-import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
+
 import pt.psoft.g1.psoftg1.usermanagement.model.relational.ReaderEntity;
 
 import java.util.List;
@@ -64,16 +65,16 @@ public class ReaderDetailsEntity extends EntityWithPhotoEntity {
     @Setter
     private Long version;
 
-    @ManyToMany
+    @Nullable
     @Getter
     @Setter
-    private List<GenreEntity> interestList;
+    private List<String> interestList;
 
     protected ReaderDetailsEntity() {}
 
     public ReaderDetailsEntity(ReaderNumberEntity readerNumber, ReaderEntity reader, BirthDateEntity birthDate, PhoneNumberEntity phoneNumber,
                                boolean gdpr, boolean marketing, boolean thirdParty,
-                               PhotoEntity photoURI, List<GenreEntity> interestList)
+                               PhotoEntity photoURI, List<String> interestList)
     {
         setReaderNumber(readerNumber);
         setReader(reader);

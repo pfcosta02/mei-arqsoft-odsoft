@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.usermanagement.model;
 
+import lombok.Setter;
 import pt.psoft.g1.psoftg1.shared.model.Name;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class User implements UserDetails
 {
+    @Setter
     public Long id;
 
     private Long version;
@@ -19,7 +21,14 @@ public class User implements UserDetails
     private Name name;
     private final Set<Role> authorities = new HashSet<>();
 
-    protected User() {}
+    public User() {
+        super();
+    }
+
+    public User(final String username) {
+        this.username = username;
+    }
+
 
     public User(final String username, final String password)
     {

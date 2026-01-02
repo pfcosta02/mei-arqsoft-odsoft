@@ -39,6 +39,17 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     private final ReaderDetailsRepositoryRelationalImpl readerDetailsRepo;
 
     @Override
+    public List<Lending> findAll()
+    {
+        List<Lending> lendings = new ArrayList<>();
+        for (LendingEntity l: lendingRepo.findAll())
+        {
+            lendings.add(lendingEntityMapper.toModel(l));
+        }
+        return lendings;
+    }
+
+    @Override
     public Optional<Lending> findByLendingNumber(String lendingNumber)
     {
         Optional<LendingEntity> entityOpt = lendingRepo.findByLendingNumber(lendingNumber);
@@ -215,6 +226,85 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     public void delete(Lending lending)
     {
         lendingRepo.delete(lendingEntityMapper.toEntity(lending));
+    }
+
+
+    @Override
+    public Optional<Lending> findById(Long id)
+    {
+        Optional<LendingEntity> entityOpt = lendingRepo.findById(id);
+        if (entityOpt.isPresent())
+        {
+            return Optional.of(lendingEntityMapper.toModel(entityOpt.get()));
+        }
+        else
+        {
+            return Optional.empty();
+        }
+    }
+
+
+
+    @Override
+    public List<Lending> findActiveLendingsByReader(Long readerId)
+    {
+        final CriteriaBuilder cb = em.getCriteriaBuilder();
+        final CriteriaQuery<LendingEntity> cq = cb.createQuery(LendingEntity.class);
+        final Root<LendingEntity> root = cq.from(LendingEntity.class);
+        cq.select(root);
+
+        final List<Predicate> where = new ArrayList<>();
+        where.add(cb.equal(root.get("readerDetails").get("pk"), readerId));
+        where.add(cb.isNull(root.get("returnedDate")));
+
+        cq.where(where.toArray(new Predicate[0]));
+        cq.orderBy(cb.asc(root.get("limitDate")));
+
+        final TypedQuery<LendingEntity> q = em.createQuery(cq);
+        List<Lending> lendings = new ArrayList<>();
+
+        for (LendingEntity lendingEntity : q.getResultList()) {
+            lendings.add(lendingEntityMapper.toModel(lendingEntity));
+        }
+
+        return lendings;
+    }
+
+    @Override
+    public List<Lending> findOverdueLendings()
+    {
+        final CriteriaBuilder cb = em.getCriteriaBuilder();
+        final CriteriaQuery<LendingEntity> cq = cb.createQuery(LendingEntity.class);
+        final Root<LendingEntity> root = cq.from(LendingEntity.class);
+        cq.select(root);
+
+        final List<Predicate> where = new ArrayList<>();
+        where.add(cb.isNull(root.get("returnedDate")));
+        where.add(cb.lessThan(root.get("limitDate"), LocalDate.now()));
+
+        cq.where(where.toArray(new Predicate[0]));
+        cq.orderBy(cb.asc(root.get("limitDate")));
+
+        final TypedQuery<LendingEntity> q = em.createQuery(cq);
+        List<Lending> lendings = new ArrayList<>();
+
+        for (LendingEntity lendingEntity : q.getResultList()) {
+            lendings.add(lendingEntityMapper.toModel(lendingEntity));
+        }
+
+        return lendings;
+    }
+
+
+
+
+
+
+
+    @Override
+    public void deleteById(Long id)
+    {
+        lendingRepo.deleteById(id);
     }
 
 }

@@ -7,8 +7,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
-import pt.psoft.g1.psoftg1.genremanagement.repositories.GenreRepository;
+
+
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.usermanagement.model.Librarian;
@@ -32,7 +32,6 @@ public class UserBootstrapper implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final ReaderRepository readerRepository;
-    private final GenreRepository genreRepository;
     private final JdbcTemplate jdbcTemplate;
     private List<String> queriesToExecute = new ArrayList<>();
 
@@ -55,16 +54,11 @@ public class UserBootstrapper implements CommandLineRunner {
             //jdbcTemplate.update(query);
             queriesToExecute.add(query);
             Optional<ReaderDetails> readerDetails1= readerRepository.findByReaderNumber(LocalDate.now().getYear() + "/1");
-            Optional<Genre> g1 = genreRepository.findByString("Fantasia");
-            Optional<Genre> g2 = genreRepository.findByString("Infantil");
-            List<Genre> interestList = new ArrayList<>();
-            if(g1.isPresent()) {
-                interestList.add(g1.get());
-            }
-
-            if(g2.isPresent()) {
-                interestList.add(g2.get());
-            }
+            String g1 = "Fantasia";
+            String g2 = "Infantil";
+            List<String> interestList = new ArrayList<>();
+            interestList.add(g1);
+            interestList.add(g2);
 
             if (readerDetails1.isEmpty()) {
                 ReaderDetails r1 = new ReaderDetails(

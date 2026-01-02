@@ -4,9 +4,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import pt.psoft.g1.psoftg1.authormanagement.model.Author;
+
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
+
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
 
@@ -16,14 +16,14 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@PropertySource({"classpath:config/library.properties"})
+
 class LendingTest {
     private static final ArrayList<Author> authors = new ArrayList<>();
     private static Book book;
     private static ReaderDetails readerDetails;
     @Value("${lendingDurationInDays}")
     private int lendingDurationInDays;
-    @Value("${fineValuePerDayInCents}")
+    @Value("200")
     private int fineValuePerDayInCents;
 
     @BeforeAll

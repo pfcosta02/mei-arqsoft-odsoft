@@ -20,7 +20,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
-import pt.psoft.g1.psoftg1.genremanagement.model.relational.GenreEntity;
+
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.FineEntity;
 import pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mappers.ReaderDetailsEntityMapper;
@@ -59,17 +59,6 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
         }
     }
 
-    @Override
-    public List<ReaderDetails> findByPhoneNumber(String phoneNumber)
-    {
-        List<ReaderDetails> readers = new ArrayList<>();
-        for (ReaderDetailsEntity r: readerRepo.findByPhoneNumber(phoneNumber))
-        {
-            readers.add(readerEntityMapper.toModel(r));
-        }
-
-        return readers;
-    }
 
     @Override
     public Optional<ReaderDetails> findByUsername(String username)
@@ -143,11 +132,6 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
         return readerRepo.findTopReaders(pageable).map(readerEntityMapper::toModel);
     }
 
-    @Override
-    public Page<ReaderBookCountDTO> findTopByGenre(Pageable pageable, String genre, LocalDate startDate, LocalDate endDate)
-    {
-        return readerRepo.findTopByGenre(pageable, genre, startDate, endDate);
-    }
 
     @Override
     public void delete(ReaderDetails readerDetails)
@@ -155,55 +139,5 @@ public class ReaderDetailsRepositoryRelationalImpl implements ReaderRepository
         readerRepo.delete(readerEntityMapper.toEntity(readerDetails));
     }
 
-    @Override
-    public List<ReaderDetails> searchReaderDetails(pt.psoft.g1.psoftg1.shared.services.Page page, SearchReadersQuery query)
-    {
-        final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        final CriteriaQuery<ReaderDetailsEntity> cq = cb.createQuery(ReaderDetailsEntity.class);
-        final Root<ReaderDetailsEntity> readerDetailsRoot = cq.from(ReaderDetailsEntity.class);
-        Join<ReaderDetailsEntity, UserEntity> userJoin = readerDetailsRoot.join("reader");
-
-        cq.select(readerDetailsRoot);
-
-        final List<Predicate> where = new ArrayList<>();
-        if (StringUtils.hasText(query.getName()))
-        {
-            //'contains' type search
-            where.add(cb.like(userJoin.get("name").get("name"), "%" + query.getName() + "%"));
-            cq.orderBy(cb.asc(userJoin.get("name")));
-        }
-        if (StringUtils.hasText(query.getEmail()))
-        {
-            //'exatct' type search
-            where.add(cb.equal(userJoin.get("username"), query.getEmail()));
-            cq.orderBy(cb.asc(userJoin.get("username")));
-        }
-        if (StringUtils.hasText(query.getPhoneNumber()))
-        {
-            //'exatct' type search
-            where.add(cb.equal(readerDetailsRoot.get("phoneNumber").get("phoneNumber"), query.getPhoneNumber()));
-            cq.orderBy(cb.asc(readerDetailsRoot.get("phoneNumber").get("phoneNumber")));
-        }
-
-        // search using OR
-        if (!where.isEmpty())
-        {
-            cq.where(cb.or(where.toArray(new Predicate[0])));
-        }
-
-
-        final TypedQuery<ReaderDetailsEntity> q = entityManager.createQuery(cq);
-        q.setFirstResult((page.getNumber() - 1) * page.getLimit());
-        q.setMaxResults(page.getLimit());
-
-        List<ReaderDetails> readerDetails = new ArrayList<>();
-
-        for (ReaderDetailsEntity readerDetail : q.getResultList())
-        {
-            readerDetails.add(readerEntityMapper.toModel(readerDetail));
-        }
-
-        return readerDetails;
-    }
 }
 

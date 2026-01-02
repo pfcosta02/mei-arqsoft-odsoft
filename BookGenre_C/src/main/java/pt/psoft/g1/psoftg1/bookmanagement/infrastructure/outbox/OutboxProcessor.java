@@ -31,6 +31,9 @@ public class OutboxProcessor {
             {
                 switch (event.getEventType())
                 {
+                    case BookEvents.BOOK_CREATED:
+                        publisher.sendBookCreated(event.getPayload());
+                        break;
                     case BookEvents.TEMP_BOOK_CREATED:
                         publisher.sendBookTempCreated(event.getPayload());
                         break;

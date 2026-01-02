@@ -5,7 +5,7 @@ FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # Copy the JAR file into the container
-COPY target/reader_c-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY target/reader-c-0.0.1-SNAPSHOT.jar /app/app.jar
 
 # Informative only; it has no influence in the port effectively exposed by the container.
 #EXPOSE 8080

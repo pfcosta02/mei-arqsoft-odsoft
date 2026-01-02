@@ -527,7 +527,7 @@ node {
 //             junit skipPublishingChecks: true, testResults: '**\\target\\surefire-reports\\*.xml'
 //         }
 //
-//     }
+     }
     catch (Exception e) 
     {
         echo "ERROR FOUND! ${e.getMessage()}"

@@ -7,8 +7,8 @@ public class PhoneNumber
 {
     private String phoneNumber;
 
-    @JsonCreator
-    public PhoneNumber(@JsonProperty("phoneNumber") String phoneNumber) {
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public PhoneNumber(String phoneNumber) {
         setPhoneNumber(phoneNumber);
     }
 

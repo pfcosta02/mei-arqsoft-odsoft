@@ -14,7 +14,7 @@ properties([
 node {
     def MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     def PROJECT_VERSION = ''
-    def IMAGE_NAME = 'lms-readers-command'
+    def IMAGE_NAME = 'Reader_C'
     def RESULT_STR = ''
     def CURRENT_COLOR // Cor atual do deployment (blue, green ou none)
     def NEW_COLOR // Nova cor para o deployment
@@ -369,8 +369,8 @@ node {
 //                 {
 //                     echo "Undeployment strategy for ${params.RolloutStrategy} is not implemented yet."
 //                 }
-//             }
-//         }
+            }
+        }
 //
 //         // Success actions
 //         echo 'Pipeline completed successfully.'

@@ -3,16 +3,16 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: lms-readers-query-scaler-blue
+  name: reader_q-scaler-blue
   namespace: dev
   labels:
-    app: lms-readers-query
+    app: reader_q
     color: blue
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: lms-readers-query-blue
+    name: reader_q-blue
   minReplicas: 1
   maxReplicas: 5
   metrics:
@@ -27,16 +27,16 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: lms-readers-query-scaler-green
+  name: reader_q-scaler-green
   namespace: dev
   labels:
-    app: lms-readers-query
+    app: reader_q
     color: green
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: lms-readers-query-green
+    name: reader_q-green
   minReplicas: 1
   maxReplicas: 5
   metrics:

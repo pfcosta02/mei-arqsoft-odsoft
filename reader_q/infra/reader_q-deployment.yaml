@@ -2,26 +2,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lms-readers-query-{{COLOR}}
+  name: reader_q-{{COLOR}}
   namespace: dev
   labels:
-    app: lms-readers-query
+    app: reader_q
     color: {{COLOR}}
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: lms-readers-query
+      app: reader_q
       color: {{COLOR}}
   template:
     metadata:
       labels:
-        app: lms-readers-query
+        app: reader_q
         color: {{COLOR}}
         version: {{COLOR}}
     spec:
       containers:
-      - name: lms-readers-query
+      - name: reader_q
         image: {{IMAGE}}
         ports:
         - containerPort: 8082

@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: lms-readers-query-service
+  name: reader_q-service
   namespace: dev
   labels:
-    app: lms-readers-query
+    app: reader_q
 spec:
   type: LoadBalancer
   selector:
-    app: lms-readers-query
+    app: reader_q
     color: blue  # Inicialmente aponta para blue. Será alterado via kubectl patch durante o deployment
   ports:
     - protocol: TCP

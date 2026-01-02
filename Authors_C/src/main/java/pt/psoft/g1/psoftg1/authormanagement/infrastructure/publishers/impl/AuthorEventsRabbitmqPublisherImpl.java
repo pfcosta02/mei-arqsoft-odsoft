@@ -64,6 +64,23 @@ public class AuthorEventsRabbitmqPublisherImpl implements AuthorEventsPublisher 
         }
     }
 
+    @Override
+    public void sendAuthorCreated(String payload) {
+
+        try
+        {
+            System.out.println(" [x] Publish Author CREATED into AMQP.");
+            MessageProperties props = new MessageProperties();
+            props.setContentType("application/json");
+            Message message = new Message(payload.getBytes(StandardCharsets.UTF_8), props);
+            template.send(AuthorEvents.AUTHOR_CREATED, "", message);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     private AuthorViewAMQP sendAuthorEvent(Author author, Long currentVersion, FanoutExchange exchange) {
 
         System.out.println("Send Author event to AMQP Broker: " + author.getName());

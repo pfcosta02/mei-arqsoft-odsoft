@@ -309,10 +309,6 @@ public class BookServiceImpl implements BookService {
 				throw new RuntimeException("Erro ao salvar evento Outbox", e);
 			}
 
-			if(savedBook != null) {
-				bookEventsPublisher.sendBookCreated(savedBook);
-			}
-
 			// Importante: remover o temporário
 			bookTempRepository.delete(bookTemp);
 		}

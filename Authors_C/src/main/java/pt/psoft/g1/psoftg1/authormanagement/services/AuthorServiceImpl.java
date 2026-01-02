@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorLendingView;
 import pt.psoft.g1.psoftg1.authormanagement.api.AuthorViewAMQP;
+import pt.psoft.g1.psoftg1.authormanagement.api.AuthorViewAMQPMapper;
 import pt.psoft.g1.psoftg1.authormanagement.model.Author;
 import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.AuthorTempCreatedDTO;
 import pt.psoft.g1.psoftg1.authormanagement.model.DTOs.BookFinalizedDTO;
@@ -45,6 +46,7 @@ public class AuthorServiceImpl implements AuthorService {
     private final AuthorEventsPublisher authorEventsPublisher;
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
+    private final AuthorViewAMQPMapper authorViewAMQPMapper;
 
     @Override
     public Iterable<Author> findAll() {
@@ -160,9 +162,23 @@ public class AuthorServiceImpl implements AuthorService {
             author.setAuthorNumber(authorNumber);
             Author savedAuthor = authorRepository.save(author);
 
-            if( savedAuthor!=null ) {
-                authorEventsPublisher.sendAuthorCreated(savedAuthor);
+            AuthorViewAMQP authorViewAMQP = authorViewAMQPMapper.toAuthorViewAMQP(savedAuthor);
+            authorViewAMQP.setVersion(savedAuthor.getVersion());
+
+            try {
+                String payload = objectMapper.writeValueAsString(authorViewAMQP);
+
+                OutboxEvent event = new OutboxEvent();
+                event.setAggregateId(author.getAuthorNumber());
+                event.setEventType(AuthorEvents.AUTHOR_CREATED);
+                event.setPayload(payload);
+                event.setStatus(OutboxEnum.NEW);
+
+                outboxEventRepository.save(event);
+            } catch (Exception e) {
+                throw new RuntimeException("Erro ao salvar evento Outbox", e);
             }
+
             // Importante: remover o temporário
             authorTempRepository.delete(authorTemp);
         }

@@ -72,7 +72,7 @@ public class AuthorRabbitmqController {
             ObjectMapper objectMapper = new ObjectMapper();
             BookFinalizedDTO bookFinalizedDTO = objectMapper.readValue(jsonReceived, BookFinalizedDTO.class);
 
-            System.out.println(" [x] Received Book Temp Created by AMQP: " + msg + ".");
+            System.out.println(" [x] Received Book Finalized by AMQP: " + msg + ".");
             try {
                 authorService.updateTemp(bookFinalizedDTO);
                 System.out.println(" [x] New author temp inserted from AMQP: " + msg + ".");

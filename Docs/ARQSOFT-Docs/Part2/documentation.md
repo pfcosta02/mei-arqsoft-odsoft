@@ -25,7 +25,7 @@ Nesta nova iteração, devem ser resolvidos os seguintes problemas:
 #### US1 - Tiago Oliveira (1201360)
 Como bibliotecário, quero criar um Livro, Autor e Género no mesmo processo, de forma atómica e consistente.
 
-**Documentação detalhada**: [US1.md](ADD/US1.md) 
+**Documentação detalhada**: [US1.md](ADD/US1.md)
 
 #### US2 - Pedro Costa (1201576)
 Como bibliotecário, quero criar um Leitor e o respetivo Utilizador no mesmo pedido, garantindo atomicidade entre os microserviços de autenticação e leitores.
@@ -70,6 +70,33 @@ O sistema deve aderir à estratégia SOA da empresa, nomeadamente API-led connec
 | **US3 - TODO**    | Deixar comentário e avaliação sobre livro ao retorná-lo                                 | Atomicidade entre Identity e Readers contexts  | Dados inconsistentes se falha parcial                                             | Regular    | Alta       | **4**      |
 
 ---
+## Attribute-driven design (ADD)
+
+### Quality Attribute Scenario - Criar Book, Author e Genre no mesmo pedido
+[US1.md](ADD/US1.md)
+
+### Quality Attribute Scenario - Criar Reader e respetivo User no mesmo pedido
+[US2.md](ADD/US2.md)
+
+### Quality Attribute Scenario - Deixar comentário e avaliação sobre livro ao retorná-lo
+[US3.md](ADD/US3.md)
+
+### Quality Attribute Scenario - Availability
+[Availability.md](ADD/QA/Availability.md)
+
+### Quality Attribute Scenario - Performance
+[Performance.md](ADD/QA/Performance.md)
+
+### Quality Attribute Scenario - Scalability
+[Scalability.md](ADD/QA/Scalability.md)
+
+### Quality Attribute Scenario - Modifiability
+[Modifiability.md](ADD/QA/Modifiability.md)
+
+### Quality Attribute Scenario - SOA Strategy
+[SOA_Strategy.md](ADD/QA/SOA_Strategy.md)
+
+---
 
 ## System-to-be
 
@@ -92,3 +119,53 @@ O sistema deve aderir à estratégia SOA da empresa, nomeadamente API-led connec
 #### Nível 2
 
 ![VF_Level2.jpg](Diagramas/Vista%20Física/VF_Level2.jpg)
+
+
+---
+
+## Microserviços
+### Justificação para adoção de microserviços
+
+A adoção de uma arquitetura de microserviços oferece diversas vantagens em comparação com uma abordagem monolítica, especialmente à medida que a aplicação cresce em complexidade e escala.
+- **Escalabilidade**: Permite a escalabilidade independente de serviços específicos, otimizando recursos. Por exemplo, se o módulo de "Consulta de Autores" tiver mais uso, apenas ele vai/pode ser escalado.
+- **Flexibilidade**: Cada serviço é isolado, o que facilita a realização de alterações, correções ou atualizações em partes específicas sem impactar o resto.
+- **Resiliência**: Cada serviço é isolado e independente, ou seja, mesmo que um serviço falhe, outros vão continuar a funcionar. Por exemplo, caso o serviço de Authors falhem, os Books vão continuar a funcionar.
+- **Reutilização**: Um serviço pode ser reutilizado em vários projetos. Por exemplo, o serviço de Autenticação pode servir diferentes aplicações.
+
+### **1. Microserviço de Utilizadores e Autenticação (AuthnUsers)**
+- **Justificação**: Gerir utilizadores e a sua autenticação é um aspeto fundamental do sistema que opera de forma independente dos demais componentes. Este microserviço encapsula funcionalidades como o registo de utilizadores, autenticação e autorização. Ao isolar essas operações, garantimos que preocupações de segurança, como gestão de senhas e geração de tokens, sejam tratadas em um serviço dedicado, reduzindo a complexidade e vulnerabilidades noutras partes do sistema.
+- **Impacto**:
+  - Escalabilidade independente para lidar com grandes volumes de requisições de login e autenticação.
+  - Simplificação da integração com provedores de autenticação de terceiros.
+  - Maior segurança ao isolar operações sensíveis dos demais serviços existentes.
+
+### **2. Microserviço de Livros e Géneros (BookGenre)**
+- **Justificação**: Os livros representam o agregado central do domínio, sendo responsáveis por coordenar o processo de criação das restantes entidades. O género, apesar de ser um conceito distinto, não possuía operações de comando no sistema original, sendo apenas utilizado no contexto dos livros. Assim, a decisão de manter livros e géneros no mesmo microserviço garante maior coesão do domínio e evita complexidade desnecessária associada à comunicação distribuída.
+- **Impacto**:
+  - Simplificação da implementação da saga de criação de livros, permitindo a persistência consistente de livros e géneros.
+  - Redução de dependências entre microserviços e menor sobrecarga de eventos.
+  - Manutenção de uma arquitetura flexível, possibilitando a separação futura do género caso venha a adquirir lógica de negócio própria.
+
+### **3. Microserviço de Autores (Authors)**
+- **Justificação**: Autores representam um domínio distinto que requer lógica e gestão próprias. Este microserviço faz a gestão de dados específicos sobre autores, como informações sobre nome e biografia. Ao isolar essa funcionalidade, permitimos que as operações relacionadas a autores evoluam de forma independente dos livros e géneros.
+- **Impacto**:
+  - Suporte à escalabilidade para recursos centrados em autores, como procuras, filtros e atualizações de autores.
+  - Redução da complexidade noutros serviços ao encapsular a lógica específica de autores.
+
+### **4. Microserviço de Leitores (Readers)**
+- **Justificação**: Os leitores representam os utilizadores do sistema que interagem com os livros através de lendings. Este microserviço é responsável pela gestão da identidade e estado dos leitores, bem como pelas regras associadas à realização de lendings, isolando essa lógica do domínio dos livros.
+- **Impacto**:
+  - Separação clara entre a gestão de utilizadores/leitores e o catálogo de livros.
+  - Facilita a evolução independente das regras de negócio relacionadas com empréstimos.
+  - Melhora a escalabilidade e manutenção das funcionalidades associadas aos leitores e às suas interações com os livros.
+
+### **5. Microserviço de Empréstimos (Lendings)**
+- **Justificação**: Os empréstimos representam um processo central do sistema, com regras de negócio próprias (lendings overdue, duração média, limite por leitor   ). Este microserviço isola essa lógica, garantindo que a gestão dos empréstimos é independente dos domínios de livros e leitores.
+- **Impacto**:
+  - Encapsulamento das regras de negócio relacionadas com empréstimos.
+  - Permite escalar e evoluir o serviço sem impactar diretamente os restantes microserviços.
+
+---
+
+## Performance
+

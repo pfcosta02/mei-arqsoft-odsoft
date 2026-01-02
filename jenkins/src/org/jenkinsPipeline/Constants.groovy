@@ -16,8 +16,8 @@ class Constants
 
     public static final LinkedHashMap<String, String> ENVIRONMENT_2_CREDENTIALS_ID = [
                     'dev': 'kubeconfig-minikube-ci',
-                    'staging' : 'kubeconfig-azure',
-                    'prod' : 'kubeconfig-azure'
+                    'staging' : 'kubeconfig-minikube-ci',
+                    'prod' : 'kubeconfig-minikube-ci'
                 ]
 
     static final String KUBECONFIG_CREDENTIALS_ID = 'kubeconfig-minikube-ci'

@@ -1,4 +1,5 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.relational;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -9,6 +10,25 @@ import java.util.*;
 
 public interface SpringDataLendingRepository extends CrudRepository<LendingEntity, Long>
 {
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        UPDATE LendingEntity l
+           SET l.returnedDate = :returnedDate,
+               l.commentary   = :commentary,
+               l.rating       = :rating,
+               l.version      = l.version + 1
+         WHERE l.lendingNumber.lendingNumber = :lendingNumber
+           AND l.version = :expectedVersion
+    """)
+    int markReturned(
+            @Param("lendingNumber") String lendingNumber,
+            @Param("returnedDate") java.time.LocalDate returnedDate,
+            @Param("commentary") String commentary,
+            @Param("rating") Integer rating,
+            @Param("expectedVersion") long expectedVersion
+    );
+
 
     @Query("SELECT l " +
             "FROM LendingEntity l " +

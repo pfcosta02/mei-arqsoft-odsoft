@@ -23,4 +23,5 @@ public interface LendingRepository {
 
     void delete(Lending lending);
 
+    int markReturned(String lendingNumber, LocalDate now, String commentary, Integer rating, long versionToUse);
 }

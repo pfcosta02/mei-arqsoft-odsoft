@@ -35,6 +35,8 @@ public class LendingViewAMQP {
 
     private String commentary;
 
+    private Integer rating;
+
     @Setter
     @Getter
     private Map<String, Object> _links = new HashMap<>();

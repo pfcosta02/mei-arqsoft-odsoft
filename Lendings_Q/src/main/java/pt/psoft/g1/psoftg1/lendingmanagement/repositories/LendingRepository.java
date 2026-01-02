@@ -30,5 +30,8 @@ public interface LendingRepository {
     Lending save(Lending lending);
     void delete(Lending lending);
     void deleteById(Long id);
+    int markReturned(String lendingNumber, LocalDate now, String commentary, Integer rating, long versionToUse);
+
 }
+
 

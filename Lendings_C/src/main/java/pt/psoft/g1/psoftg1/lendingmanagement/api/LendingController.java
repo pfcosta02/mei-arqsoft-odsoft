@@ -24,6 +24,7 @@ import pt.psoft.g1.psoftg1.lendingmanagement.services.SetLendingReturnedRequest;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.services.ReaderService;
 import pt.psoft.g1.psoftg1.shared.api.ListResponse;
+import pt.psoft.g1.psoftg1.shared.dtos.ReturnRequest;
 import pt.psoft.g1.psoftg1.shared.services.ConcurrencyService;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 import pt.psoft.g1.psoftg1.shared.services.SearchRequest;
@@ -43,6 +44,9 @@ public class LendingController {
 
     private final LendingViewMapper lendingViewMapper;
 
+    private final ConcurrencyService concurrencyService;
+
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<LendingView> createLending(@Valid @RequestBody LendingCommandDTO dto) {
@@ -60,22 +64,34 @@ public class LendingController {
                 .body(lendingViewMapper.toLendingView(lending));
     }
 
-    @PutMapping("/{year}/{seq}")
+    @PatchMapping("/{year}/{seq}")
     public ResponseEntity<LendingView> returnLending(
+            final WebRequest request,
             @PathVariable int year,
             @PathVariable int seq,
-            @RequestParam(required = false) String commentary) {
+            @Valid @RequestBody ReturnRequest body) {
+
+        final String ifMatchValue = request.getHeader(ConcurrencyService.IF_MATCH);
+        if (ifMatchValue == null || ifMatchValue.isEmpty() || ifMatchValue.equals("null")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "You must issue a conditional PATCH using 'if-match'");
+        }
+
 
         String lendingNumber = year + "/" + seq;
         log.info("Returning lending: {}", lendingNumber);
 
-        Lending lending = lendingService.returnLending(lendingNumber, commentary);
+        Long expectedVersion = concurrencyService.tryGetNumericVersionFromIfMatch(ifMatchValue);
+
+        Lending lending = lendingService.returnLending(
+                lendingNumber, body.getCommentary(), body.getRating(), expectedVersion);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/hal+json"))
                 .eTag(Long.toString(lending.getVersion()))
                 .body(lendingViewMapper.toLendingView(lending));
     }
+
 
     @DeleteMapping("/{year}/{seq}")
     public ResponseEntity<Void> deleteLending(

@@ -33,6 +33,10 @@ public class LendingView {
 
     private Integer daysOverdue;
 
+    private Integer rating;
+
+    private String commentary;
+
     private Integer fineValueInCents;
 
     @Setter

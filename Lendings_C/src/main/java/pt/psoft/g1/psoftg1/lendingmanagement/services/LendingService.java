@@ -17,7 +17,7 @@ public interface LendingService {
     /**
      * Marca um lending como devolvido
      */
-    Lending returnLending(String lendingNumber, String commentary);
+    Lending returnLending(String lendingNumber, String commentary, Integer rating, Long desiredVersion);
 
     /**
      * Deleta um lending

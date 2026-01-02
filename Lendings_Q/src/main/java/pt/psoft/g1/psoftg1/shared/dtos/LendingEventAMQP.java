@@ -8,7 +8,6 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 
 import java.time.LocalDate;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,12 +20,11 @@ public class LendingEventAMQP {
     public LocalDate limitDate;
     public LocalDate returnedDate;
     public String commentary;
+    public Integer rating;
     public Long version;
     public int fineValuePerDayInCents;
 
-    /**
-     * Converte um Lending domain para evento AMQP
-     */
+
     public static LendingEventAMQP from(Lending lending) {
         return LendingEventAMQP.builder()
                 .lendingNumber(lending.getLendingNumber())
@@ -36,11 +34,11 @@ public class LendingEventAMQP {
                 .limitDate(lending.getLimitDate())
                 .returnedDate(lending.getReturnedDate())
                 .commentary(lending.getCommentary())
+                .rating(lending.getRating())
                 .version(lending.getVersion())
                 .fineValuePerDayInCents(lending.getFineValuePerDayInCents())
                 .build();
     }
+
 }
-
-
 

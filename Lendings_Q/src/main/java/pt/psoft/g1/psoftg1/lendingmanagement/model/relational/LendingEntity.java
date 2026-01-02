@@ -62,6 +62,10 @@ public class LendingEntity {
     @Getter
     private String commentary;
 
+    @Column
+    private Integer rating;
+
+
     @Getter
     private int fineValuePerDayInCents;
 
@@ -75,7 +79,7 @@ public class LendingEntity {
 
     public LendingEntity(BookEntity book, ReaderDetailsEntity readerDetails, LendingNumberEntity lendingNumber,
                          LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents,
-                         String commentary) {
+                         String commentary, Integer rating) {
         this.book = book;
         this.readerDetails = readerDetails;
         this.lendingNumber = lendingNumber;
@@ -84,6 +88,7 @@ public class LendingEntity {
         this.returnedDate = returnedDate;
         this.fineValuePerDayInCents = fineValuePerDayInCents;
         this.commentary = commentary;
+        this.rating = rating;
     }
 
     // Setter

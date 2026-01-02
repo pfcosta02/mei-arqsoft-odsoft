@@ -15,6 +15,7 @@ import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
 import pt.psoft.g1.psoftg1.lendingmanagement.api.LendingCommandDTO;
 import pt.psoft.g1.psoftg1.lendingmanagement.api.LendingViewAMQP;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.LendingOutboxRepository;
+import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mappers.LendingEntityMapper;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.LendingOutbox;
@@ -45,6 +46,7 @@ public class LendingServiceImpl implements LendingService{
     private final BookRepository bookRepository;
     private final ReaderRepository readerRepository;
     private final ObjectMapper objectMapper;
+    private final LendingEntityMapper lendingEntityMapper;
 
     @Override
     @Transactional
@@ -96,31 +98,62 @@ public class LendingServiceImpl implements LendingService{
         }
     }
 
+
+
+
     @Override
     @Transactional
-    public Lending returnLending(String lendingNumber, String commentary) {
+    public Lending returnLending(String lendingNumber, String commentary, Integer rating, Long expectedVersion) {
         try {
             log.info("[Command] Returning lending: {}", lendingNumber);
 
-            // 1. Busca o lending
-            Lending lending = lendingRepository.findByLendingNumber(lendingNumber)
-                    .orElseThrow(() -> new RuntimeException("Lending not found: " + lendingNumber));
+            // Carrega para obter versão atual & montar evento depois
+            var entityOpt = lendingRepository.findByLendingNumber(lendingNumber);
+            var entity = entityOpt.orElseThrow(() -> new RuntimeException("Lending not found: " + lendingNumber));
 
-            // 2. Marca como devolvido
-            lending.setReturned(lending.getVersion(), commentary);
+            long versionToUse = (expectedVersion != null) ? expectedVersion : entity.getVersion();
+            if (expectedVersion == null) {
+                log.warn("[Command] If-Match não numérico/wildcard; a usar versão atual {} para {}",
+                        versionToUse, lendingNumber);
+            }
 
-            // 3. Guarda
-            Lending updated = lendingRepository.save(lending);
-
-            // 4. Publica evento em Outbox
-            LendingEventAMQP event = LendingEventAMQP.from(updated);
-            String payload = objectMapper.writeValueAsString(event);
-            LendingOutbox outbox = new LendingOutbox(
-                    updated.getLendingNumber(),
-                    LendingEvents.LENDING_RETURNED,
-                    payload
+            // UPDATE otimista
+            int rows = lendingRepository.markReturned(
+                    lendingNumber,
+                    java.time.LocalDate.now(),
+                    commentary,
+                    rating,
+                    versionToUse
             );
-            outboxRepository.save(outbox);
+
+            if (rows == 0) {
+                // versão não bateu ou não existe lending
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.PRECONDITION_FAILED,
+                        "Version mismatch or lending not found: " + lendingNumber
+                );
+            }
+
+            // Recarrega estado atualizado para montar o evento
+            var updatedEntity = lendingRepository.findByLendingNumber(lendingNumber)
+                    .orElseThrow(() -> new RuntimeException("Lending not found after update: " + lendingNumber));
+
+            // Mapeia para domínio
+            var updated = updatedEntity;
+
+
+            // sanity log
+            log.debug("[Command] Domain after map: commentary='{}' rating={}", updated.getCommentary(), updated.getRating());
+
+
+            // Publica evento (inclui rating!)
+            var event = pt.psoft.g1.psoftg1.shared.dtos.LendingEventAMQP.from(updated);
+            var payload = objectMapper.writeValueAsString(event);
+            outboxRepository.save(new pt.psoft.g1.psoftg1.lendingmanagement.model.LendingOutbox(
+                    updated.getLendingNumber(),
+                    pt.psoft.g1.psoftg1.shared.model.LendingEvents.LENDING_RETURNED,
+                    payload
+            ));
 
             log.info("[Command] Lending returned: {} with outbox event", lendingNumber);
             return updated;
@@ -129,6 +162,7 @@ public class LendingServiceImpl implements LendingService{
             throw new RuntimeException("Error returning lending: " + e.getMessage(), e);
         }
     }
+
 
     @Override
     @Transactional

@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>pt.ipp.isep</groupId>
-	<artifactId>AuthNUsers_C</artifactId>
+	<artifactId>authnusers_c</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>LMSUsers</name>
 	<description>LMS Users Microservice</description>

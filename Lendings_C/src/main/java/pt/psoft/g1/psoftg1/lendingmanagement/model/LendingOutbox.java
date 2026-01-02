@@ -18,13 +18,13 @@ public class LendingOutbox {
     private Long id;
 
     @Column(nullable = false)
-    private Long aggregateId;  // id do Lending
+    private String aggregateId;  // lendingNumber (ex: "2024/1")
 
     @Column(nullable = false)
-    private String eventType;  // "lending.created", "lending.updated", etc
+    private String eventType;    // "lending.created", etc
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String payload;    // JSON do evento
+    private String payload;      // JSON
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -34,7 +34,7 @@ public class LendingOutbox {
     @Column(nullable = false)
     private Boolean published = false;
 
-    public LendingOutbox(Long aggregateId, String eventType, String payload) {
+    public LendingOutbox(String aggregateId, String eventType, String payload) {
         this.aggregateId = aggregateId;
         this.eventType = eventType;
         this.payload = payload;

@@ -8,33 +8,37 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class LendingQueryDTO {
-    private Long id;
-    private Long readerId;
-    private Long bookId;
+    private String lendingNumber;        // "2024/1"
+    private String bookIsbn;             // ISBN do livro
+    private String readerNumber;         // Número do leitor
+    private String readerName;           // Nome do leitor
     private LocalDate startDate;
     private LocalDate limitDate;
     private LocalDate returnedDate;
     private String commentary;
-    private String status;
+    private String status;               // ACTIVE, OVERDUE, RETURNED
     private Integer daysUntilReturn;
     private Integer daysOverdue;
+    private int fineValuePerDayInCents;
+    private Long version;
 
-    // Factory method para converter entity
-    public static LendingQueryDTO from(Lending entity) {
+    /**
+     * Converte um Lending domain para DTO de leitura
+     */
+    public static LendingQueryDTO from(Lending lending) {
         int daysUntilReturn = 0;
         int daysOverdue = 0;
         String status = "ACTIVE";
 
-        if (entity.getReturnedDate() != null) {
+        if (lending.getReturnedDate() != null) {
             status = "RETURNED";
         } else {
-            long daysUntil = ChronoUnit.DAYS.between(LocalDate.now(), entity.getLimitDate());
+            long daysUntil = ChronoUnit.DAYS.between(LocalDate.now(), lending.getLimitDate());
             if (daysUntil < 0) {
                 daysOverdue = (int) Math.abs(daysUntil);
                 status = "OVERDUE";
@@ -44,16 +48,19 @@ public class LendingQueryDTO {
         }
 
         return LendingQueryDTO.builder()
-                .id(entity.getPk())
-                .readerId(entity.getReaderDetails() != null ? entity.getReaderDetails().getPk() : null)
-                .bookId(entity.getBook() != null ? entity.getBook().getPk() : null)
-                .startDate(entity.getStartDate())
-                .limitDate(entity.getLimitDate())
-                .returnedDate(entity.getReturnedDate())
-                .commentary(entity.getCommentary())
+                .lendingNumber(lending.getLendingNumber())
+                .bookIsbn(lending.getBook().getIsbn().getIsbn())
+                .readerNumber(lending.getReaderDetails().getReaderNumber())
+                .readerName(lending.getReaderDetails().getReader().getName().getName())
+                .startDate(lending.getStartDate())
+                .limitDate(lending.getLimitDate())
+                .returnedDate(lending.getReturnedDate())
+                .commentary(lending.getCommentary())
                 .status(status)
                 .daysUntilReturn(daysUntilReturn > 0 ? daysUntilReturn : null)
                 .daysOverdue(daysOverdue > 0 ? daysOverdue : null)
+                .fineValuePerDayInCents(lending.getFineValuePerDayInCents())
+                .version(lending.getVersion())
                 .build();
     }
 }

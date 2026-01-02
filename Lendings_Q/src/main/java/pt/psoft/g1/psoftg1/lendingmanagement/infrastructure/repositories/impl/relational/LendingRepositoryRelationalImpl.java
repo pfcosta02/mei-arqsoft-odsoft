@@ -295,6 +295,51 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
         return lendings;
     }
 
+    @Override
+    public List<Lending> findByReaderNumber(String readerNumber)
+    {
+        List<Lending> lendings = new ArrayList<>();
+        // Usa CriteriaAPI para buscar por reader number (string)
+        final CriteriaBuilder cb = em.getCriteriaBuilder();
+        final CriteriaQuery<LendingEntity> cq = cb.createQuery(LendingEntity.class);
+        final Root<LendingEntity> root = cq.from(LendingEntity.class);
+        final Join<LendingEntity, ReaderDetails> readerJoin = root.join("readerDetails");
+
+        cq.select(root);
+        cq.where(cb.equal(readerJoin.get("readerNumber").get("readerNumber"), readerNumber));
+        cq.orderBy(cb.desc(root.get("startDate")));
+
+        final TypedQuery<LendingEntity> q = em.createQuery(cq);
+        for (LendingEntity lendingEntity : q.getResultList()) {
+            lendings.add(lendingEntityMapper.toModel(lendingEntity));
+        }
+        return lendings;
+    }
+
+    @Override
+    public List<Lending> findActiveLendingsByReader(String readerNumber)
+    {
+        List<Lending> lendings = new ArrayList<>();
+        final CriteriaBuilder cb = em.getCriteriaBuilder();
+        final CriteriaQuery<LendingEntity> cq = cb.createQuery(LendingEntity.class);
+        final Root<LendingEntity> root = cq.from(LendingEntity.class);
+        final Join<LendingEntity, ReaderDetails> readerJoin = root.join("readerDetails");
+
+        cq.select(root);
+        final List<Predicate> where = new ArrayList<>();
+        where.add(cb.equal(readerJoin.get("readerNumber").get("readerNumber"), readerNumber));
+        where.add(cb.isNull(root.get("returnedDate")));
+
+        cq.where(where.toArray(new Predicate[0]));
+        cq.orderBy(cb.asc(root.get("limitDate")));
+
+        final TypedQuery<LendingEntity> q = em.createQuery(cq);
+        for (LendingEntity lendingEntity : q.getResultList()) {
+            lendings.add(lendingEntityMapper.toModel(lendingEntity));
+        }
+        return lendings;
+    }
+
 
 
 

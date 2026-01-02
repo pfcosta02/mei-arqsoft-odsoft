@@ -19,6 +19,7 @@ public class Book extends EntityWithPhoto
     public Long pk;
     private Long version;
     private Isbn isbn;
+//    private Title title;
 
     public void setIsbn(String isbn) {
         this.isbn = new Isbn(isbn);

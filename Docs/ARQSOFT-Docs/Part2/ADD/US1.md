@@ -70,9 +70,6 @@ O padrão **CQRS** facilita a escalabilidade e organização dos serviços, sepa
 
 ---
 
-
-## Vista de processos
-
 ## Vista de processos
 
 ```mermaid

@@ -525,8 +525,7 @@ node {
 //         {
 //             archiveArtifacts artifacts: "**\\target\\pit-reports\\index.html,**\\target\\pacts\\*.json", allowEmptyArchive: true
 //             junit skipPublishingChecks: true, testResults: '**\\target\\surefire-reports\\*.xml'
-//         }
-//
+         }
      }
     catch (Exception e) 
     {

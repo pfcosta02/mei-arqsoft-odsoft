@@ -3,16 +3,16 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: reader_q-scaler-blue
+  name: reader-q-scaler-blue
   namespace: dev
   labels:
-    app: reader_q
+    app: reader-q
     color: blue
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: reader_q-blue
+    name: reader-q-blue
   minReplicas: 1
   maxReplicas: 5
   metrics:
@@ -27,16 +27,16 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: reader_q-scaler-green
+  name: reader-q-scaler-green
   namespace: dev
   labels:
-    app: reader_q
+    app: reader-q
     color: green
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: reader_q-green
+    name: reader-q-green
   minReplicas: 1
   maxReplicas: 5
   metrics:

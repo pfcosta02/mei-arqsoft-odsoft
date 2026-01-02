@@ -2,26 +2,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: reader_q-{{COLOR}}
+  name: reader-q-{{COLOR}}
   namespace: dev
   labels:
-    app: reader_q
+    app: reader-q
     color: {{COLOR}}
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: reader_q
+      app: reader-q
       color: {{COLOR}}
   template:
     metadata:
       labels:
-        app: reader_q
+        app: reader-q
         color: {{COLOR}}
         version: {{COLOR}}
     spec:
       containers:
-      - name: reader_q
+      - name: reader-q
         image: {{IMAGE}}
         ports:
         - containerPort: 8082

@@ -14,7 +14,7 @@ properties([
 node {
     def MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     def PROJECT_VERSION = ''
-    def IMAGE_NAME = 'Reader_Q'
+    def IMAGE_NAME = 'reader_c'
     def RESULT_STR = ''
     def CURRENT_COLOR // Cor atual do deployment (blue, green ou none)
     def NEW_COLOR // Nova cor para o deployment
@@ -231,6 +231,92 @@ node {
 //                 else
 //                 {
 //                     echo "Testing strategy for ${params.RolloutStrategy} is not implemented yet."
+//                 }
+//             }
+//
+//             stage('Manual Approval Required')
+//             {
+//                 if (params.RolloutStrategy == 'Blue/Green')
+//                 {
+//                     /*
+//                     * Aprovação manual antes do deployment em produção
+//                     *
+//                     * NOTIFICAÇÃO:
+//                     * - O Jenkins exibe notificação no UI
+//                     * - Console log mostra mensagem clara
+//                     * - Para Jenkins com email configurado, pode usar emailext plugin
+//                     *
+//                     * APROVAÇÃO:
+//                     * - Pipeline PAUSA até alguém aprovar ou rejeitar
+//                     * - Timeout de 30 minutos (customizável)
+//                     * - Se timeout expirar, deployment é abortado
+//                     *
+//                     * CONTROLE:
+//                     * - Apenas utilizadores com permissões podem aprovar
+//                     * - Submitter pode ser especificado (ex: 'admin,lead-dev')
+//                     */
+//                     echo""" ==========================================
+//                             DEPLOYMENT APPROVAL REQUIRED
+//                             ==========================================
+//                             Service: ${IMAGE_NAME}
+//                             New Version: ${PROJECT_VERSION}
+//                             Target Color: ${NEW_COLOR}
+//                             Current Color: ${CURRENT_COLOR}
+//                             Namespace: ${NAMESPACE}
+//                             Docker Image: ${DOCKER_IMAGE}
+//                             ==========================================
+//                             Tests have PASSED. Waiting for manual approval to switch traffic...
+//                             ==========================================
+//                         """
+//
+//                     try
+//                     {
+//                         // Envia email de notificação
+//                         emailext(
+//                             subject: "Deployment Approval Required: ${IMAGE_NAME}:${PROJECT_VERSION}",
+//                             body: """
+//                                 Deployment waiting for approval:
+//                                 - Service: ${IMAGE_NAME}
+//                                 - Version: ${PROJECT_VERSION}
+//                                 - Target: ${NEW_COLOR}
+//
+//                                 Approve at: ${BUILD_URL}input
+//                             """,
+//                             to: 'test@localhost'
+//                         )
+//
+//                         timeout(time: 30, unit: 'MINUTES')
+//                         {
+//                             input message: "Deploy ${IMAGE_NAME}:${PROJECT_VERSION} to production?",
+//                                   ok: 'Deploy',
+//                                   submitter: 'admin,authenticated' // Customize with your Jenkins user roles
+//                         }
+//                         echo "Deployment APPROVED by user. Proceeding with traffic switch..."
+//                     }
+//                     catch (err)
+//                     {
+//                         echo "Deployment REJECTED or TIMEOUT. Aborting deployment..."
+//                         echo "Cleaning up ${NEW_COLOR} deployment that was never switched to production..."
+//
+//                         /*
+//                         * CLEANUP quando aprovação é rejeitada/timeout
+//                         *
+//                         * COMPORTAMENTO:
+//                         * - Remove deployment da nova cor que foi criado mas nunca recebeu tráfego
+//                         * - Tráfego continua na cor antiga (CURRENT_COLOR)
+//                         * - Sistema fica no estado anterior ao deployment
+//                         *
+//                         * VANTAGEM: Não deixa lixo (deployments órfãos) no cluster
+//                         */
+//                         RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
+//
+//                         currentBuild.result = 'ABORTED'
+//                         throw new Exception("Manual approval denied or timed out")
+//                     }
+//                 }
+//                 else
+//                 {
+//                     echo "Manual approval for ${params.RolloutStrategy} is not implemented yet."
 //                 }
 //             }
 //

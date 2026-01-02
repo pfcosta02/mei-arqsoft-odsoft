@@ -9,8 +9,18 @@ import java.util.List;
 import java.util.Optional;
 
 public interface LendingService {
-    void createLending(LendingCommandDTO dto);
-    void updateLending(String id, LendingCommandDTO dto);
-    void deleteLending(String id);
-    void returnBook(String id, String commentary);
+    /**
+     * Cria um novo lending
+     */
+    Lending createLending(LendingCommandDTO dto);
+
+    /**
+     * Marca um lending como devolvido
+     */
+    Lending returnLending(String lendingNumber, String commentary);
+
+    /**
+     * Deleta um lending
+     */
+    void deleteLending(String lendingNumber);
 }

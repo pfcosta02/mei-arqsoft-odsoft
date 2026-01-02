@@ -2,10 +2,12 @@ package pt.psoft.g1.psoftg1.lendingmanagement.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.LendingForbiddenException;
@@ -19,17 +21,26 @@ import pt.psoft.g1.psoftg1.lendingmanagement.model.LendingOutbox;
 import pt.psoft.g1.psoftg1.lendingmanagement.publishers.LendingEventPublisher;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
+import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.dtos.LendingEventAMQP;
 import pt.psoft.g1.psoftg1.shared.model.LendingEvents;
+
+import java.time.Year;
 
 
 @Service
 @RequiredArgsConstructor
 @PropertySource({"classpath:config/library.properties"})
+@Slf4j
 public class LendingServiceImpl implements LendingService{
 
-    private final LendingRepository repository;
+    @Value("${lendingDurationInDays}")
+    private int lendingDurationInDays;
+    @Value("${fineValuePerDayInCents}")
+    private int fineValuePerDayInCents;
+
+    private final LendingRepository lendingRepository;
     private final LendingOutboxRepository outboxRepository;
     private final BookRepository bookRepository;
     private final ReaderRepository readerRepository;
@@ -37,123 +48,115 @@ public class LendingServiceImpl implements LendingService{
 
     @Override
     @Transactional
-    public void createLending(LendingCommandDTO dto) {
+    public Lending createLending(LendingCommandDTO dto) {
         try {
-            // 1. Busca Book e ReaderDetails
-            var book = bookRepository.findByIsbn(dto.getBookIsbn())
-                    .orElseThrow(() -> new RuntimeException("Book not found"));
-            var readerDetails = readerRepository.findByUserId(dto.getReaderId())
-                    .orElseThrow(() -> new RuntimeException("Reader not found"));
+            log.info("[Command] Creating lending for reader: {} and book: {}", dto.getReaderNumber(), dto.getBookIsbn());
 
-            // 2. Cria entidade Lending
+            // 1. Busca o Book pelo ISBN
+            Book book = bookRepository.findByIsbn(dto.getBookIsbn())
+                    .orElseThrow(() -> new RuntimeException("Book not found with ISBN: " + dto.getBookIsbn()));
+
+            // 2. Busca o ReaderDetails pelo reader number
+            ReaderDetails readerDetails = readerRepository.findByReaderNumber(dto.getReaderNumber())
+                    .orElseThrow(() -> new RuntimeException("Reader not found with number: " + dto.getReaderNumber()));
+
+            // 3. ✅ CORRIGIDO: Gera o próximo seq do ano
+            int currentYear = Year.now().getValue();
+            int nextSeq = lendingRepository.getCountFromCurrentYear() + 1;
+
+            log.debug("[Command] Creating lending with year: {}, seq: {}", currentYear, nextSeq);
+
+            // 4. Cria o Lending
             Lending lending = new Lending(
                     book,
                     readerDetails,
-                    1,  // seq - ajusta conforme necessário
-                    dto.getLendingDurationDays() != null ? dto.getLendingDurationDays() : 14,
-                    dto.getFineValuePerDayInCents() != null ? dto.getFineValuePerDayInCents() : 50
+                    nextSeq,  // ✅ CORRIGIDO: Usa o próximo seq
+                    lendingDurationInDays,
+                    fineValuePerDayInCents
             );
 
-            // 3. Guarda Lending na BD
-            Lending saved = repository.save(lending);
+            // 5. Guarda no repositório
+            Lending saved = lendingRepository.save(lending);
 
-            // 4. Cria evento e guarda em Outbox (MESMA TRANSAÇÃO)
+            // 6. Cria evento e guarda em Outbox (MESMA TRANSAÇÃO)
             LendingEventAMQP event = LendingEventAMQP.from(saved);
             String payload = objectMapper.writeValueAsString(event);
             LendingOutbox outbox = new LendingOutbox(
-                    saved.getPk(),
+                    saved.getLendingNumber(),
                     LendingEvents.LENDING_CREATED,
                     payload
             );
             outboxRepository.save(outbox);
-            // COMMIT da transação aqui (tudo junto ou nada)
 
-            System.out.println("[Command] Lending created with outbox event queued");
+            log.info("[Command] Lending created: {} with outbox event", saved.getLendingNumber());
+            return saved;
         } catch (Exception e) {
-            System.err.println("[Command] Error creating lending: " + e.getMessage());
-            throw new RuntimeException(e);
+            log.error("[Command] Error creating lending: {}", e.getMessage(), e);
+            throw new RuntimeException("Error creating lending: " + e.getMessage(), e);
         }
     }
 
     @Override
     @Transactional
-    public void updateLending(String id, LendingCommandDTO dto) {
+    public Lending returnLending(String lendingNumber, String commentary) {
         try {
-            Lending lending = repository.findByLendingNumber(id)
-                    .orElseThrow(() -> new RuntimeException("Lending not found"));
+            log.info("[Command] Returning lending: {}", lendingNumber);
 
-            // Atualiza campos (implementa conforme necessário)
-            // lending.update(dto);
+            // 1. Busca o lending
+            Lending lending = lendingRepository.findByLendingNumber(lendingNumber)
+                    .orElseThrow(() -> new RuntimeException("Lending not found: " + lendingNumber));
 
-            Lending updated = repository.save(lending);
-
-            // Guarda evento em Outbox
-            LendingEventAMQP event = LendingEventAMQP.from(updated);
-            String payload = objectMapper.writeValueAsString(event);
-            LendingOutbox outbox = new LendingOutbox(
-                    updated.getPk(),
-                    LendingEvents.LENDING_UPDATED,
-                    payload
-            );
-            outboxRepository.save(outbox);
-
-            System.out.println("[Command] Lending updated with outbox event queued");
-        } catch (Exception e) {
-            System.err.println("[Command] Error updating lending: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void deleteLending(String id) {
-        try {
-            Lending lending = repository.findByLendingNumber(id)
-                    .orElseThrow(() -> new RuntimeException("Lending not found"));
-
-            repository.delete(lending);
-
-            // Guarda evento em Outbox
-            LendingEventAMQP event = LendingEventAMQP.from(lending);
-            String payload = objectMapper.writeValueAsString(event);
-            LendingOutbox outbox = new LendingOutbox(
-                    lending.getPk(),
-                    LendingEvents.LENDING_DELETED,
-                    payload
-            );
-            outboxRepository.save(outbox);
-
-            System.out.println("[Command] Lending deleted with outbox event queued");
-        } catch (Exception e) {
-            System.err.println("[Command] Error deleting lending: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void returnBook(String id, String commentary) {
-        try {
-            Lending lending = repository.findByLendingNumber(id)
-                    .orElseThrow(() -> new RuntimeException("Lending not found"));
-
+            // 2. Marca como devolvido
             lending.setReturned(lending.getVersion(), commentary);
-            Lending updated = repository.save(lending);
 
-            // Guarda evento em Outbox
+            // 3. Guarda
+            Lending updated = lendingRepository.save(lending);
+
+            // 4. Publica evento em Outbox
             LendingEventAMQP event = LendingEventAMQP.from(updated);
             String payload = objectMapper.writeValueAsString(event);
             LendingOutbox outbox = new LendingOutbox(
-                    updated.getPk(),
+                    updated.getLendingNumber(),
                     LendingEvents.LENDING_RETURNED,
                     payload
             );
             outboxRepository.save(outbox);
 
-            System.out.println("[Command] Book returned with outbox event queued");
+            log.info("[Command] Lending returned: {} with outbox event", lendingNumber);
+            return updated;
         } catch (Exception e) {
-            System.err.println("[Command] Error returning book: " + e.getMessage());
-            throw new RuntimeException(e);
+            log.error("[Command] Error returning lending: {}", e.getMessage(), e);
+            throw new RuntimeException("Error returning lending: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteLending(String lendingNumber) {
+        try {
+            log.info("[Command] Deleting lending: {}", lendingNumber);
+
+            // 1. Busca o lending
+            Lending lending = lendingRepository.findByLendingNumber(lendingNumber)
+                    .orElseThrow(() -> new RuntimeException("Lending not found: " + lendingNumber));
+
+            // 2. Deleta
+            lendingRepository.delete(lending);
+
+            // 3. Publica evento em Outbox
+            LendingEventAMQP event = LendingEventAMQP.from(lending);
+            String payload = objectMapper.writeValueAsString(event);
+            LendingOutbox outbox = new LendingOutbox(
+                    lending.getLendingNumber(),
+                    LendingEvents.LENDING_DELETED,
+                    payload
+            );
+            outboxRepository.save(outbox);
+
+            log.info("[Command] Lending deleted: {} with outbox event", lendingNumber);
+        } catch (Exception e) {
+            log.error("[Command] Error deleting lending: {}", e.getMessage(), e);
+            throw new RuntimeException("Error deleting lending: " + e.getMessage(), e);
         }
     }
 }

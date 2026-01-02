@@ -32,9 +32,9 @@ public class OutboxProcessor {
             {
                 switch (event.getEventType())
                 {
-//                    case BookEvents.BOOK_CREATED:
-//                        publisher.publishBookCreatedEvent(event.getPayload());
-//                        break;
+                    case AuthorEvents.AUTHOR_CREATED:
+                        publisher.sendAuthorCreated(event.getPayload());
+                        break;
 //                    case BookEvents.BOOK_UPDATED:
 //                        publisher.publishBookUpdatedEvent(event.getPayload());
 //                        break;

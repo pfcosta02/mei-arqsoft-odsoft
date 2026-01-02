@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,25 +36,57 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/lendings")
 @RequiredArgsConstructor
+@Slf4j
 public class LendingController {
 
     private final LendingService lendingService;
 
+    private final LendingViewMapper lendingViewMapper;
+
     @PostMapping
-    public ResponseEntity<Void> createLending(@RequestBody LendingCommandDTO dto) {
-        lendingService.createLending(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<LendingView> createLending(@Valid @RequestBody LendingCommandDTO dto) {
+        log.info("Creating lending for reader: {} and book: {}", dto.getReaderNumber(), dto.getBookIsbn());
+
+        Lending lending = lendingService.createLending(dto);
+
+        var uri = ServletUriComponentsBuilder.fromCurrentRequestUri()
+                .pathSegment(lending.getLendingNumber())
+                .build().toUri();
+
+        return ResponseEntity.created(uri)
+                .contentType(MediaType.parseMediaType("application/hal+json"))
+                .eTag(Long.toString(lending.getVersion()))
+                .body(lendingViewMapper.toLendingView(lending));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Void> updateLending(@PathVariable String id, @RequestBody LendingCommandDTO dto) {
-        lendingService.updateLending(id, dto);
-        return ResponseEntity.ok().build();
+    @PutMapping("/{year}/{seq}")
+    public ResponseEntity<LendingView> returnLending(
+            @PathVariable int year,
+            @PathVariable int seq,
+            @RequestParam(required = false) String commentary) {
+
+        String lendingNumber = year + "/" + seq;
+        log.info("Returning lending: {}", lendingNumber);
+
+        Lending lending = lendingService.returnLending(lendingNumber, commentary);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/hal+json"))
+                .eTag(Long.toString(lending.getVersion()))
+                .body(lendingViewMapper.toLendingView(lending));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLending(@PathVariable String id) {
-        lendingService.deleteLending(id);
+    @DeleteMapping("/{year}/{seq}")
+    public ResponseEntity<Void> deleteLending(
+            @PathVariable int year,
+            @PathVariable int seq) {
+
+        String lendingNumber = year + "/" + seq;
+        log.info("Deleting lending: {}", lendingNumber);
+
+        lendingService.deleteLending(lendingNumber);
+
         return ResponseEntity.noContent().build();
     }
 }

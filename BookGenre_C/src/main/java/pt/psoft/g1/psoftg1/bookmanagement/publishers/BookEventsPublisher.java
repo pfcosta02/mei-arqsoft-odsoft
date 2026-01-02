@@ -11,6 +11,8 @@ public interface BookEventsPublisher {
 
     void sendBookFinalized(String payload);
 
+    void sendBookCreated(String payload);
+
     BookViewAMQP sendBookUpdated(Book book, Long currentVersion);
 
     BookViewAMQP sendBookDeleted(Book book, Long currentVersion);

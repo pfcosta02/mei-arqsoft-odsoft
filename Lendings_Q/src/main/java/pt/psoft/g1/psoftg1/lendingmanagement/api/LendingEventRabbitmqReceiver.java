@@ -16,7 +16,6 @@ public class LendingEventRabbitmqReceiver {
     private final LendingService service;
     private final ObjectMapper objectMapper;
 
-    // ✅ CORRIGIDO: Construtor com 2 parâmetros
     public LendingEventRabbitmqReceiver(LendingService service, ObjectMapper objectMapper) {
         this.service = service;
         this.objectMapper = objectMapper;
@@ -26,11 +25,21 @@ public class LendingEventRabbitmqReceiver {
     public void receiveLendingCreated(Message message) {
         try {
             String json = new String(message.getBody(), StandardCharsets.UTF_8);
+            log.debug("[Query] Received raw JSON: {}", json);
+
+            // Remove quotes extra se houver (double encoding)
+            if (json.startsWith("\"") && json.endsWith("\"")) {
+                json = json.substring(1, json.length() - 1);
+                // Unescape escaped quotes
+                json = json.replace("\\\"", "\"");
+            }
+
             LendingEventAMQP event = objectMapper.readValue(json, LendingEventAMQP.class);
             service.createFromEvent(event);
-            log.info("[Query] Received lending created: {}", event.getId());
+            log.info("[Query] Synced lending created: {}", event.lendingNumber);
         } catch (Exception e) {
-            log.error("[Query] Error receiving lending created: {}", e.getMessage());
+            log.error("[Query] Error receiving lending created: {}", e.getMessage(), e);
+            // NÃO lança exceção - permite que a mensagem seja descartada
         }
     }
 
@@ -38,11 +47,18 @@ public class LendingEventRabbitmqReceiver {
     public void receiveLendingUpdated(Message message) {
         try {
             String json = new String(message.getBody(), StandardCharsets.UTF_8);
+            log.debug("[Query] Received raw JSON: {}", json);
+
+            if (json.startsWith("\"") && json.endsWith("\"")) {
+                json = json.substring(1, json.length() - 1);
+                json = json.replace("\\\"", "\"");
+            }
+
             LendingEventAMQP event = objectMapper.readValue(json, LendingEventAMQP.class);
             service.updateFromEvent(event);
-            log.info("[Query] Received lending updated: {}", event.getId());
+            log.info("[Query] Synced lending updated: {}", event.lendingNumber);
         } catch (Exception e) {
-            log.error("[Query] Error receiving lending updated: {}", e.getMessage());
+            log.error("[Query] Error receiving lending updated: {}", e.getMessage(), e);
         }
     }
 
@@ -50,11 +66,18 @@ public class LendingEventRabbitmqReceiver {
     public void receiveLendingDeleted(Message message) {
         try {
             String json = new String(message.getBody(), StandardCharsets.UTF_8);
+            log.debug("[Query] Received raw JSON: {}", json);
+
+            if (json.startsWith("\"") && json.endsWith("\"")) {
+                json = json.substring(1, json.length() - 1);
+                json = json.replace("\\\"", "\"");
+            }
+
             LendingEventAMQP event = objectMapper.readValue(json, LendingEventAMQP.class);
             service.deleteFromEvent(event);
-            log.info("[Query] Received lending deleted: {}", event.getId());
+            log.info("[Query] Synced lending deleted: {}", event.lendingNumber);
         } catch (Exception e) {
-            log.error("[Query] Error receiving lending deleted: {}", e.getMessage());
+            log.error("[Query] Error receiving lending deleted: {}", e.getMessage(), e);
         }
     }
 
@@ -62,11 +85,18 @@ public class LendingEventRabbitmqReceiver {
     public void receiveLendingReturned(Message message) {
         try {
             String json = new String(message.getBody(), StandardCharsets.UTF_8);
+            log.debug("[Query] Received raw JSON: {}", json);
+
+            if (json.startsWith("\"") && json.endsWith("\"")) {
+                json = json.substring(1, json.length() - 1);
+                json = json.replace("\\\"", "\"");
+            }
+
             LendingEventAMQP event = objectMapper.readValue(json, LendingEventAMQP.class);
-            service.updateFromEvent(event);  // Atualizar é suficiente para return
-            log.info("[Query] Received lending returned: {}", event.getId());
+            service.updateFromEvent(event);
+            log.info("[Query] Synced lending returned: {}", event.lendingNumber);
         } catch (Exception e) {
-            log.error("[Query] Error receiving lending returned: {}", e.getMessage());
+            log.error("[Query] Error receiving lending returned: {}", e.getMessage(), e);
         }
     }
 }

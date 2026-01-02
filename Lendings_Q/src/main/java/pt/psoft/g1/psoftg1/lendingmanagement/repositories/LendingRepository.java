@@ -21,6 +21,8 @@ public interface LendingRepository {
     Optional<Lending> findById(Long id);
     List<Lending> findActiveLendingsByReader(Long readerId);
     List<Lending> findOverdueLendings();
+    List<Lending> findByReaderNumber(String readerNumber);
+    List<Lending> findActiveLendingsByReader(String readerNumber);
 
     List<Lending> getOverdue(Page page);
     List<Lending> searchLendings(Page page, String readerNumber, String isbn, Boolean returned, LocalDate startDate, LocalDate endDate);

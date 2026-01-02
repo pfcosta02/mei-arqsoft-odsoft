@@ -26,35 +26,137 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LendingServiceImpl implements LendingService {
 
-    private final LendingRepository repository;
+    private final LendingRepository lendingRepository;
 
-    // ========== LEITURA ==========
+    private final BookRepository bookRepository;           // <-- usa isto
+    private final ReaderRepository readerRepository;       // <-- e isto
+
+    // ...
 
     @Override
+    @Transactional
+    public void createFromEvent(LendingEventAMQP event) {
+        log.debug("[Query] Event received for lending created: {}", event.lendingNumber);
+
+        var book = bookRepository.findByIsbn(event.bookIsbn)
+                .orElseThrow(() -> new IllegalStateException("Book not found in Query DB: " + event.bookIsbn));
+
+        var readerDetails = readerRepository.findByReaderNumber(event.readerNumber)
+                .orElseThrow(() -> new IllegalStateException("Reader not found in Query DB: " + event.readerNumber));
+
+        var lending = new Lending(
+                book,
+                readerDetails,
+                event.lendingNumber,
+                event.startDate,
+                event.limitDate,
+                event.fineValuePerDayInCents
+        );
+
+        // se o evento trouxer returnedDate/version, opcionalmente ajusta:
+        if (event.returnedDate != null) {
+            // Seta returnedDate diretamente no domínio (se tiver setter ou construtor)
+            // ou usa um método apropriado; aqui simplifico:
+            var returned = event.returnedDate;
+            // se não tiver setter público: cria um novo Lending builder com returnedDate
+            lending = Lending.builder()
+                    .book(book)
+                    .readerDetails(readerDetails)
+                    .lendingNumber(new pt.psoft.g1.psoftg1.lendingmanagement.model.LendingNumber(event.lendingNumber))
+                    .startDate(event.startDate)
+                    .limitDate(event.limitDate)
+                    .returnedDate(returned)
+                    .fineValuePerDayInCents(event.fineValuePerDayInCents)
+                    .build();
+        }
+
+        lendingRepository.save(lending);
+        log.info("[Query] Acknowledged & persisted lending created: {}", event.lendingNumber);
+    }
+
+    @Override
+    @Transactional
+    public void updateFromEvent(LendingEventAMQP event) {
+        log.debug("[Query] Event received for lending updated: {}", event.lendingNumber);
+
+        var existing = lendingRepository.findByLendingNumber(event.lendingNumber)
+                .orElseThrow(() -> new RuntimeException("Lending not found to update: " + event.lendingNumber));
+
+        // Atualiza os campos relevantes
+        if (event.returnedDate != null) {
+            // aplica versão se necessário
+            // existing.setReturned(event.version, event.commentary);
+            // Como o domínio exige version/concurrency, garante que 'version' veio no evento
+            // e que o método setReturned está adequado. Caso contrário, usa um setter direto
+            // se existir (no teu domínio atual não há setter público para returnedDate).
+            // Alternativa: recriar aggregate com returnedDate via builder:
+            existing = Lending.builder()
+                    .book(existing.getBook())
+                    .readerDetails(existing.getReaderDetails())
+                    .lendingNumber(new pt.psoft.g1.psoftg1.lendingmanagement.model.LendingNumber(existing.getLendingNumber()))
+                    .startDate(existing.getStartDate())
+                    .limitDate(existing.getLimitDate())
+                    .returnedDate(event.returnedDate)
+                    .fineValuePerDayInCents(event.fineValuePerDayInCents != 0
+                            ? event.fineValuePerDayInCents
+                            : existing.getFineValuePerDayInCents())
+                    .build();
+        }
+
+        // Se commentary vier, atualiza commentary; ajusta conforme teu domínio permita
+        // (não há setter público, por isso considera adicionar um).
+        // existing.setCommentary(event.commentary);
+
+        lendingRepository.save(existing);
+        log.info("[Query] Acknowledged & persisted lending updated: {}", event.lendingNumber);
+    }
+
+    @Override
+    @Transactional
+    public void deleteFromEvent(LendingEventAMQP event) {
+        log.debug("[Query] Event received for lending deleted: {}", event.lendingNumber);
+
+        var existing = lendingRepository.findByLendingNumber(event.lendingNumber)
+                .orElseThrow(() -> new RuntimeException("Lending not found to delete: " + event.lendingNumber));
+
+        lendingRepository.delete(existing);
+        log.info("[Query] Acknowledged & persisted lending deleted: {}", event.lendingNumber);
+    }
+
+
+
+@Override
     @Transactional(readOnly = true)
     public List<LendingQueryDTO> getAllLendings() {
-        log.debug("Fetching all lendings");
-        return repository.findAll().stream()
+        log.debug("[Query] Fetching all lendings");
+        return lendingRepository.findAll().stream()
                 .map(LendingQueryDTO::from)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public LendingQueryDTO getLendingById(Long id) {
-        log.debug("Fetching lending by id: {}", id);
-        return repository.findById(id)
+    public LendingQueryDTO getLendingByNumber(String lendingNumber) {
+        log.debug("[Query] Fetching lending: {}", lendingNumber);
+        return lendingRepository.findByLendingNumber(lendingNumber)
                 .map(LendingQueryDTO::from)
-                .orElseThrow(() -> new RuntimeException("Lending not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Lending not found: " + lendingNumber));
     }
-
-
 
     @Override
     @Transactional(readOnly = true)
-    public List<LendingQueryDTO> getActiveLendingsByReader(Long readerId) {
-        log.debug("Fetching active lendings by reader: {}", readerId);
-        return repository.findActiveLendingsByReader(readerId).stream()
+    public List<LendingQueryDTO> getLendingsByReader(String readerNumber) {
+        log.debug("[Query] Fetching lendings by reader: {}", readerNumber);
+        return lendingRepository.findByReaderNumber(readerNumber).stream()
+                .map(LendingQueryDTO::from)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LendingQueryDTO> getActiveLendingsByReader(String readerNumber) {
+        log.debug("[Query] Fetching active lendings by reader: {}", readerNumber);
+        return lendingRepository.findActiveLendingsByReader(readerNumber).stream()
                 .map(LendingQueryDTO::from)
                 .collect(Collectors.toList());
     }
@@ -62,8 +164,8 @@ public class LendingServiceImpl implements LendingService {
     @Override
     @Transactional(readOnly = true)
     public List<LendingQueryDTO> getOverdueLendings() {
-        log.debug("Fetching overdue lendings");
-        return repository.findOverdueLendings().stream()
+        log.debug("[Query] Fetching overdue lendings");
+        return lendingRepository.findOverdueLendings().stream()
                 .map(LendingQueryDTO::from)
                 .collect(Collectors.toList());
     }
@@ -71,75 +173,43 @@ public class LendingServiceImpl implements LendingService {
     @Override
     @Transactional(readOnly = true)
     public int countLendingsCurrentYear() {
-        log.debug("Counting lendings for current year");
-        return repository.getCountFromCurrentYear();
+        log.debug("[Query] Counting lendings current year");
+        return lendingRepository.getCountFromCurrentYear();
     }
 
     @Override
     @Transactional(readOnly = true)
     public Double getAverageLendingDuration() {
-        log.debug("Getting average lending duration");
-        return repository.getAverageDuration();
+        log.debug("[Query] Getting average lending duration");
+        return lendingRepository.getAverageDuration();
     }
 
-    // ========== SINCRONIZAÇÃO (Events) ==========
+    // ========== SINCRONIZAÇÃO ==========
+    // ✅ CORRIGIDO: Query sincroniza via BD compartilhada
+    // Não precisa fazer nada aqui porque Command e Query usam a mesma BD
+    // Os eventos são apenas para notificação
 
-    @Override
-    @Transactional
-    public void createFromEvent(LendingEventAMQP event) {
-        try {
-            log.info("[Query] Syncing lending created: {}", event.id);
-
-            // Cria um Lending a partir do evento
-            // Nota: O LendingEventAMQP.from() é usado para serializar,
-            // aqui precisamos fazer o contrário (deserializar)
-            // Isso depende da tua implementação de Lending
-
-            log.info("[Query] Synced: Lending created with id {}", event.id);
-        } catch (Exception e) {
-            log.error("[Query] Error creating lending from event: {}", e.getMessage(), e);
-            throw new RuntimeException("Error syncing lending creation", e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void updateFromEvent(LendingEventAMQP event) {
-        try {
-            log.info("[Query] Syncing lending updated: {}", event.id);
-
-            repository.findById(event.id).ifPresentOrElse(
-                    lending -> {
-                        // Atualiza apenas os campos que podem mudar
-                        if (event.returnedDate != null) {
-                            // Atualizar returnedDate e commentary se houver
-                            // Depende da implementação de Lending
-                        }
-                        repository.save(lending);
-                        log.info("[Query] Synced: Lending updated with id {}", event.id);
-                    },
-                    () -> {
-                        log.warn("[Query] Lending not found for update with id {}", event.id);
-                        // Cria se não existir (fallback)
-                        createFromEvent(event);
-                    }
-            );
-        } catch (Exception e) {
-            log.error("[Query] Error updating lending from event: {}", e.getMessage(), e);
-            throw new RuntimeException("Error syncing lending update", e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void deleteFromEvent(LendingEventAMQP event) {
-        try {
-            log.info("[Query] Syncing lending deleted: {}", event.id);
-            repository.deleteById(event.id);
-            log.info("[Query] Synced: Lending deleted with id {}", event.id);
-        } catch (Exception e) {
-            log.error("[Query] Error deleting lending from event: {}", e.getMessage(), e);
-            throw new RuntimeException("Error syncing lending deletion", e);
-        }
-    }
+//    @Override
+//    @Transactional
+//    public void createFromEvent(LendingEventAMQP event) {
+//        log.debug("[Query] Event received for lending created: {}", event.lendingNumber);
+//        // Query já vê via BD compartilhada, apenas log
+//        log.info("[Query] Acknowledged lending created: {}", event.lendingNumber);
+//    }
+//
+//    @Override
+//    @Transactional
+//    public void updateFromEvent(LendingEventAMQP event) {
+//        log.debug("[Query] Event received for lending updated: {}", event.lendingNumber);
+//        // Query já vê via BD compartilhada, apenas log
+//        log.info("[Query] Acknowledged lending updated: {}", event.lendingNumber);
+//    }
+//
+//    @Override
+//    @Transactional
+//    public void deleteFromEvent(LendingEventAMQP event) {
+//        log.debug("[Query] Event received for lending deleted: {}", event.lendingNumber);
+//        // Query já vê via BD compartilhada, apenas log
+//        log.info("[Query] Acknowledged lending deleted: {}", event.lendingNumber);
+//    }
 }

@@ -9,8 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.api.LendingQueryDTO;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.LendingOutboxRepository;
+import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mappers.LendingEntityMapper;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.LendingOutbox;
+import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
+import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingNumberEntity;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
 import pt.psoft.g1.psoftg1.shared.dtos.LendingEventAMQP;
@@ -27,11 +30,12 @@ import java.util.stream.Collectors;
 public class LendingServiceImpl implements LendingService {
 
     private final LendingRepository lendingRepository;
+    private final LendingEntityMapper lendingEntityMapper;
 
-    private final BookRepository bookRepository;           // <-- usa isto
-    private final ReaderRepository readerRepository;       // <-- e isto
 
-    // ...
+    private final BookRepository bookRepository;
+    private final ReaderRepository readerRepository;
+
 
     @Override
     @Transactional
@@ -75,41 +79,54 @@ public class LendingServiceImpl implements LendingService {
     }
 
     @Override
+
+
     @Transactional
     public void updateFromEvent(LendingEventAMQP event) {
         log.debug("[Query] Event received for lending updated: {}", event.lendingNumber);
 
-        var existing = lendingRepository.findByLendingNumber(event.lendingNumber)
-                .orElseThrow(() -> new RuntimeException("Lending not found to update: " + event.lendingNumber));
+        // 1) Se não existe, opcionalmente faz upsert (cria registo a partir do evento 'created')
+        var existingOpt = lendingRepository.findByLendingNumber(event.lendingNumber);
+        if (existingOpt.isEmpty()) {
+            log.warn("[Query] Lending {} não existe na projeção; vou criar antes de atualizar.", event.lendingNumber);
 
-        // Atualiza os campos relevantes
-        if (event.returnedDate != null) {
-            // aplica versão se necessário
-            // existing.setReturned(event.version, event.commentary);
-            // Como o domínio exige version/concurrency, garante que 'version' veio no evento
-            // e que o método setReturned está adequado. Caso contrário, usa um setter direto
-            // se existir (no teu domínio atual não há setter público para returnedDate).
-            // Alternativa: recriar aggregate com returnedDate via builder:
-            existing = Lending.builder()
-                    .book(existing.getBook())
-                    .readerDetails(existing.getReaderDetails())
-                    .lendingNumber(new pt.psoft.g1.psoftg1.lendingmanagement.model.LendingNumber(existing.getLendingNumber()))
-                    .startDate(existing.getStartDate())
-                    .limitDate(existing.getLimitDate())
-                    .returnedDate(event.returnedDate)
-                    .fineValuePerDayInCents(event.fineValuePerDayInCents != 0
-                            ? event.fineValuePerDayInCents
-                            : existing.getFineValuePerDayInCents())
-                    .build();
+            // upsert básico (criar com os campos do evento)
+            var created = new LendingEntity(
+                    // book, readerDetails: se não tiveres relações no read-model, podes manter null
+                    /* book */ null,
+                    /* readerDetails */ null,
+                    /* lendingNumber embeddable */ new LendingNumberEntity(event.lendingNumber), // adapta ao teu embeddable
+                    java.time.LocalDate.parse(event.startDate.toString()),
+                    java.time.LocalDate.parse(event.limitDate.toString()),
+                    (event.returnedDate != null) ? java.time.LocalDate.parse(event.returnedDate.toString()) : null,
+                    event.fineValuePerDayInCents,
+                    event.commentary,
+                    event.rating
+            );
+
+
+            Lending lending_created = lendingEntityMapper.toModel(created);
+
+            lendingRepository.save(lending_created);
         }
 
-        // Se commentary vier, atualiza commentary; ajusta conforme teu domínio permita
-        // (não há setter público, por isso considera adicionar um).
-        // existing.setCommentary(event.commentary);
+        // 2) Aplica o UPDATE de 'returned'
+        int rows = lendingRepository.markReturned(
+                event.lendingNumber,
+                (event.returnedDate != null) ? event.returnedDate : java.time.LocalDate.now(),
+                event.commentary,
+                event.rating,
+                event.version
+        );
 
-        lendingRepository.save(existing);
-        log.info("[Query] Acknowledged & persisted lending updated: {}", event.lendingNumber);
+        if (rows == 0) {
+            log.error("[Query] markReturned não atualizou nenhuma linha para {}", event.lendingNumber);
+            // opcional: lançar exceção ou deixar apenas log
+        } else {
+            log.info("[Query] Acknowledged & persisted lending updated: {}", event.lendingNumber);
+        }
     }
+
 
     @Override
     @Transactional

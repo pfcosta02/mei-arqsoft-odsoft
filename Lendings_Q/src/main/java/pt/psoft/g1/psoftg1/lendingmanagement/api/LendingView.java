@@ -35,6 +35,10 @@ public class LendingView {
 
     private Integer fineValueInCents;
 
+    private String commentary;
+
+    private Integer rating;
+
     @Setter
     @Getter
     private LendingLinksView _links;

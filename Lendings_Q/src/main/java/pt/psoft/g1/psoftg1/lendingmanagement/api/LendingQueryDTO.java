@@ -21,6 +21,7 @@ public class LendingQueryDTO {
     private LocalDate limitDate;
     private LocalDate returnedDate;
     private String commentary;
+    private Integer rating;
     private String status;               // ACTIVE, OVERDUE, RETURNED
     private Integer daysUntilReturn;
     private Integer daysOverdue;
@@ -56,6 +57,7 @@ public class LendingQueryDTO {
                 .limitDate(lending.getLimitDate())
                 .returnedDate(lending.getReturnedDate())
                 .commentary(lending.getCommentary())
+                .rating(lending.getRating())
                 .status(status)
                 .daysUntilReturn(daysUntilReturn > 0 ? daysUntilReturn : null)
                 .daysOverdue(daysOverdue > 0 ? daysOverdue : null)

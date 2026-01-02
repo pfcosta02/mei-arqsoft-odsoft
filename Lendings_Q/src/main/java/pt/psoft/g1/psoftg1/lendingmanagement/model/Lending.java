@@ -1,6 +1,7 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.model;
 
 import lombok.Builder;
+import org.hibernate.StaleObjectStateException;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 
@@ -8,8 +9,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
-
-import org.hibernate.StaleObjectStateException;
 
 public class Lending
 {
@@ -26,6 +25,7 @@ public class Lending
     private Integer daysUntilReturn;
     private Integer daysOverdue;
     private int fineValuePerDayInCents;
+    private Integer rating;
 
     public Lending(Book book, ReaderDetails readerDetails, int seq, int lendingDuration, int fineValuePerDayInCents)
     {
@@ -145,26 +145,26 @@ public class Lending
      * @throws      StaleObjectStateException if object was already modified by another user.
      * @throws      IllegalArgumentException  if {@code returnedDate} already has a value.
      */
-    public void setReturned(final long desiredVersion, final String commentary){
 
-        if (this.returnedDate != null)
-        {
-            throw new IllegalArgumentException("book has already been returned!");
-        }
+    public void setReturned(final long desiredVersion, final String commentary, final Integer rating) {
+        if (this.returnedDate != null) throw new IllegalArgumentException("book has already been returned!");
 
-        // check current version
         if (this.version != desiredVersion)
-        {
             throw new StaleObjectStateException("Object was already modified by another user", this.pk);
-        }
 
-        if(commentary != null)
-        {
-            this.commentary = commentary;
+        if (commentary != null) this.commentary = commentary;
+
+        if (rating != null) {
+            if (rating < 0 || rating > 10) throw new IllegalArgumentException("rating must be between 0 and 10");
+            this.rating = rating;
         }
 
         this.returnedDate = LocalDate.now();
+        // incrementa versão, etc., conforme tua estratégia
     }
+
+    public Integer getRating() { return rating; }
+
 
     private void setDaysUntilReturn(){
         int daysUntilReturn = (int) ChronoUnit.DAYS.between(LocalDate.now(), this.limitDate);

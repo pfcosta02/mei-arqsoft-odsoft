@@ -62,6 +62,9 @@ public class LendingEntity {
     @Getter
     private String commentary;
 
+    @Column
+    private Integer rating;
+
     @Getter
     private int fineValuePerDayInCents;
 

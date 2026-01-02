@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import jakarta.persistence.criteria.*;
@@ -37,6 +39,34 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     private final EntityManager em;
     private final BookRepositoryRelationalImpl bookRepo;
     private final ReaderDetailsRepositoryRelationalImpl readerDetailsRepo;
+
+
+    @Override
+    @Transactional
+    public int markReturned(
+            String lendingNumber,
+            LocalDate returnedDate,
+            String commentary,
+            Integer rating,
+            long expectedVersion
+    ) {
+        int updated = lendingRepo.markReturned(
+                lendingNumber,
+                returnedDate,
+                commentary,
+                rating,
+                expectedVersion
+        );
+
+        if (updated == 0) {
+            throw new OptimisticLockException(
+                    "Lending " + lendingNumber +
+                            " was modified concurrently (version mismatch)"
+            );
+        }
+        return updated;
+    }
+
 
     @Override
     public List<Lending> findAll()

@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.web.multipart.MultipartFile;
-import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
+
 import pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mappers.ReaderDetailsEntityMapper;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.shared.model.Photo;
@@ -34,5 +34,5 @@ public abstract class ReaderMapper {
     @Mapping(target = "photo", source = "photoURI")
     @Mapping(target = "interestList", source = "interestList")
     @Mapping(target = "pk", ignore = true)
-    public abstract ReaderDetails createReaderDetails(int readerNumber, Reader reader, CreateReaderRequest request, String photoURI, List<Genre> interestList);
+    public abstract ReaderDetails createReaderDetails(int readerNumber, Reader reader, CreateReaderRequest request, String photoURI, List<String> interestList);
 }

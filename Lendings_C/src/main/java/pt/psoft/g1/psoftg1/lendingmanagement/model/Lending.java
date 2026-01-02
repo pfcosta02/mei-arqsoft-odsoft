@@ -2,6 +2,7 @@ package pt.psoft.g1.psoftg1.lendingmanagement.model;
 
 import lombok.Builder;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
+import pt.psoft.g1.psoftg1.lendingmanagement.api.LendingCommandDTO;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 
 import java.time.LocalDate;
@@ -85,6 +86,7 @@ public class Lending
         setDaysOverdue();
     }
 
+
     // Getters
     public Book getBook() { return book; }
     public ReaderDetails getReaderDetails() { return readerDetails; }
@@ -94,6 +96,7 @@ public class Lending
     public String getCommentary() { return commentary; }
     public String getLendingNumber() { return lendingNumber.toString(); }
     public long getVersion() { return version; }
+    public long getPk() { return pk; }
 
     /**
      * <p>Returns the number of days that the lending is/was past its due date</p>

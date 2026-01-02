@@ -11,7 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import pt.psoft.g1.psoftg1.authormanagement.model.Author;
+
 import pt.psoft.g1.psoftg1.authormanagement.services.AuthorService;
 
 import java.util.List;

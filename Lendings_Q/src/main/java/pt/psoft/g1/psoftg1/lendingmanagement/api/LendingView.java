@@ -16,7 +16,10 @@ public class LendingView {
     private String lendingNumber;
 
     @NotNull
-    private String bookTitle;
+    private String bookIsbn;
+
+    @NotNull
+    private String readerNumber;
 
     @NotNull
     private LocalDate startDate;
@@ -36,14 +39,3 @@ public class LendingView {
     @Getter
     private LendingLinksView _links;
 }
-
-/*>
-A: a ambos deve ser facultado:
->- lending number
->- book title
->- lending date
->- return date
->- number of days till return date (if applicable)
->- number of days in overdue (if applicable)
->- fine amount (if applicable)
-*/

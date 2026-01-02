@@ -50,4 +50,5 @@ public interface SpringDataLendingRepository extends CrudRepository<LendingEntit
                     "WHERE b.ISBN = :isbn"
             , nativeQuery = true)
     Double getAvgLendingDurationByIsbn(@Param("isbn") String isbn);
+
 }

@@ -12,9 +12,10 @@ import lombok.Setter;
 
 @Getter
 @Embeddable
-@PropertySource({"classpath:config/library.properties"})
+
 @Profile("jpa")
 @Primary
+@PropertySource({"classpath:config/library.properties"})
 public class NameEntity {
 //    @Id
 //    @GeneratedValue(strategy = GenerationType.AUTO)

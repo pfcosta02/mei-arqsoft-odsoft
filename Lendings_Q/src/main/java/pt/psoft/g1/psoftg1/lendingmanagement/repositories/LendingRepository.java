@@ -1,5 +1,6 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.repositories;
 
+import org.springframework.stereotype.Repository;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
 import pt.psoft.g1.psoftg1.shared.services.Page;
 
@@ -7,6 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface LendingRepository {
     Optional<Lending> findByLendingNumber(String lendingNumber);
     List<Lending> listByReaderNumberAndIsbn(String readerNumber, String isbn);
@@ -14,13 +16,17 @@ public interface LendingRepository {
     List<Lending> listOutstandingByReaderNumber(String readerNumber);
     Double getAverageDuration();
     Double getAvgLendingDurationByIsbn(String isbn);
+    List<Lending> findAll();
 
+    Optional<Lending> findById(Long id);
+    List<Lending> findActiveLendingsByReader(Long readerId);
+    List<Lending> findOverdueLendings();
 
     List<Lending> getOverdue(Page page);
     List<Lending> searchLendings(Page page, String readerNumber, String isbn, Boolean returned, LocalDate startDate, LocalDate endDate);
 
     Lending save(Lending lending);
-
     void delete(Lending lending);
-
+    void deleteById(Long id);
 }
+

@@ -1,186 +1,159 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.psoft.g1.psoftg1.bookmanagement.repositories.BookRepository;
 import pt.psoft.g1.psoftg1.exceptions.ConflictException;
 import pt.psoft.g1.psoftg1.exceptions.LendingForbiddenException;
 import pt.psoft.g1.psoftg1.exceptions.NotFoundException;
+import pt.psoft.g1.psoftg1.lendingmanagement.api.LendingCommandDTO;
 import pt.psoft.g1.psoftg1.lendingmanagement.api.LendingViewAMQP;
+import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.LendingOutboxRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Fine;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
+import pt.psoft.g1.psoftg1.lendingmanagement.model.LendingOutbox;
+import pt.psoft.g1.psoftg1.lendingmanagement.publishers.LendingEventPublisher;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.FineRepository;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
 import pt.psoft.g1.psoftg1.readermanagement.repositories.ReaderRepository;
-import pt.psoft.g1.psoftg1.shared.services.Page;
-import pt.psoft.g1.psoftg1.shared.util.DateUtils;
+import pt.psoft.g1.psoftg1.shared.dtos.LendingEventAMQP;
+import pt.psoft.g1.psoftg1.shared.model.LendingEvents;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @PropertySource({"classpath:config/library.properties"})
 public class LendingServiceImpl implements LendingService{
-    private final LendingRepository lendingRepository;
-    private final FineRepository fineRepository;
+
+    private final LendingRepository repository;
+    private final LendingOutboxRepository outboxRepository;
     private final BookRepository bookRepository;
     private final ReaderRepository readerRepository;
-
-    @Value("15")
-    private int lendingDurationInDays;
-    @Value("200")
-    private int fineValuePerDayInCents;
+    private final ObjectMapper objectMapper;
 
     @Override
-    public Optional<Lending> findByLendingNumber(String lendingNumber){
-        return lendingRepository.findByLendingNumber(lendingNumber);
-    }
-
-    @Override
-    public List<Lending> listByReaderNumberAndIsbn(String readerNumber, String isbn, Optional<Boolean> returned){
-        List<Lending> lendings = lendingRepository.listByReaderNumberAndIsbn(readerNumber, isbn);
-        if(returned.isEmpty()){
-            return lendings;
-        }else{
-            for(int i = 0; i < lendings.size(); i++){
-                if ((lendings.get(i).getReturnedDate() == null) == returned.get()){
-                    lendings.remove(i);
-                    i--;
-                }
-            }
-        }
-        return lendings;
-    }
-
-    @Override
-    public Lending create(final CreateLendingRequest resource) {
-        int count = 0;
-
-        Iterable<Lending> lendingList = lendingRepository.listOutstandingByReaderNumber(resource.getReaderNumber());
-        for (Lending lending : lendingList) {
-            //Business rule: cannot create a lending if user has late outstanding books to return.
-            if (lending.getDaysDelayed() > 0) {
-                throw new LendingForbiddenException("Reader has book(s) past their due date");
-            }
-            count++;
-            //Business rule: cannot create a lending if user already has 3 outstanding books to return.
-            if (count >= 3) {
-                throw new LendingForbiddenException("Reader has three books outstanding already");
-            }
-        }
-
-        final var b = bookRepository.findByIsbn(resource.getIsbn())
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-        final var r = readerRepository.findByReaderNumber(resource.getReaderNumber())
-                .orElseThrow(() -> new NotFoundException("Reader not found"));
-        int seq = lendingRepository.getCountFromCurrentYear()+1;
-        final Lending l = new Lending(b,r,seq, lendingDurationInDays, fineValuePerDayInCents );
-
-        return lendingRepository.save(l);
-    }
-
-    @Override
-    public Lending create(LendingViewAMQP resource) {
-        if (lendingRepository.findByLendingNumber(resource.getLendingNumber()).isPresent()) {
-            throw new ConflictException("Lending with number " + resource.getLendingNumber() + " already exists");
-        }
-
-        final var b = bookRepository.findByIsbn(resource.getBookIsbn())
-                .orElseThrow(() -> new NotFoundException("Book not found"));
-        final var r = readerRepository.findByReaderNumber(resource.getReaderNumber())
-                .orElseThrow(() -> new NotFoundException("Reader not found"));
-        final Lending l = new Lending(b, r, resource.getLendingNumber(),
-                LocalDate.parse(resource.getStartDate(), DateUtils.ISO_DATE_FORMATTER),
-                LocalDate.parse(resource.getLimitDate(), DateUtils.ISO_DATE_FORMATTER),
-                resource.getFineValuePerDayInCents());
-
-        return lendingRepository.save(l);
-    }
-
-    @Override
-    public Lending update(LendingViewAMQP resource) {
-        final var l = lendingRepository.findByLendingNumber(resource.getLendingNumber())
-                .orElseThrow(() -> new NotFoundException("Lending not found"));
-        l.setReturned(resource.getVersion(), resource.getCommentary());
-
-        return lendingRepository.save(l);
-    }
-
-    @Override
-    public Lending setReturned(final String lendingNumber, final SetLendingReturnedRequest resource, final long desiredVersion) {
-
-        var lending = lendingRepository.findByLendingNumber(lendingNumber)
-                .orElseThrow(() -> new NotFoundException("Cannot update lending with this lending number"));
-
-        lending.setReturned(desiredVersion, resource.getCommentary());
-
-        if(lending.getDaysDelayed() > 0){
-            final var fine = new Fine(lending);
-            fineRepository.save(fine);
-        }
-
-        return lendingRepository.save(lending);
-    }
-
-    @Override
-    public Double getAverageDuration(){
-        Double avg = lendingRepository.getAverageDuration();
-        return Double.valueOf(String.format(Locale.US,"%.1f", avg));
-    }
-
-    @Override
-    public List<Lending> getOverdue(Page page) {
-        if (page == null) {
-            page = new Page(1, 10);
-        }
-        return lendingRepository.getOverdue(page);
-    }
-
-    @Override
-    public Double getAvgLendingDurationByIsbn(String isbn){
-        Double avg = lendingRepository.getAvgLendingDurationByIsbn(isbn);
-        return Double.valueOf(String.format(Locale.US,"%.1f", avg));
-    }
-
-    @Override
-    public List<Lending> searchLendings(Page page, SearchLendingQuery query){
-        LocalDate startDate = null;
-        LocalDate endDate = null;
-
-        if (page == null) {
-            page = new Page(1, 10);
-        }
-        if (query == null)
-            query = new SearchLendingQuery("",
-                    "",
-                    null,
-                    LocalDate.now().minusDays(10L).toString(),
-                    null);
-
+    @Transactional
+    public void createLending(LendingCommandDTO dto) {
         try {
-            if(query.getStartDate()!=null)
-                startDate = LocalDate.parse(query.getStartDate());
-            if(query.getEndDate()!=null)
-                endDate = LocalDate.parse(query.getEndDate());
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Expected format is YYYY-MM-DD");
+            // 1. Busca Book e ReaderDetails
+            var book = bookRepository.findByIsbn(dto.getBookIsbn())
+                    .orElseThrow(() -> new RuntimeException("Book not found"));
+            var readerDetails = readerRepository.findByUserId(dto.getReaderId())
+                    .orElseThrow(() -> new RuntimeException("Reader not found"));
+
+            // 2. Cria entidade Lending
+            Lending lending = new Lending(
+                    book,
+                    readerDetails,
+                    1,  // seq - ajusta conforme necessário
+                    dto.getLendingDurationDays() != null ? dto.getLendingDurationDays() : 14,
+                    dto.getFineValuePerDayInCents() != null ? dto.getFineValuePerDayInCents() : 50
+            );
+
+            // 3. Guarda Lending na BD
+            Lending saved = repository.save(lending);
+
+            // 4. Cria evento e guarda em Outbox (MESMA TRANSAÇÃO)
+            LendingEventAMQP event = LendingEventAMQP.from(saved);
+            String payload = objectMapper.writeValueAsString(event);
+            LendingOutbox outbox = new LendingOutbox(
+                    saved.getPk(),
+                    LendingEvents.LENDING_CREATED,
+                    payload
+            );
+            outboxRepository.save(outbox);
+            // COMMIT da transação aqui (tudo junto ou nada)
+
+            System.out.println("[Command] Lending created with outbox event queued");
+        } catch (Exception e) {
+            System.err.println("[Command] Error creating lending: " + e.getMessage());
+            throw new RuntimeException(e);
         }
-
-        return lendingRepository.searchLendings(page,
-                query.getReaderNumber(),
-                query.getIsbn(),
-                query.getReturned(),
-                startDate,
-                endDate);
-
     }
 
+    @Override
+    @Transactional
+    public void updateLending(String id, LendingCommandDTO dto) {
+        try {
+            Lending lending = repository.findByLendingNumber(id)
+                    .orElseThrow(() -> new RuntimeException("Lending not found"));
 
+            // Atualiza campos (implementa conforme necessário)
+            // lending.update(dto);
 
+            Lending updated = repository.save(lending);
+
+            // Guarda evento em Outbox
+            LendingEventAMQP event = LendingEventAMQP.from(updated);
+            String payload = objectMapper.writeValueAsString(event);
+            LendingOutbox outbox = new LendingOutbox(
+                    updated.getPk(),
+                    LendingEvents.LENDING_UPDATED,
+                    payload
+            );
+            outboxRepository.save(outbox);
+
+            System.out.println("[Command] Lending updated with outbox event queued");
+        } catch (Exception e) {
+            System.err.println("[Command] Error updating lending: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteLending(String id) {
+        try {
+            Lending lending = repository.findByLendingNumber(id)
+                    .orElseThrow(() -> new RuntimeException("Lending not found"));
+
+            repository.delete(lending);
+
+            // Guarda evento em Outbox
+            LendingEventAMQP event = LendingEventAMQP.from(lending);
+            String payload = objectMapper.writeValueAsString(event);
+            LendingOutbox outbox = new LendingOutbox(
+                    lending.getPk(),
+                    LendingEvents.LENDING_DELETED,
+                    payload
+            );
+            outboxRepository.save(outbox);
+
+            System.out.println("[Command] Lending deleted with outbox event queued");
+        } catch (Exception e) {
+            System.err.println("[Command] Error deleting lending: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void returnBook(String id, String commentary) {
+        try {
+            Lending lending = repository.findByLendingNumber(id)
+                    .orElseThrow(() -> new RuntimeException("Lending not found"));
+
+            lending.setReturned(lending.getVersion(), commentary);
+            Lending updated = repository.save(lending);
+
+            // Guarda evento em Outbox
+            LendingEventAMQP event = LendingEventAMQP.from(updated);
+            String payload = objectMapper.writeValueAsString(event);
+            LendingOutbox outbox = new LendingOutbox(
+                    updated.getPk(),
+                    LendingEvents.LENDING_RETURNED,
+                    payload
+            );
+            outboxRepository.save(outbox);
+
+            System.out.println("[Command] Book returned with outbox event queued");
+        } catch (Exception e) {
+            System.err.println("[Command] Error returning book: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
 }

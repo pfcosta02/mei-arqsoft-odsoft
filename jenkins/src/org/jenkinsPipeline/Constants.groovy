@@ -7,7 +7,7 @@ class Constants
     static final String PROD_NAMESPACE = 'prod' // Kubernetes namespace
 
 
-    static final String DOCKER_REGISTRY = "forjemzer"
+    static final String DOCKER_REGISTRY = "pfcosisep"
 
     public static final LinkedHashMap<String, String> ENVIRONMENT_2_SONARQUBE_SERVER = [
                     'docker': 'sonarqube_docker',

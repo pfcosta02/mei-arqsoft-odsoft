@@ -58,8 +58,22 @@ O sistema deve aderir à estratégia SOA da empresa, nomeadamente API-led connec
 
 ## System-to-be
 
+### Vista Lógica
+
+#### Nível 1
+
+![VL_Level1.jpg](Diagramas/Vista%20L%C3%B3gica/VL_Level1.jpg)
+
+#### Nível 2
+
+![VL_Level2.jpg](Diagramas/Vista%20L%C3%B3gica/VL_Level2.jpg)
+
+#### Nível 3
+
+![VL_Level3.jpg](Diagramas/Vista%20L%C3%B3gica/VL_Level3.jpg)
+
 ### Vista Física
 
 #### Nível 2
 
-![VF_Level2.jpg](System-to-be/VF_Level2.jpg)
+![VF_Level2.jpg](Diagramas/Vista%20Física/VF_Level2.jpg)

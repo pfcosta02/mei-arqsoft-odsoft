@@ -4,13 +4,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.Setter;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
 
 import java.time.LocalDate;
-
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 
 @Entity
 @Table(name="Lending", uniqueConstraints = {
@@ -21,6 +21,7 @@ public class LendingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Getter @Setter
     private Long pk;
 
     @Embedded
@@ -65,7 +66,6 @@ public class LendingEntity {
     @Column
     private Integer rating;
 
-
     @Getter
     private int fineValuePerDayInCents;
 
@@ -98,4 +98,5 @@ public class LendingEntity {
     // Getter
     public BookEntity getBook() { return book; }
     public ReaderDetailsEntity getReaderDetails() { return readerDetails; }
+    public Integer getRating() { return rating; }
 }

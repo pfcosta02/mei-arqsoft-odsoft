@@ -19,6 +19,7 @@ public abstract class LendingViewAMQPMapper extends MapperInterface {
     @Mapping(target = "limitDate", expression = "java(formatLocalDate(lending.getLimitDate()))")
     @Mapping(target = "fineValuePerDayInCents", expression = "java(lending.getFineValuePerDayInCents())")
     @Mapping(target = "commentary", source = "commentary")
+    @Mapping(target = "rating", source = "rating")
     @Mapping(target = "version", source = "version")
     public abstract LendingViewAMQP toLendingViewAMQP(Lending lending);
     public abstract List<LendingViewAMQP> toLendingViewAMQP(List<Lending> lendingList);

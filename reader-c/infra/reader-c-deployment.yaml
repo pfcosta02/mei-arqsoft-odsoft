@@ -23,7 +23,7 @@ spec:
       - name: reader-c
         image: {{IMAGE}}
         ports:
-        - containerPort: 8083
+        - containerPort: 8087
         resources:
           requests:
             cpu: 100m

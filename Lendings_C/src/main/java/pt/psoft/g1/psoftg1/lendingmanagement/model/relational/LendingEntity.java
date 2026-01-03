@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.Setter;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
 
@@ -21,6 +22,7 @@ public class LendingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Getter @Setter
     private Long pk;
 
     @Embedded
@@ -78,7 +80,7 @@ public class LendingEntity {
 
     public LendingEntity(BookEntity book, ReaderDetailsEntity readerDetails, LendingNumberEntity lendingNumber,
                          LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents,
-                         String commentary) {
+                         String commentary, Integer rating) {
         this.book = book;
         this.readerDetails = readerDetails;
         this.lendingNumber = lendingNumber;
@@ -87,6 +89,7 @@ public class LendingEntity {
         this.returnedDate = returnedDate;
         this.fineValuePerDayInCents = fineValuePerDayInCents;
         this.commentary = commentary;
+        this.rating = rating;
     }
 
     // Setter
@@ -96,4 +99,5 @@ public class LendingEntity {
     // Getter
     public BookEntity getBook() { return book; }
     public ReaderDetailsEntity getReaderDetails() { return readerDetails; }
+    public Integer getRating() { return rating; }
 }

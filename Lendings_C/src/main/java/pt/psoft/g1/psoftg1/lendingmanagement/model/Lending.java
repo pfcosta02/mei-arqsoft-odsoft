@@ -52,7 +52,7 @@ public class Lending
     }
 
     @Builder
-    public Lending(Book book, ReaderDetails readerDetails, LendingNumber lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents) {
+    public Lending(Book book, ReaderDetails readerDetails, LendingNumber lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents, String commentary, Integer rating) {
         try
         {
             this.book = Objects.requireNonNull(book);
@@ -65,6 +65,8 @@ public class Lending
         this.limitDate = limitDate;
         this.returnedDate = returnedDate;
         this.fineValuePerDayInCents = fineValuePerDayInCents;
+        this.commentary = commentary;
+        this.rating = rating;
 
         setDaysUntilReturn();
         setDaysOverdue();
@@ -87,6 +89,24 @@ public class Lending
         setDaysOverdue();
     }
 
+    public Lending(Book book, ReaderDetails readerDetails, LendingNumber lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents) {
+        try
+        {
+            this.book = Objects.requireNonNull(book);
+            this.readerDetails = Objects.requireNonNull(readerDetails);
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException("Null objects passed to lending");
+        }
+        this.lendingNumber = lendingNumber;
+        this.startDate = startDate;
+        this.limitDate = limitDate;
+        this.returnedDate = returnedDate;
+        this.fineValuePerDayInCents = fineValuePerDayInCents;
+
+        setDaysUntilReturn();
+        setDaysOverdue();
+    }
+
 
     // Getters
     public Book getBook() { return book; }
@@ -96,6 +116,7 @@ public class Lending
     public LocalDate getReturnedDate() { return returnedDate; }
     public String getCommentary() { return commentary; }
     public String getLendingNumber() { return lendingNumber.toString(); }
+    public LendingNumber getLendingNumberObj() { return lendingNumber; }
     public long getVersion() { return version; }
     public long getPk() { return pk; }
 
@@ -209,4 +230,6 @@ public class Lending
 
         return lending;
     }
+
+
 }

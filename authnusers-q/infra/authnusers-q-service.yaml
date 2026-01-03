@@ -12,6 +12,6 @@ spec:
     color: blue  # Inicialmente aponta para blue. Será alterado via kubectl patch durante o deployment
   ports:
     - protocol: TCP
-      port: 8082
-      targetPort: 8082
+      port: 8090
+      targetPort: 8090
   sessionAffinity: ClientIP  # Mantém sessões durante o switch

@@ -16,13 +16,16 @@ import jakarta.persistence.criteria.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
+import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.mappers.BookEntityMapper;
 import pt.psoft.g1.psoftg1.bookmanagement.infrastructure.repositories.impl.relational.BookRepositoryRelationalImpl;
 import pt.psoft.g1.psoftg1.bookmanagement.model.Book;
 import pt.psoft.g1.psoftg1.bookmanagement.model.relational.BookEntity;
 import pt.psoft.g1.psoftg1.lendingmanagement.infrastructure.repositories.impl.mappers.LendingEntityMapper;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.Lending;
+import pt.psoft.g1.psoftg1.lendingmanagement.model.LendingNumber;
 import pt.psoft.g1.psoftg1.lendingmanagement.model.relational.LendingEntity;
 import pt.psoft.g1.psoftg1.lendingmanagement.repositories.LendingRepository;
+import pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.mappers.ReaderDetailsEntityMapper;
 import pt.psoft.g1.psoftg1.readermanagement.infrastructure.repositories.impl.relational.ReaderDetailsRepositoryRelationalImpl;
 import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
 import pt.psoft.g1.psoftg1.readermanagement.model.relational.ReaderDetailsEntity;
@@ -39,7 +42,8 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     private final EntityManager em;
     private final BookRepositoryRelationalImpl bookRepo;
     private final ReaderDetailsRepositoryRelationalImpl readerDetailsRepo;
-
+    private final BookEntityMapper bookEntityMapper;
+    private final ReaderDetailsEntityMapper readerDetailsEntityMapper;
 
     @Override
     @Transactional
@@ -69,28 +73,18 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
 
 
     @Override
-    public List<Lending> findAll()
-    {
-        List<Lending> lendings = new ArrayList<>();
-        for (LendingEntity l: lendingRepo.findAll())
-        {
-            lendings.add(lendingEntityMapper.toModel(l));
-        }
-        return lendings;
+    public Optional<Lending> findByLendingNumber(String lendingNumber) {
+        Optional<LendingEntity> entityOpt = lendingRepo.findByLendingNumber(lendingNumber);
+        return entityOpt.map(this::mapEntityToLending);  // ← mapEntityToLending
     }
 
     @Override
-    public Optional<Lending> findByLendingNumber(String lendingNumber)
-    {
-        Optional<LendingEntity> entityOpt = lendingRepo.findByLendingNumber(lendingNumber);
-        if (entityOpt.isPresent())
-        {
-            return Optional.of(lendingEntityMapper.toModel(entityOpt.get()));
+    public List<Lending> findAll() {
+        List<Lending> lendings = new ArrayList<>();
+        for (LendingEntity l: lendingRepo.findAll()) {
+            lendings.add(mapEntityToLending(l));  // ← mapEntityToLending
         }
-        else
-        {
-            return Optional.empty();
-        }
+        return lendings;
     }
 
     @Override
@@ -103,6 +97,39 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
         }
 
         return lendings;
+    }
+
+    private Lending mapEntityToLending(LendingEntity entity) {
+        // ⭐ Usa os mappers para converter Book e ReaderDetails
+        Book bookModel = bookEntityMapper.toModel(entity.getBook());
+        ReaderDetails readerDetailsModel = readerDetailsEntityMapper.toModel(entity.getReaderDetails());
+
+        Lending lending = Lending.builder()
+                .book(bookModel)
+                .readerDetails(readerDetailsModel)
+                .lendingNumber(new LendingNumber(entity.getLendingNumber().getLendingNumber()))
+                .startDate(entity.getStartDate())
+                .limitDate(entity.getLimitDate())
+                .returnedDate(entity.getReturnedDate())
+                .fineValuePerDayInCents(entity.getFineValuePerDayInCents())
+                .commentary(entity.getCommentary())
+                .rating(entity.getRating())
+                .build();
+
+        setFieldValue(lending, "pk", entity.getPk());
+        setFieldValue(lending, "version", entity.getVersion());
+
+        return lending;
+    }
+
+    private void setFieldValue(Lending lending, String fieldName, Object value) {
+        try {
+            var field = Lending.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(lending, value);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException("Failed to set field: " + fieldName, e);
+        }
     }
 
     @Override
@@ -223,33 +250,23 @@ public class LendingRepositoryRelationalImpl implements LendingRepository
     }
 
     @Override
-    public Lending save(Lending lending)
-    {
-        // Convert the domain model (Lending) to a JPA entity (LendingEntity)
+    public Lending save(Lending lending) {
         LendingEntity entity = lendingEntityMapper.toEntity(lending);
 
-        // Retrieve the existing Book model from the repository
-        // Throws an exception if the book is not found
         Book bookModel = bookRepo.findByIsbn(lending.getBook().getIsbn().getIsbn())
                 .orElseThrow(() -> new RuntimeException("Book not found"));
-
-        // Get the managed JPA reference for the BookEntity using its database ID (pk)
-        // This ensures we use the existing BookEntity instead of creating a new one
         BookEntity bookEntity = em.getReference(BookEntity.class, bookModel.getPk());
-
         entity.setBook(bookEntity);
 
-        // Retrieve the existing ReaderDetail model from the repository
-        // Throws an exception if the reader is not found
         ReaderDetails readerDetailsModel = readerDetailsRepo.findByReaderNumber(lending.getReaderDetails().getReaderNumber())
                 .orElseThrow(() -> new RuntimeException("Reader not found"));
-
-        // Get the managed JPA reference for the ReaderDetailEntity using its database ID (pk)
-        // This ensures we use the existing ReaderDetailEntity instead of creating a new one
         ReaderDetailsEntity readerDetailsEntity = em.getReference(ReaderDetailsEntity.class, readerDetailsModel.getPk());
-
         entity.setReaderDetails(readerDetailsEntity);
-        return lendingEntityMapper.toModel(lendingRepo.save(entity));
+
+        LendingEntity saved = lendingRepo.save(entity);
+
+        // ⭐ Usa mapEntityToLending em vez de toModel()
+        return mapEntityToLending(saved);
     }
 
     @Override

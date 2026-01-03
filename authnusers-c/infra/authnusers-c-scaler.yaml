@@ -4,7 +4,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: authnusers-c-scaler-blue
-  namespace: {{NAMESPACE}}
+  namespace: dev
   labels:
     app: authnusers-c
     color: blue
@@ -28,7 +28,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: authnusers-c-scaler-green
-  namespace: {{NAMESPACE}}
+  namespace: dev
   labels:
     app: authnusers-c
     color: green

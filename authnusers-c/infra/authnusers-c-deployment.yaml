@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: authnusers-c-{{COLOR}}
-  namespace: {{NAMESPACE}}
+  namespace: dev
   labels:
     app: authnusers-c
     color: {{COLOR}}
@@ -23,7 +23,7 @@ spec:
       - name: authnusers-c
         image: {{IMAGE}}
         ports:
-        - containerPort: 8083
+        - containerPort: 8081
         resources:
           requests:
             cpu: 100m

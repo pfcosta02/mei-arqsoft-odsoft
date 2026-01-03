@@ -65,6 +65,7 @@ sem recurso a locks pessimistas.
 Vista de Processo
 
 ```mermaid
+sequenceDiagram
     autonumber
 
     actor Reader
@@ -76,7 +77,8 @@ Vista de Processo
     participant MessageBroker
     participant OutboxPoller
 
-    Reader ->> LendingController: PATCH /api/lendings/{year}/{seq}
+%% --- 1. Reader triggers return ---
+    Reader ->> LendingController: PATCH /api/lendings/{year}/{seq}<br/>If-Match: "5"<br/>{commentary, rating}
     activate LendingController
 
     LendingController ->> LendingController: Validar If-Match header
@@ -84,8 +86,10 @@ Vista de Processo
     LendingController ->> LendingController: Validar feature flag
 
     LendingController ->> LendingService: returnLending(lendingNumber, commentary, rating, expectedVersion)
+    deactivate LendingController
     activate LendingService
 
+%% --- 2. LendingService executa UPDATE nativo ---
     LendingService ->> LendingRepository: returnLendingAndGetUpdated(...)
     activate LendingRepository
 
@@ -98,21 +102,24 @@ Vista de Processo
         LendingRepository -->> LendingService: Lending (com commentary, rating atualizados)
     end
     deactivate LendingRepository
+    deactivate LendingService
 
+%% --- 3. LendingService publica em Outbox ---
     LendingService ->> OutboxRepository: save(LendingOutbox)
     activate OutboxRepository
     OutboxRepository ->> OutboxRepository: Persiste evento com published=false
     deactivate OutboxRepository
 
     LendingService ->> LendingController: Retorna Lending atualizado
-    deactivate LendingService
-
+    activate LendingController
     LendingController ->> Reader: 200 OK + ETag + LendingView
     deactivate LendingController
 
+%% --- 4. Outbox Poller publica evento ---
     par Assincronia
         OutboxPoller ->> OutboxRepository: findByPublishedFalse()
         OutboxPoller ->> MessageBroker: convertAndSend(lendingsExchange, LENDING_RETURNED, payload)
         OutboxPoller ->> OutboxRepository: save(event com published=true)
         OutboxPoller ->> OutboxRepository: Marca como publicado
+    end
 ```

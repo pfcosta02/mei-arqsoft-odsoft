@@ -1,6 +1,7 @@
 package pt.psoft.g1.psoftg1.lendingmanagement.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -10,16 +11,17 @@ import pt.psoft.g1.psoftg1.shared.dtos.LendingEventAMQP;
 import java.nio.charset.StandardCharsets;
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class LendingEventRabbitmqReceiver {
 
     private final LendingService service;
     private final ObjectMapper objectMapper;
 
-    public LendingEventRabbitmqReceiver(LendingService service, ObjectMapper objectMapper) {
-        this.service = service;
-        this.objectMapper = objectMapper;
-    }
+//    public LendingEventRabbitmqReceiver(LendingService service, ObjectMapper objectMapper) {
+//        this.service = service;
+//        this.objectMapper = objectMapper;
+//    }
 
     @RabbitListener(queues = "#{autoDeleteQueue_Lending_Created.name}")
     public void receiveLendingCreated(Message message) {

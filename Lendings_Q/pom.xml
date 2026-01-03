@@ -27,9 +27,10 @@
 		<PACT_FOLDER>./target/pacts</PACT_FOLDER>
 
 		<!-- Pact Broker Configuration -->
-		<pact.broker.url>http://localhost:9292</pact.broker.url>
-		<pact.broker.username>admin</pact.broker.username>
-		<pact.broker.password>admin</pact.broker.password>
+        <pact.broker.url>http://localhost:9292</pact.broker.url>
+        <pact.broker.username>admin</pact.broker.username>
+        <pact.broker.password>admin</pact.broker.password>
+        <pact.consumer.version>1.0.0</pact.consumer.version>
 	</properties>
 
 	<dependencies>
@@ -124,6 +125,48 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- PACT Dependencies -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.17.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>rabbitmq</artifactId>
+            <version>1.17.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.fridujo</groupId>
+            <artifactId>rabbitmq-mock</artifactId>
+            <version>1.0.14</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- spring cloud contract test dependencies -->
+        <dependency>
+            <groupId>au.com.dius.pact.consumer</groupId>
+            <artifactId>junit5</artifactId>
+            <version>4.6.15</version> <!-- Use the latest version -->
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
 		<!-- Web client -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -167,6 +210,11 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
@@ -246,29 +294,73 @@
 
 	<profiles>
 		<!-- Profile to run only Pact Provider Tests -->
-		<profile>
-			<id>pact-provider-tests</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<includes>
-								<include>**/CDC/producer/**/*IT.java</include>
-							</includes>
-							<systemPropertyVariables>
-								<pact.broker.url>${pact.broker.url}</pact.broker.url>
-								<pact.broker.username>${pact.broker.username}</pact.broker.username>
-								<pact.broker.password>${pact.broker.password}</pact.broker.password>
-								<pact.verifier.publishResults>true</pact.verifier.publishResults>
-								<pact.provider.version>${project.version}</pact.provider.version>
-							</systemPropertyVariables>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+        <profile>
+            <id>pact-consumer-tests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/CDC/consumer/**/*Test.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Profile para publicar contratos Pact no Pact Broker -->
+        <profile>
+            <id>publish-pacts</id>
+            <build>
+                <plugins>
+                    <!-- Executar apenas testes de definição CDC -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/CDC/consumer/**/*DefinitionTest.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                    <!-- Desativar testes de integração -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                    <!-- Publicar contratos no Pact Broker -->
+                    <plugin>
+                        <groupId>au.com.dius.pact.provider</groupId>
+                        <artifactId>maven</artifactId>
+                        <version>4.6.15</version>
+                        <configuration>
+                            <pactBrokerUrl>${pact.broker.url}</pactBrokerUrl>
+                            <pactBrokerUsername>${pact.broker.username}</pactBrokerUsername>
+                            <pactBrokerPassword>${pact.broker.password}</pactBrokerPassword>
+                            <pactDirectory>target/pacts</pactDirectory>
+                            <projectVersion>${pact.consumer.version}</projectVersion>
+                            <tags>
+                                <tag>dev</tag>
+                            </tags>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>publish</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

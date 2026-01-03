@@ -30,7 +30,7 @@
 		<pact.broker.url>http://localhost:9292</pact.broker.url>
 		<pact.broker.username>admin</pact.broker.username>
 		<pact.broker.password>admin</pact.broker.password>
-	</properties>
+    </properties>
 
 	<dependencies>
 		<dependency>
@@ -41,6 +41,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
@@ -192,6 +197,49 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+
+
+        <!-- PACT Dependencies -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.17.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>rabbitmq</artifactId>
+            <version>1.17.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.fridujo</groupId>
+            <artifactId>rabbitmq-mock</artifactId>
+            <version>1.0.14</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- spring cloud contract test dependencies -->
+        <dependency>
+            <groupId>au.com.dius.pact.consumer</groupId>
+            <artifactId>junit5</artifactId>
+            <version>4.6.15</version> <!-- Use the latest version -->
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -245,30 +293,30 @@
 	</build>
 
 	<profiles>
-		<!-- Profile to run only Pact Provider Tests -->
-		<profile>
-			<id>pact-provider-tests</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<includes>
-								<include>**/CDC/producer/**/*IT.java</include>
-							</includes>
-							<systemPropertyVariables>
-								<pact.broker.url>${pact.broker.url}</pact.broker.url>
-								<pact.broker.username>${pact.broker.username}</pact.broker.username>
-								<pact.broker.password>${pact.broker.password}</pact.broker.password>
-								<pact.verifier.publishResults>true</pact.verifier.publishResults>
-								<pact.provider.version>${project.version}</pact.provider.version>
-							</systemPropertyVariables>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+        <!-- Profile to run only Pact Provider Tests -->
+        <profile>
+            <id>pact-provider-tests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/CDC/producer/**/*IT.java</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <pact.broker.url>${pact.broker.url}</pact.broker.url>
+                                <pact.broker.username>${pact.broker.username}</pact.broker.username>
+                                <pact.broker.password>${pact.broker.password}</pact.broker.password>
+                                <pact.verifier.publishResults>true</pact.verifier.publishResults>
+                                <pact.provider.version>${project.version}</pact.provider.version>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

@@ -66,11 +66,11 @@ services:
     volumes:
       - uploaded_files_authors_q:/tmp
 
-  # -------- Lendings_C --------
+  # -------- lendings_c --------
   lendings_c:
     image: lendings_c:latest
     build:
-      context: ./Lendings_C
+      context: ./lendings_c
     deploy:
       replicas: 2
     environment:
@@ -80,11 +80,11 @@ services:
     networks:
       - lms_network
 
-  # -------- Lendings_Q --------
+  # -------- lendings_q --------
   lendings_q:
     image: lendings_q:latest
     build:
-      context: ./Lendings_Q
+      context: ./lendings_q
     deploy:
       replicas: 2
     environment:

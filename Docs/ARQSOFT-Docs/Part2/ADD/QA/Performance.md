@@ -44,10 +44,10 @@ Aplicar padrão **CQRS** para otimizar leituras e escritas separadamente, combin
 
 **1. CQRS (Command Query Responsibility Segregation)**
 - **Command side**: Serviços otimizados para escrita (validações, lógica de negócio)
-  - readers-c, Authors_C, Lendings_C
+  - readers-c, Authors_C, lendings_c
   - Normalização da base de dados, integridade referencial
 - **Query side**: Serviços otimizados para leitura (denormalização, vistas materializadas)
-  - readers-q, Authors_Q, Lendings_Q
+  - readers-q, Authors_Q, lendings_q
   - Modelos de leitura simplificados, índices otimizados
 - **Sincronização**: Via eventos RabbitMQ (eventual consistency)
 

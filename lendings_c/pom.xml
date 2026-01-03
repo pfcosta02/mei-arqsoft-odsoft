@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>pt.psoft.g1</groupId>
-	<artifactId>Lendings_C</artifactId>
+	<artifactId>lendings_c</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>lendings_c</name>
 	<description>Demo project for Spring Boot</description>

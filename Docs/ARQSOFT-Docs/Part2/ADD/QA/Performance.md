@@ -10,14 +10,14 @@ O objetivo principal deste design é garantir que o sistema responda rapidamente
 
 ## Quality Attribute Scenario
 
-| **Elemento**          | **Descrição**                                                                                                                         |
-|------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| **Estímulo**           | Utilizador executa operação de consulta (ex: listar readers, pesquisar livros) ou operação de escrita (criar reader).               |
-| **Fonte do Estímulo**  | Bibliotecário ou utilizador final através da API REST.                                                                               |
-| **Ambiente**           | Sistema em produção com carga normal (100-500 req/s) e picos (até 1000 req/s).                                                      |
-| **Artefacto**          | Query services (leitura), Command services (escrita), Redis cache, RabbitMQ.                                                        |
-| **Resposta**           | Sistema responde com latência baixa e throughput elevado, mesmo durante picos de carga.                                             |
-| **Medida da Resposta** | Latência p95 <200ms para queries, <500ms para commands, Throughput ≥500 req/s por serviço query.                                    |
+| **Elemento**          | **Descrição**                                                                                                         |
+|------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| **Estímulo**           | Utilizador executa operação de consulta (ex: listar readers, pesquisar livros) ou operação de escrita (criar author). |
+| **Fonte do Estímulo**  | Bibliotecário ou utilizador final através da API REST.                                                                |
+| **Ambiente**           | Sistema em produção com carga normal (100-500 req/s) e picos (até 1000 req/s).                                        |
+| **Artefacto**          | Query services (leitura), Command services (escrita), RabbitMQ.                                          |
+| **Resposta**           | Sistema responde com latência baixa e throughput elevado, mesmo durante picos de carga.                               |
+| **Medida da Resposta** | Latência p95 <200ms para queries, <500ms para commands, Throughput ≥500 req/s por serviço query.                      |
 
 ---
 
@@ -28,13 +28,12 @@ Garantir que o sistema responde rapidamente às requisições dos utilizadores, 
 
 ### Resumo da Solução
 Aplicar padrão **CQRS** para otimizar leituras e escritas separadamente, combinado com:
-- **Cache Distribuído (Redis)**: Reduzir carga em bases de dados
 - **Comunicação Assíncrona**: Desacoplar operações de escrita da resposta ao utilizador
 - **Outbox Pattern**: Publicação de eventos sem bloquear transação principal
 - **Database per Service**: Evitar contenção entre bounded contexts
 
 ### Fatores
-- Leituras são muito mais frequentes que escritas (~80/20)
+- Leituras são mais frequentes que escritas (~80/20)
 - Utilizadores esperam respostas rápidas (<1s)
 - Operações de escrita podem ser assíncronas (eventual consistency)
 - Picos de carga durante horários de abertura da biblioteca
@@ -45,10 +44,10 @@ Aplicar padrão **CQRS** para otimizar leituras e escritas separadamente, combin
 
 **1. CQRS (Command Query Responsibility Segregation)**
 - **Command side**: Serviços otimizados para escrita (validações, lógica de negócio)
-  - lms-authnusers-command, lms-readers-command
+  - readers-c, Authors_C, Lendings_C
   - Normalização da base de dados, integridade referencial
 - **Query side**: Serviços otimizados para leitura (denormalização, vistas materializadas)
-  - lms-authnusers-query, lms-readers-query
+  - readers-q, Authors_Q, Lendings_Q
   - Modelos de leitura simplificados, índices otimizados
 - **Sincronização**: Via eventos RabbitMQ (eventual consistency)
 
@@ -83,7 +82,6 @@ Comunicação assíncrona desacopla performance do utilizador da performance de 
 |-------------|-----------|---------------------|
 | **CRUD tradicional** | Mesma base de dados para leitura e escrita | Queries complexas impactam escritas, difícil otimizar ambos |
 | **Comunicação Síncrona REST** | Command service chama User service via REST | Latência acumulada, timeouts, acoplamento temporal |
-| **Cache local (in-memory)** | Cache em cada instância do serviço | Inconsistência entre réplicas, invalidação complexa |
 | **Shared Database** | Todos os serviços partilham mesma BD | Contenção, locks, acoplamento forte |
 
 ### Decisões Arquiteturais
@@ -113,24 +111,30 @@ Comunicação assíncrona desacopla performance do utilizador da performance de 
 
 [//]: # (| **Search queries** | <200ms p95 | 400ms | Índices + cache → <100ms |)
 
-### Riscos e Mitigações
+[//]: # (### Riscos e Mitigações)
 
-| ID     | Risco | Probabilidade | Impacto | Mitigação |
-|--------|-------|---------------|---------|-----------|
-| **R1** | Lag elevado na sincronização CQRS | Baixa | Médio | Monitorizar latência eventos, alertas se >500ms, scaling RabbitMQ |
-| **R2** | Query model desincronizado | Baixa | Alto | Reconciliation job diário, monitorização de discrepâncias |
----
+[//]: # ()
+[//]: # (| ID     | Risco | Probabilidade | Impacto | Mitigação |)
+
+[//]: # (|--------|-------|---------------|---------|-----------|)
+
+[//]: # (| **R1** | Lag elevado na sincronização CQRS | Baixa | Médio | Monitorizar latência eventos, alertas se >500ms, scaling RabbitMQ |)
+
+[//]: # (| **R2** | Query model desincronizado | Baixa | Alto | Reconciliation job diário, monitorização de discrepâncias |)
+
+[//]: # (---)
 
 ## Questões Pendentes
 
-1. **Cache warming**: Como pré-carregar cache após deploy ou restart?
-2. **Rate limiting**: Necessário implementar para prevenir abuso de APIs?
-3. **CDN**: Considerar CDN para assets estáticos (fotos de readers)?
-4. **Database tuning**: Quais índices adicionais criar nas query databases?
+1. **Rate limiting**: Necessário implementar para prevenir abuso de APIs?
+2. **CDN**: Considerar CDN para assets estáticos (fotos de readers)?
+3. **Database tuning**: Quais índices adicionais criar nas query databases?
 
 ---
 
 ## Referências
 
 Este Quality Attribute é implementado nos seguintes Use Cases:
+- [US1 - Criar Book + Author + Genre](../US1.md): CQRS, Async messaging, Outbox Pattern
 - [US2 - Criar Reader + User](../UC/US2.md): CQRS, Async messaging, Outbox Pattern
+- [US3 - Deixar comentário e avaliação ao retornar um Book ](../US3.md): CQRS, Async messaging, Outbox Pattern

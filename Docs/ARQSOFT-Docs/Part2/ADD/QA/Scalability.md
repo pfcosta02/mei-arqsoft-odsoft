@@ -60,8 +60,10 @@ Arquitetura de **microserviços stateless** com:
 - Cada bounded context tem sua própria base de dados
 - Elimina bottleneck de shared database
 - Permite escalar BD independentemente (vertical ou horizontal)
-- **Readers DB**: Read replicas para queries pesadas
-- **Users DB**: Menor carga, instância menor
+
+[//]: # (- **Readers DB**: Read replicas para queries pesadas)
+
+[//]: # (- **Users DB**: Menor carga, instância menor)
 
 **4. CQRS - Escalabilidade Assimétrica**
 - **Query side**: Mais réplicas (5 pods), read replicas de BD, cache Redis
@@ -146,5 +148,7 @@ Database per Service é crítico: em arquiteturas partilhadas, BD torna-se bottl
 ## Referências
 
 Este Quality Attribute é implementado nos seguintes Use Cases:
+- [US1 - Criar Book + Author + Genre](../US1.md): CQRS permite escala assimétrica, messaging absorve picos
 - [US2 - Criar Reader + User](../UC/US2.md): CQRS permite escala assimétrica, messaging absorve picos
+- [US3 - Deixar comentário e avaliação ao retornar um Book ](../US3.md): CQRS permite escala assimétrica, messaging absorve picos
 - Todos os microserviços são stateless e suportam HPA

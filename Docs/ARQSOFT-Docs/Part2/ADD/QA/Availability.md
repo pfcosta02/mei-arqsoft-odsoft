@@ -51,8 +51,8 @@ Adotar uma arquitetura de **microserviços distribuídos** com:
 - Namespaces Kubernetes separados (lms-dev, lms-db)
 
 **2. Redundância Ativa**
-- **Command services**: 3 réplicas cada
-- **Query services**: 5 réplicas cada (leitura >> escrita)
+- **Command services**: 1-2 réplicas cada
+- **Query services**: 2-3 réplicas cada (leitura >> escrita)
 - **RabbitMQ**: Cluster com 3 nós (quorum queues)
 - **H2**: Múltiplas instâncias em memória por réplica
 
@@ -131,5 +131,7 @@ O Outbox Pattern é crítico para garantir que eventos não sejam perdidos mesmo
 ## Referências
 
 Este Quality Attribute é implementado nos seguintes Use Cases:
-- [US2 - Criar Reader + User](../UC/US2.md): Outbox Pattern, Messaging durável
+- [US1 - Criar Book + Author + Genre](../US1.md): Outbox Pattern, Messaging durável
+- [US2 - Criar Reader + User](../US2.md): Outbox Pattern, Messaging durável
+- [US3 - Deixar comentário e avaliação ao retornar um Book ](../US3.md): Outbox Pattern, Messaging durável
 - Todos os microserviços aplicam táticas de disponibilidade (isolamento, redundância, health checks)

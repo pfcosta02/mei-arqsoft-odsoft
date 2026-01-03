@@ -108,6 +108,7 @@ sequenceDiagram
     BooksGenreCmd ->> BooksGenreCmd: check if all steps done
     alt All steps completed
       BooksGenreCmd ->> MessageBroker: BookFinalized(bookId)
+      BooksGenreCmd ->> MessageBroker: BookCreated(bookInfo)
     end
     deactivate BooksGenreCmd
 
@@ -115,6 +116,7 @@ sequenceDiagram
     MessageBroker ->> AuthorsCmd: sendBookFinalized(isbn, list(authorNumbers))
     activate AuthorsCmd
     AuthorsCmd ->> AuthorsCmd: updateTemp(authorNumber)
+    AuthorsCmd ->> MessageBroker: AuthorCreated(authorInfo)
     deactivate AuthorsCmd
 
     %% --- 8. COMPENSATION: Author creation failed ---

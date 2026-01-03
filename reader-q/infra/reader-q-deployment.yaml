@@ -24,7 +24,7 @@ spec:
       - name: reader-q
         image: {{IMAGE}}
         ports:
-        - containerPort: 8082
+        - containerPort: 8088
         resources:
           requests:
             cpu: 100m

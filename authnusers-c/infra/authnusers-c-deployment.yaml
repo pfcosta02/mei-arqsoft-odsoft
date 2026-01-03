@@ -23,7 +23,7 @@ spec:
       - name: authnusers-c
         image: {{IMAGE}}
         ports:
-        - containerPort: 8083
+        - containerPort: 8081
         resources:
           requests:
             cpu: 100m

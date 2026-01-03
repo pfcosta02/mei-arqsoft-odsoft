@@ -24,7 +24,7 @@ spec:
       - name: authnusers-q
         image: {{IMAGE}}
         ports:
-        - containerPort: 8082
+        - containerPort: 8090
         resources:
           requests:
             cpu: 100m

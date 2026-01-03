@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: authnusers-c-service
-  namespace: {{NAMESPACE}}
+  namespace: dev
   labels:
     app: authnusers-c
 spec:

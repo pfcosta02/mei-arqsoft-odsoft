@@ -126,3 +126,18 @@ sequenceDiagram
     AuthNUsers_C ->> AuthNUsers_C: deleteTemp(userId)
     deactivate AuthNUsers_C
 ```
+
+---
+
+### Tabela de Decisões de Design
+
+| Decisão | Opção Escolhida                  | Alternativas Rejeitadas  | Razão |
+|---------|----------------------------------|--------------------------|-------|
+| **Coordenação** | Saga Coreografada                | Saga Orquestrada         | Fluxo complexo com 2+ passos, necessita visibilidade centralizada |
+| **Comunicação** | Messaging Assíncrono             | REST síncrono            | Desacoplamento temporal, resiliência a falhas de rede |
+| **Consistência** | Eventual Consistency + Saga      | Transações ACID (2PC)    | Escalabilidade, evita locks distribuídos |
+| **Publicação Eventos** | Padrão  Outbox                   | Publicação direta        | Garante atomicidade (BD + Evento) |
+| **CQRS** | Sim                              | Não                      | Leituras >> Escritas, permite otimização separada |
+| **Database** | Base de dados por Serviço | Base de dados partilhada | Isolamento, autonomia, bounded contexts |
+| **Message Broker** | RabbitMQ                         | Kafka, Redis Streams     | Mais simples para use case, suporta routing flexível |
+| **Compensação** | Automática via Saga              | Manual                   | Reduz erros humanos, resposta rápida |

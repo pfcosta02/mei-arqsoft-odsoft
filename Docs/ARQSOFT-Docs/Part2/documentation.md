@@ -120,6 +120,11 @@ O sistema deve aderir à estratégia SOA da empresa, nomeadamente API-led connec
 
 ![VF_Level2.jpg](Diagramas/Vista%20Física/VF_Level2.jpg)
 
+### Vista Implementação
+
+#### Nível 3
+
+![VI_Level3.jpg](Diagramas/Vista%20Implementa%C3%A7%C3%A3o/VI_Level3.jpg)
 
 ---
 

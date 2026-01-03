@@ -50,7 +50,7 @@ public class Lending
     }
 
     @Builder
-    public Lending(Book book, ReaderDetails readerDetails, LendingNumber lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents) {
+    public Lending(Book book, ReaderDetails readerDetails, LendingNumber lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents, String commentary, Integer rating) {
         try
         {
             this.book = Objects.requireNonNull(book);
@@ -63,6 +63,8 @@ public class Lending
         this.limitDate = limitDate;
         this.returnedDate = returnedDate;
         this.fineValuePerDayInCents = fineValuePerDayInCents;
+        this.commentary = commentary;
+        this.rating = rating;
 
         setDaysUntilReturn();
         setDaysOverdue();
@@ -85,6 +87,24 @@ public class Lending
         setDaysOverdue();
     }
 
+    public Lending(Book book, ReaderDetails readerDetails, LendingNumber lendingNumber, LocalDate startDate, LocalDate limitDate, LocalDate returnedDate, int fineValuePerDayInCents) {
+        try
+        {
+            this.book = Objects.requireNonNull(book);
+            this.readerDetails = Objects.requireNonNull(readerDetails);
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException("Null objects passed to lending");
+        }
+        this.lendingNumber = lendingNumber;
+        this.startDate = startDate;
+        this.limitDate = limitDate;
+        this.returnedDate = returnedDate;
+        this.fineValuePerDayInCents = fineValuePerDayInCents;
+
+        setDaysUntilReturn();
+        setDaysOverdue();
+    }
+
 
     // Getters
     public Book getBook() { return book; }
@@ -94,6 +114,7 @@ public class Lending
     public LocalDate getReturnedDate() { return returnedDate; }
     public String getCommentary() { return commentary; }
     public String getLendingNumber() { return lendingNumber.toString(); }
+    public LendingNumber getLendingNumberObj() { return lendingNumber; }
     public long getVersion() { return version; }
     public long getPk() { return pk; }
 
@@ -147,20 +168,26 @@ public class Lending
      */
 
     public void setReturned(final long desiredVersion, final String commentary, final Integer rating) {
-        if (this.returnedDate != null) throw new IllegalArgumentException("book has already been returned!");
+        if (this.returnedDate != null) {
+            throw new IllegalArgumentException("book has already been returned!");
+        }
 
-        if (this.version != desiredVersion)
+        if (this.version != desiredVersion) {
             throw new StaleObjectStateException("Object was already modified by another user", this.pk);
+        }
 
-        if (commentary != null) this.commentary = commentary;
+        if (commentary != null) {
+            this.commentary = commentary;
+        }
 
         if (rating != null) {
-            if (rating < 0 || rating > 10) throw new IllegalArgumentException("rating must be between 0 and 10");
+            if (rating < 0 || rating > 10) {
+                throw new IllegalArgumentException("rating must be between 0 and 10");
+            }
             this.rating = rating;
         }
 
         this.returnedDate = LocalDate.now();
-        // incrementa versão, etc., conforme tua estratégia
     }
 
     public Integer getRating() { return rating; }
@@ -201,4 +228,6 @@ public class Lending
 
         return lending;
     }
+
+
 }

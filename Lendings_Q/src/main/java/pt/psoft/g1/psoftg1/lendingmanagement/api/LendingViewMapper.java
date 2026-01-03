@@ -23,6 +23,8 @@ public abstract class LendingViewMapper extends MapperInterface {
     @Mapping(target = "_links.self", source = ".", qualifiedByName = "lendingLink")
     @Mapping(target = "_links.book", source = "book", qualifiedByName = "bookLink")
     @Mapping(target = "returnedDate", source = "returnedDate")
+    @Mapping(target = "commentary", source = "commentary")
+    @Mapping(target = "rating", source = "rating")
     @Mapping(target = "_links.reader", source = "readerDetails", qualifiedByName = "readerLink")
     public abstract LendingView toLendingView(Lending lending);
 

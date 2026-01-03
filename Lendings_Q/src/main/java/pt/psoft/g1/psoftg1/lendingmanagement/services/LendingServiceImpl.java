@@ -79,51 +79,35 @@ public class LendingServiceImpl implements LendingService {
     }
 
     @Override
-
-
     @Transactional
     public void updateFromEvent(LendingEventAMQP event) {
-        log.debug("[Query] Event received for lending updated: {}", event.lendingNumber);
+        try {
+            log.debug("[Query] Event received for lending updated: {}", event.getLendingNumber());
 
-        // 1) Se não existe, opcionalmente faz upsert (cria registo a partir do evento 'created')
-        var existingOpt = lendingRepository.findByLendingNumber(event.lendingNumber);
-        if (existingOpt.isEmpty()) {
-            log.warn("[Query] Lending {} não existe na projeção; vou criar antes de atualizar.", event.lendingNumber);
+            // ⭐ IMPORTANTE: Busca a versão ACTUAL da BD, não usa a do evento
+            var existingOpt = lendingRepository.findByLendingNumber(event.getLendingNumber());
+            var existing = existingOpt.orElseThrow(() -> new RuntimeException("Lending not found: " + event.getLendingNumber()));
 
-            // upsert básico (criar com os campos do evento)
-            var created = new LendingEntity(
-                    // book, readerDetails: se não tiveres relações no read-model, podes manter null
-                    /* book */ null,
-                    /* readerDetails */ null,
-                    /* lendingNumber embeddable */ new LendingNumberEntity(event.lendingNumber), // adapta ao teu embeddable
-                    java.time.LocalDate.parse(event.startDate.toString()),
-                    java.time.LocalDate.parse(event.limitDate.toString()),
-                    (event.returnedDate != null) ? java.time.LocalDate.parse(event.returnedDate.toString()) : null,
-                    event.fineValuePerDayInCents,
-                    event.commentary,
-                    event.rating
+            // ⭐ Usa a versão ATUAL para a atualização otimista
+            long currentVersion = existing.getVersion();
+
+            int updated = lendingRepository.markReturned(
+                    event.getLendingNumber(),
+                    event.getReturnedDate(),
+                    event.getCommentary(),
+                    event.getRating(),
+                    currentVersion  // ⭐ Usa a versão atual, não a do evento
             );
 
+            if (updated == 0) {
+                log.warn("[Query] Failed to update lending: {} - version mismatch", event.getLendingNumber());
+                throw new RuntimeException("Failed to update lending: version mismatch");
+            }
 
-            Lending lending_created = lendingEntityMapper.toModel(created);
-
-            lendingRepository.save(lending_created);
-        }
-
-        // 2) Aplica o UPDATE de 'returned'
-        int rows = lendingRepository.markReturned(
-                event.lendingNumber,
-                (event.returnedDate != null) ? event.returnedDate : java.time.LocalDate.now(),
-                event.commentary,
-                event.rating,
-                event.version
-        );
-
-        if (rows == 0) {
-            log.error("[Query] markReturned não atualizou nenhuma linha para {}", event.lendingNumber);
-            // opcional: lançar exceção ou deixar apenas log
-        } else {
-            log.info("[Query] Acknowledged & persisted lending updated: {}", event.lendingNumber);
+            log.info("[Query] Lending updated from event: {}", event.getLendingNumber());
+        } catch (Exception e) {
+            log.error("[Query] Error receiving lending returned: {}", e.getMessage());
+            throw new RuntimeException("Error updating lending from event: " + e.getMessage(), e);
         }
     }
 

@@ -66,6 +66,33 @@ services:
     volumes:
       - uploaded_files_authors_q:/tmp
 
+  # -------- Lendings_C --------
+  lendings_c:
+    image: lendings_c:latest
+    build:
+      context: ./Lendings_C
+    deploy:
+      replicas: 2
+    environment:
+      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
+    ports:
+      - "8881:8080"
+    networks:
+      - lms_network
+
+  # -------- Lendings_Q --------
+  lendings_q:
+    image: lendings_q:latest
+    build:
+      context: ./Lendings_Q
+    deploy:
+      replicas: 2
+    environment:
+      - SPRING_PROFILES_ACTIVE=bootstrap,jpa
+    ports:
+      - "8882:8080"
+    networks:
+      - lms_network
 
   # -------- Readers_C --------
   reader_c:

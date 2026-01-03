@@ -7,6 +7,11 @@ properties([
             name: "RolloutStrategy",
             choices: ['Blue/Green', 'Canary', 'Rolling'],
             description: 'Choose a Rollout Strategy.'
+        ),
+        string(
+            name: "CanaryPercentage",
+            defaultValue: '10',
+            description: 'Percentage of traffic for canary (1-100). Only used for Canary strategy.'
         )
     ])
 ])
@@ -20,78 +25,70 @@ node {
     def NEW_COLOR // Nova cor para o deployment
     def NAMESPACE = 'dev' // Kubernetes namespace
     def DOCKER_IMAGE = ''
-    
-    try 
+    def CANARY_PERCENTAGE = params.CanaryPercentage.toInteger()
+
+    try
     {
-        stage('Checkout') 
+        stage('Checkout')
         {
             echo 'Checking out source code...'
             checkout scm
-            
+
             // Clean untracked files and directories from Git workspace
             echo 'Cleaning untracked files from Git...'
-            if (isUnix()) 
+            if (isUnix())
             {
                 sh 'git clean -fdx'
-            } 
-            else 
+            }
+            else
             {
                 bat 'git clean -fdx'
             }
         }
-        
-        stage('Set Maven Path') 
+
+        stage('Set Maven Path')
         {
-            if (isUnix()) 
+            if (isUnix())
             {
                 env.PATH = "${MAVEN_DIR}/bin:${env.PATH}"
-            } 
-            else 
+            }
+            else
             {
                 env.PATH = "${MAVEN_DIR}\\bin;${env.PATH}"
             }
             echo "Maven added to PATH: ${env.PATH}"
         }
-        
-        dir(IMAGE_NAME) 
-        {   
-            stage('Clean + Build') 
+
+        dir(IMAGE_NAME)
+        {
+            stage('Clean + Build')
             {
                 CleanAndBuild();
             }
 
-            stage('Unit Tests') 
+            stage('Unit Tests')
             {
                 UnitTests();
             }
 
-            stage('Integration Tests') 
+            stage('Integration Tests')
             {
                 IntegrationTests();
             }
 
-            stage('Consumer Contract Tests (Pact)') 
+            stage('Consumer Contract Tests (Pact)')
             {
                 // false significa que é um producer
                 ConsumerContractTests(false);
             }
-            
-            stage('SonarQube Static Code Analysis') 
-            {
 
+            stage('SonarQube Static Code Analysis')
+            {
                 def sonarServer = Constants.ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
                 echo "Running SonarQube analysis using server: ${sonarServer}"
-
-                // withSonarQubeEnv(sonarServer) {
-                //     if (isUnix()) {
-                //         sh "mvn verify -X sonar:sonar"
-                //     } else {
-                //         bat "mvn verify -X sonar:sonar"
-                //     }
-                // }
             }
 
-            stage('SonarQube Quality Gate') 
+            stage('SonarQube Quality Gate')
             {
                 // timeout(time: 5, unit: 'MINUTES') {
                 //     def qualityGateResult = waitForQualityGate(abortPipeline: true)
@@ -102,28 +99,20 @@ node {
                 //     }
                 // }
             }
-            
-            // stage('JaCoCo') {
-            //     jacoco execPattern: '**/target/jacoco.exec',
-            //            classPattern: '**/target/classes',
-            //            sourcePattern: '**/src/main/java',
-            //            inclusionPattern: '**/*.class'
-            // }
 
-            stage('Package') 
+            stage('Package')
             {
                 PROJECT_VERSION = Package();
             }
 
-            stage('Build Docker Image') 
+            stage('Build Docker Image')
             {
-                // Resultado deve ser algo como 'forjemzer/lms-lendingss-command:1.0'
                 RESULT_STR = "${IMAGE_NAME}:${PROJECT_VERSION}"
                 DOCKER_IMAGE = "${Constants.DOCKER_REGISTRY}/${RESULT_STR}"
                 BuildDockerImage(RESULT_STR);
             }
 
-            stage('Push Docker Image') 
+            stage('Push Docker Image')
             {
                 PushDockerImage(RESULT_STR);
             }
@@ -139,66 +128,39 @@ node {
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
                     echo 'Deploying the application using Blue/Green strategy...'
-
-                    /* Conectar ao Kubernetes e obter a cor do pod atual */
+                    CURRENT_COLOR = GetCurrentDeploymentColor(IMAGE_NAME, NAMESPACE)
+                    echo "Current active deployment color: ${CURRENT_COLOR}"
+                    NEW_COLOR = (CURRENT_COLOR == 'blue') ? 'green' : 'blue'
+                    echo "New deployment color will be: ${NEW_COLOR}"
+                    DeployNewColor(IMAGE_NAME, NEW_COLOR, DOCKER_IMAGE, NAMESPACE)
+                    WaitForDeploymentReady(IMAGE_NAME, NEW_COLOR, NAMESPACE)
+                }
+                else if (params.RolloutStrategy == 'Canary')
+                {
+                    echo 'Deploying the application using Canary strategy...'
                     CURRENT_COLOR = GetCurrentDeploymentColor(IMAGE_NAME, NAMESPACE)
                     echo "Current active deployment color: ${CURRENT_COLOR}"
 
-                    /* Determinar a nova cor (oposta à atual) */
-                    NEW_COLOR = (CURRENT_COLOR == 'blue') ? 'green' : 'blue'
-                    echo "New deployment color will be: ${NEW_COLOR}"
-
                     /*
-                    * ABORDAGEM ESCOLHIDA: Dynamic Image Update via kubectl set image
+                    * CANARY DEPLOYMENT - STAGED ROLLOUT
                     *
-                    * JUSTIFICATIVA:
-                    * Esta abordagem utiliza um deployment fixo para cada cor (blue e green),
-                    * mas atualiza dinamicamente a imagem através do comando kubectl set image.
+                    * Estratégia de deploy com validação gradual:
+                    * 1. Deploy nova versão em paralelo com a versão estável
+                    * 2. Tráfego gradual começa com percentagem baixa (ex: 10%)
+                    * 3. Monitora métricas e logs da nova versão
+                    * 4. Se tudo OK, aumenta percentagem de forma gradual
+                    * 5. Se deteta erro, volta para versão anterior
                     *
                     * VANTAGENS:
-                    * 1. Separação clara entre blue/green através de deployments distintos
-                    * 2. Versionamento automático via PROJECT_VERSION do Maven
-                    * 3. Rollback facilitado através de kubectl rollout undo
-                    * 4. Histórico de versões mantido pelo Kubernetes (revision history)
-                    * 5. Não requer alteração de manifestos YAML a cada deploy
-                    * 6. Suporta rolling updates nativos do Kubernetes
-                    *
-                    * ALTERNATIVAS CONSIDERADAS E REJEITADAS:
-                    *
-                    * A) Deployment fixo com versão 1.0 (mencionado pelo professor):
-                    *    - Problema: Não permite versionamento adequado
-                    *    - Problema: Dificulta rastreabilidade de versões
-                    *    - Problema: Complica rollbacks para versões específicas
-                    *
-                    * B) Recriar deployment completo a cada vez:
-                    *    - Problema: Perde histórico de revisões do Kubernetes
-                    *    - Problema: Mais complexo (requer templates ou geração de YAML)
-                    *    - Problema: Maior janela de downtime
-                    *
-                    * C) Helm Charts com values dinâmicos:
-                    *    - Vantagem: Gestão mais sofisticada de configurações
-                    *    - Desvantagem: Adiciona complexidade desnecessária para este caso
-                    *    - Desvantagem: Requer instalação e configuração do Helm
-                    *
-                    * D) Kustomize overlays:
-                    *    - Vantagem: Declarativo e versionável
-                    *    - Desvantagem: Requer estrutura de diretórios mais complexa
-                    *    - Desvantagem: Overhead para casos simples de blue/green
-                    *
-                    * FLUXO DA ABORDAGEM ESCOLHIDA:
-                    * 1. Identifica cor atual através do Service selector
-                    * 2. Atualiza deployment da nova cor com a nova versão da imagem
-                    * 3. Aguarda deployment estar ready (rollout status)
-                    * 4. Executa testes de smoke
-                    * 5. Atualiza Service para apontar para a nova cor
-                    * 6. Remove deployment da cor antiga após validação
+                    * - Menor risco: apenas percentagem pequena de users afetados
+                    * - Detecção rápida de problemas em produção
+                    * - Fácil rollback sem downtime
+                    * - Dados reais para validar performance
                     */
 
-                    /* Atualizar o deployment da nova cor com a nova imagem */
-                    DeployNewColor(IMAGE_NAME, NEW_COLOR, DOCKER_IMAGE, NAMESPACE)
-
-                    /* Aguardar que o deployment esteja pronto */
-                    WaitForDeploymentReady(IMAGE_NAME, NEW_COLOR, NAMESPACE)
+                    // Cria deployment canary paralelo
+                    DeployCanaryInstance(IMAGE_NAME, DOCKER_IMAGE, NAMESPACE, CANARY_PERCENTAGE)
+                    WaitForDeploymentReady(IMAGE_NAME, 'canary', NAMESPACE)
                 }
                 else
                 {
@@ -211,22 +173,21 @@ node {
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
                     echo "Running tests on ${NEW_COLOR} instance..."
+                    echo "All tests passed on ${NEW_COLOR} instance - SAFE TO SWITCH"
+                }
+                else if (params.RolloutStrategy == 'Canary')
+                {
+                    echo "Running smoke tests on canary instance (${CANARY_PERCENTAGE}% traffic)..."
 
                     /*
-                    * Testes de validação ANTES do switch de tráfego
-                    *
-                    * COMPORTAMENTO:
-                    * - Testa a nova instância isolada (sem tráfego de produção)
-                    * - Se PASSAR: pipeline continua para SwitchTraffic
-                    * - Se FALHAR: pipeline PARA aqui, deployment falhado é removido
-                    *
-                    * VANTAGEM: Versão ruim NUNCA recebe tráfego de produção
-                    *
-                    * Inclui: health checks, readiness checks, smoke tests
+                    * Validação da versão canary
+                    * - Health checks básicos
+                    * - Endpoints críticos
+                    * - Sem validação completa (apenas smoke tests)
                     */
-                    //ValidateDeploymentWithRollback(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
+                    ValidateCanaryDeployment(IMAGE_NAME, NAMESPACE)
 
-                    echo "All tests passed on ${NEW_COLOR} instance - SAFE TO SWITCH"
+                    echo "Canary smoke tests PASSED - Ready for traffic validation"
                 }
                 else
                 {
@@ -238,24 +199,7 @@ node {
             {
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
-                    /*
-                    * Aprovação manual antes do deployment em produção
-                    *
-                    * NOTIFICAÇÃO:
-                    * - O Jenkins exibe notificação no UI
-                    * - Console log mostra mensagem clara
-                    * - Para Jenkins com email configurado, pode usar emailext plugin
-                    *
-                    * APROVAÇÃO:
-                    * - Pipeline PAUSA até alguém aprovar ou rejeitar
-                    * - Timeout de 30 minutos (customizável)
-                    * - Se timeout expirar, deployment é abortado
-                    *
-                    * CONTROLE:
-                    * - Apenas utilizadores com permissões podem aprovar
-                    * - Submitter pode ser especificado (ex: 'admin,lead-dev')
-                    */
-                    echo""" ==========================================
+                    echo """ ==========================================
                             DEPLOYMENT APPROVAL REQUIRED
                             ==========================================
                             Service: ${IMAGE_NAME}
@@ -271,7 +215,6 @@ node {
 
                     try
                     {
-                        // Envia email de notificação
                         emailext(
                             subject: "Deployment Approval Required: ${IMAGE_NAME}:${PROJECT_VERSION}",
                             body: """
@@ -289,29 +232,64 @@ node {
                         {
                             input message: "Deploy ${IMAGE_NAME}:${PROJECT_VERSION} to production?",
                                   ok: 'Deploy',
-                                  submitter: 'admin,authenticated' // Customize with your Jenkins user roles
+                                  submitter: 'admin,authenticated'
                         }
                         echo "Deployment APPROVED by user. Proceeding with traffic switch..."
                     }
                     catch (err)
                     {
                         echo "Deployment REJECTED or TIMEOUT. Aborting deployment..."
-                        echo "Cleaning up ${NEW_COLOR} deployment that was never switched to production..."
-
-                        /*
-                        * CLEANUP quando aprovação é rejeitada/timeout
-                        *
-                        * COMPORTAMENTO:
-                        * - Remove deployment da nova cor que foi criado mas nunca recebeu tráfego
-                        * - Tráfego continua na cor antiga (CURRENT_COLOR)
-                        * - Sistema fica no estado anterior ao deployment
-                        *
-                        * VANTAGEM: Não deixa lixo (deployments órfãos) no cluster
-                        */
                         RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
-
                         currentBuild.result = 'ABORTED'
                         throw new Exception("Manual approval denied or timed out")
+                    }
+                }
+                else if (params.RolloutStrategy == 'Canary')
+                {
+                    echo """ ==========================================
+                            CANARY VALIDATION APPROVAL REQUIRED
+                            ==========================================
+                            Service: ${IMAGE_NAME}
+                            New Version: ${PROJECT_VERSION}
+                            Canary Traffic: ${CANARY_PERCENTAGE}%
+                            Current Stable Version: Still running ${CURRENT_COLOR}
+                            Namespace: ${NAMESPACE}
+                            Docker Image: ${DOCKER_IMAGE}
+                            ==========================================
+                            Canary smoke tests have PASSED.
+                            Ready to increase traffic to 100% or Rollback...
+                            ==========================================
+                        """
+
+                    try
+                    {
+                        emailext(
+                            subject: "Canary Validation Approval: ${IMAGE_NAME}:${PROJECT_VERSION}",
+                            body: """
+                                Canary deployment validation:
+                                - Service: ${IMAGE_NAME}
+                                - Version: ${PROJECT_VERSION}
+                                - Canary Traffic: ${CANARY_PERCENTAGE}%
+
+                                Approve at: ${BUILD_URL}input
+                            """,
+                            to: 'test@localhost'
+                        )
+
+                        timeout(time: 30, unit: 'MINUTES')
+                        {
+                            input message: "Canary validation PASSED. Promote ${IMAGE_NAME}:${PROJECT_VERSION} to 100% traffic?",
+                                  ok: 'Promote to Production',
+                                  submitter: 'admin,authenticated'
+                        }
+                        echo "Canary APPROVED for promotion. Proceeding with 100% traffic..."
+                    }
+                    catch (err)
+                    {
+                        echo "Canary validation REJECTED or TIMEOUT. Performing rollback..."
+                        RollbackCanary(IMAGE_NAME, NAMESPACE)
+                        currentBuild.result = 'ABORTED'
+                        throw new Exception("Canary validation denied or timed out")
                     }
                 }
                 else
@@ -325,18 +303,14 @@ node {
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
                     echo "Switching traffic from ${CURRENT_COLOR} to ${NEW_COLOR}..."
-
-                    /*
-                    * Atualiza o Service para apontar para a nova cor
-                    *
-                    * NOTA: Este stage só é executado se o stage anterior (testes) passar
-                    *       Isto garante que versão ruim nunca recebe tráfego
-                    *
-                    * O switch é ATÔMICO - demonstra ZERO DOWNTIME
-                    */
                     SwitchTraffic(IMAGE_NAME, NEW_COLOR, NAMESPACE)
-
                     echo "Traffic successfully switched to ${NEW_COLOR}"
+                }
+                else if (params.RolloutStrategy == 'Canary')
+                {
+                    echo "Promoting canary to 100% traffic..."
+                    PromoteCanaryToProduction(IMAGE_NAME, NAMESPACE)
+                    echo "Canary successfully promoted to 100% traffic"
                 }
                 else
                 {
@@ -349,12 +323,6 @@ node {
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
                     echo "Removing old ${CURRENT_COLOR} deployment..."
-
-                    /*
-                    * Apenas remove o deployment antigo se houver um
-                    * Mantém o Service (que agora aponta para a nova cor)
-                    * Permite rollback manual se necessário antes desta etapa
-                    */
                     if (CURRENT_COLOR != 'none')
                     {
                         UndeployOldColor(IMAGE_NAME, CURRENT_COLOR, NAMESPACE)
@@ -365,9 +333,18 @@ node {
                         echo "No old deployment to remove (first deployment)"
                     }
                 }
-                else
+                else if (params.RolloutStrategy == 'Canary')
                 {
-                    echo "Undeployment strategy for ${params.RolloutStrategy} is not implemented yet."
+                    echo "Removing old stable deployment..."
+                    if (CURRENT_COLOR != 'none')
+                    {
+                        UndeployOldColor(IMAGE_NAME, CURRENT_COLOR, NAMESPACE)
+                        echo "Old stable deployment removed successfully"
+                    }
+                    else
+                    {
+                        echo "No old deployment to remove (first deployment)"
+                    }
                 }
            }
         }
@@ -381,14 +358,13 @@ node {
             archiveArtifacts artifacts: "**\\target\\pit-reports\\index.html,**\\target\\pacts\\*.json", allowEmptyArchive: true
             junit skipPublishingChecks: true, testResults: '**\\target\\surefire-reports\\*.xml'
         }
-        
+
     } catch (Exception e) {
         echo "ERROR FOUND! ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
         throw e
     } finally {
         echo 'Performing cleanup...'
-        /* Cleanup workspace with patterns */
         cleanWs(
             patterns: [
                 [pattern: '**/*', type: 'INCLUDE']

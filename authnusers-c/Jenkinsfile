@@ -18,65 +18,65 @@ node {
     def RESULT_STR = ''
     def CURRENT_COLOR // Cor atual do deployment (blue, green ou none)
     def NEW_COLOR // Nova cor para o deployment
+    def NAMESPACE = 'dev' // Kubernetes namespace
     def DOCKER_IMAGE = ''
-    def CURRENT_NAMESPACE = 'none'
-    
-    try 
+
+    try
     {
-        stage('Checkout') 
+        stage('Checkout')
         {
             echo 'Checking out source code...'
             checkout scm
-            
+
             // Clean untracked files and directories from Git workspace
             echo 'Cleaning untracked files from Git...'
-            if (isUnix()) 
+            if (isUnix())
             {
                 sh 'git clean -fdx'
-            } 
-            else 
+            }
+            else
             {
                 bat 'git clean -fdx'
             }
         }
-        
-        stage('Set Maven Path') 
+
+        stage('Set Maven Path')
         {
-            if (isUnix()) 
+            if (isUnix())
             {
                 env.PATH = "${MAVEN_DIR}/bin:${env.PATH}"
-            } 
-            else 
+            }
+            else
             {
                 env.PATH = "${MAVEN_DIR}\\bin;${env.PATH}"
             }
             echo "Maven added to PATH: ${env.PATH}"
         }
-        
-        dir(IMAGE_NAME) 
-        {   
-            stage('Clean + Build') 
+
+        dir(IMAGE_NAME)
+        {
+            stage('Clean + Build')
             {
                 CleanAndBuild();
             }
 
-            stage('Unit Tests') 
+            stage('Unit Tests')
             {
                 UnitTests();
             }
 
-            stage('Integration Tests') 
+            stage('Integration Tests')
             {
                 IntegrationTests();
             }
 
-            stage('Consumer Contract Tests (Pact)') 
+            stage('Consumer Contract Tests (Pact)')
             {
                 // false significa que é um producer
                 ConsumerContractTests(false);
             }
-            
-            stage('SonarQube Static Code Analysis') 
+
+            stage('SonarQube Static Code Analysis')
             {
 
                 def sonarServer = Constants.ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
@@ -91,31 +91,12 @@ node {
                 // }
             }
 
-            stage('SonarQube Quality Gate') 
-            {
-                // timeout(time: 5, unit: 'MINUTES') {
-                //     def qualityGateResult = waitForQualityGate(abortPipeline: true)
-                //     if (qualityGateResult.status == 'OK') {
-                //         echo 'Quality gate passed. Proceeding with the pipeline.'
-                //     } else {
-                //         error "Quality gate failed: ${qualityGateResult.status}"
-                //     }
-                // }
-            }
-            
-            // stage('JaCoCo') {
-            //     jacoco execPattern: '**/target/jacoco.exec',
-            //            classPattern: '**/target/classes',
-            //            sourcePattern: '**/src/main/java',
-            //            inclusionPattern: '**/*.class'
-            // }
-
-            stage('Package') 
+            stage('Package')
             {
                 PROJECT_VERSION = Package();
             }
 
-            stage('Build Docker Image') 
+            stage('Build Docker Image')
             {
                 // Resultado deve ser algo como 'forjemzer/lms-authnusers-command:1.0'
                 RESULT_STR = "${IMAGE_NAME}:${PROJECT_VERSION}"
@@ -123,29 +104,30 @@ node {
                 BuildDockerImage(RESULT_STR);
             }
 
-            stage('Push Docker Image') 
+            stage('Push Docker Image')
             {
                 PushDockerImage(RESULT_STR);
             }
 
-            /* DEV */
-            stage('Deploy to Kubernetes - Dev')
+            stage('Deploy')
             {
-                echo 'Deploying to Kubernetes cluster in dev environment...'
+                /*
+                * Garante infraestrutura base do Kubernetes
+                * (namespace, service, RabbitMQ) - comum a todas as estratégias
+                */
+                EnsureK8sStructure(IMAGE_NAME, NAMESPACE)
 
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
-                    echo 'Deploying the application using Blue/Green strategy in dev environment...'
+                    echo 'Deploying the application using Blue/Green strategy...'
 
                     /* Conectar ao Kubernetes e obter a cor do pod atual */
-                    CURRENT_COLOR = GetCurrentDeploymentColor(IMAGE_NAME, Constants.DEV_NAMESPACE)
+                    CURRENT_COLOR = GetCurrentDeploymentColor(IMAGE_NAME, NAMESPACE)
                     echo "Current active deployment color: ${CURRENT_COLOR}"
 
                     /* Determinar a nova cor (oposta à atual) */
                     NEW_COLOR = (CURRENT_COLOR == 'blue') ? 'green' : 'blue'
                     echo "New deployment color will be: ${NEW_COLOR}"
-
-                    CURRENT_NAMESPACE = Constants.DEV_NAMESPACE
 
                     /*
                     * ABORDAGEM ESCOLHIDA: Dynamic Image Update via kubectl set image
@@ -191,18 +173,13 @@ node {
                     * 4. Executa testes de smoke
                     * 5. Atualiza Service para apontar para a nova cor
                     * 6. Remove deployment da cor antiga após validação
-                    * 3. Atualiza deployment da nova cor com a nova versão da imagem
-                    * 4. Aguarda deployment estar ready (rollout status)
-                    * 5. Executa testes de smoke
-                    * 6. Atualiza Service para apontar para a nova cor
-                    * 7. Remove deployment da cor antiga após validação
                     */
 
                     /* Atualizar o deployment da nova cor com a nova imagem */
-                    DeployNewColor(IMAGE_NAME, NEW_COLOR, DOCKER_IMAGE, Constants.DEV_NAMESPACE)
+                    DeployNewColor(IMAGE_NAME, NEW_COLOR, DOCKER_IMAGE, NAMESPACE)
 
                     /* Aguardar que o deployment esteja pronto */
-                    WaitForDeploymentReady(IMAGE_NAME, NEW_COLOR, Constants.DEV_NAMESPACE)
+                    WaitForDeploymentReady(IMAGE_NAME, NEW_COLOR, NAMESPACE)
                 }
                 else
                 {
@@ -210,11 +187,11 @@ node {
                 }
             }
 
-            stage('Smoke Tests - Dev')
+            stage('Test Instance')
             {
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
-                    echo "Running smoke tests on ${NEW_COLOR} instance in dev environment..."
+                    echo "Running tests on ${NEW_COLOR} instance..."
 
                     /*
                     * Testes de validação ANTES do switch de tráfego
@@ -228,224 +205,13 @@ node {
                     *
                     * Inclui: health checks, readiness checks, smoke tests
                     */
-                    //ValidateDeploymentWithRollback(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, Constants.DEV_NAMESPACE)
+                    //ValidateDeploymentWithRollback(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
 
                     echo "All tests passed on ${NEW_COLOR} instance - SAFE TO SWITCH"
                 }
                 else
                 {
                     echo "Testing strategy for ${params.RolloutStrategy} is not implemented yet."
-                }
-            }
-
-            /* STAGING */
-            stage('Deploy to Kubernetes - Staging')
-            {
-                echo 'Deploying to Kubernetes cluster in staging environment...'
-
-                if (params.RolloutStrategy == 'Blue/Green')
-                {
-                    echo 'Deploying the application using Blue/Green strategy in staging environment...'
-
-                    CURRENT_NAMESPACE = Constants.STAGING_NAMESPACE
-
-                    /* Atualizar o deployment da nova cor com a nova imagem */
-                    DeployNewColor(IMAGE_NAME, NEW_COLOR, DOCKER_IMAGE, Constants.STAGING_NAMESPACE)
-
-                    /* Aguardar que o deployment esteja pronto */
-                    WaitForDeploymentReady(IMAGE_NAME, NEW_COLOR, Constants.STAGING_NAMESPACE)
-                }
-                else
-                {
-                    echo "Deployment strategy ${params.RolloutStrategy} is not implemented yet."
-                }
-            }
-
-            stage('Smoke + Load Tests - Staging')
-            {
-                if (params.RolloutStrategy == 'Blue/Green')
-                {
-                    echo "Running smoke and load tests on ${NEW_COLOR} instance in staging environment..."
-
-                    /*
-                    * Testes de validação ANTES do switch de tráfego
-                    *
-                    * COMPORTAMENTO:
-                    * - Testa a nova instância isolada (sem tráfego de produção)
-                    * - Se PASSAR: pipeline continua para SwitchTraffic
-                    * - Se FALHAR: pipeline PARA aqui, deployment falhado é removido
-                    *
-                    * VANTAGEM: Versão ruim NUNCA recebe tráfego de produção
-                    *
-                    * Inclui: health checks, readiness checks, smoke tests
-                    */
-                    //ValidateDeploymentWithRollback(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, Constants.DEV_NAMESPACE)
-
-                    echo "All tests passed on ${NEW_COLOR} instance - SAFE TO SWITCH"
-                }
-                else
-                {
-                    echo "Testing strategy for ${params.RolloutStrategy} is not implemented yet."
-                }
-            }
-
-            /* PRODUCTION */
-            stage('Deploy to Kubernetes - Production')
-            {
-                echo 'Deploying to Kubernetes cluster in production environment...'
-
-                if (params.RolloutStrategy == 'Blue/Green')
-                {
-                    echo 'Deploying the application using Blue/Green strategy in production environment...'
-
-                    CURRENT_NAMESPACE = Constants.PROD_NAMESPACE
-
-                    /* Atualizar o deployment da nova cor com a nova imagem */
-                    DeployNewColor(IMAGE_NAME, NEW_COLOR, DOCKER_IMAGE, Constants.PROD_NAMESPACE)
-
-                    /* Aguardar que o deployment esteja pronto */
-                    WaitForDeploymentReady(IMAGE_NAME, NEW_COLOR, Constants.PROD_NAMESPACE)
-                }
-                else
-                {
-                    echo "Deployment strategy ${params.RolloutStrategy} is not implemented yet."
-                }
-            }
-
-            stage('Health Checks - Production')
-            {
-                if (params.RolloutStrategy == 'Blue/Green')
-                {
-                    echo "Running health checks on ${NEW_COLOR} instance in production environment..."
-
-                    /*
-                    * Testes de validação ANTES do switch de tráfego
-                    *
-                    * COMPORTAMENTO:
-                    * - Testa a nova instância isolada (sem tráfego de produção)
-                    * - Se PASSAR: pipeline continua para SwitchTraffic
-                    * - Se FALHAR: pipeline PARA aqui, deployment falhado é removido
-                    *
-                    * VANTAGEM: Versão ruim NUNCA recebe tráfego de produção
-                    *
-                    * Inclui: health checks, readiness checks, smoke tests
-                    */
-                    //ValidateDeploymentWithRollback(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, Constants.DEV_NAMESPACE)
-
-                    echo "All tests passed on ${NEW_COLOR} instance - SAFE TO SWITCH"
-                }
-                else
-                {
-                    echo "Testing strategy for ${params.RolloutStrategy} is not implemented yet."
-                }
-            }
-
-            // stage('Deploy')
-            // {
-            //     /*
-            //     * Garante infraestrutura base do Kubernetes
-            //     * (namespace, service, RabbitMQ) - comum a todas as estratégias
-            //     */
-            //     EnsureK8sStructure(IMAGE_NAME, Constants.DEV_NAMESPACE)
-
-            //     if (params.RolloutStrategy == 'Blue/Green')
-            //     {
-            //         echo 'Deploying the application using Blue/Green strategy...'
-
-
-            //         /* Atualizar o deployment da nova cor com a nova imagem */
-            //         DeployNewColor(IMAGE_NAME, NEW_COLOR, DOCKER_IMAGE, Constants.DEV_NAMESPACE)
-
-            //         /* Aguardar que o deployment esteja pronto */
-            //         WaitForDeploymentReady(IMAGE_NAME, NEW_COLOR, Constants.DEV_NAMESPACE)
-            //     }
-            //     else
-            //     {
-            //         echo "Deployment strategy ${params.RolloutStrategy} is not implemented yet."
-            //     }
-            // }
-
-            stage('Manual Approval Required')
-            {
-                if (params.RolloutStrategy == 'Blue/Green')
-                {
-                    /*
-                    * Aprovação manual antes do deployment em produção
-                    *
-                    * NOTIFICAÇÃO:
-                    * - O Jenkins exibe notificação no UI
-                    * - Console log mostra mensagem clara
-                    * - Para Jenkins com email configurado, pode usar emailext plugin
-                    *
-                    * APROVAÇÃO:
-                    * - Pipeline PAUSA até alguém aprovar ou rejeitar
-                    * - Timeout de 30 minutos (customizável)
-                    * - Se timeout expirar, deployment é abortado
-                    *
-                    * CONTROLE:
-                    * - Apenas utilizadores com permissões podem aprovar
-                    * - Submitter pode ser especificado (ex: 'admin,lead-dev')
-                    */
-                    echo""" ==========================================
-                            DEPLOYMENT APPROVAL REQUIRED
-                            ==========================================
-                            Service: ${IMAGE_NAME}
-                            New Version: ${PROJECT_VERSION}
-                            Target Color: ${NEW_COLOR}
-                            Current Color: ${CURRENT_COLOR}
-                            Namespace: ${Constants.DEV_NAMESPACE}
-                            Docker Image: ${DOCKER_IMAGE}
-                            ==========================================
-                            Tests have PASSED. Waiting for manual approval to switch traffic...
-                            ==========================================
-                        """
-
-                    try
-                    {
-                        // Envia email de notificação
-                        emailext(
-                            subject: "Deployment Approval Required: ${IMAGE_NAME}:${PROJECT_VERSION}",
-                            body: """
-                                Deployment waiting for approval:
-                                - Service: ${IMAGE_NAME}
-                                - Version: ${PROJECT_VERSION}
-                                - Target: ${NEW_COLOR}
-
-                                Approve at: ${BUILD_URL}input
-                            """,
-                            to: 'test@localhost'
-                        )
-
-                        timeout(time: 30, unit: 'MINUTES')
-                        {
-                            input message: "Deploy ${IMAGE_NAME}:${PROJECT_VERSION} to production?",
-                                  ok: 'Deploy',
-                                  submitter: 'admin,authenticated' // Customize with your Jenkins user roles
-                        }
-                        echo "Deployment APPROVED by user. Proceeding with traffic switch..."
-                    }
-                    catch (err)
-                    {
-                        echo "Deployment REJECTED or TIMEOUT. Aborting deployment..."
-                        echo "Cleaning up ${NEW_COLOR} deployment that was never switched to production..."
-
-                        /*
-                        * CLEANUP quando aprovação é rejeitada/timeout
-                        *
-                        * COMPORTAMENTO:
-                        * - Remove deployment da nova cor que foi criado mas nunca recebeu tráfego
-                        * - Tráfego continua na cor antiga (CURRENT_COLOR)
-                        * - Sistema fica no estado anterior ao deployment
-                        *
-                        * VANTAGEM: Não deixa lixo (deployments órfãos) no cluster
-                        */
-                        currentBuild.result = 'ABORTED'
-                        throw new Exception("Manual approval denied or timed out")
-                    }
-                }
-                else
-                {
-                    echo "Manual approval for ${params.RolloutStrategy} is not implemented yet."
                 }
             }
 
@@ -463,14 +229,8 @@ node {
                     *
                     * O switch é ATÔMICO - demonstra ZERO DOWNTIME
                     */
-                    /* DEV */
-                    SwitchTraffic(IMAGE_NAME, NEW_COLOR, Constants.DEV_NAMESPACE)
+                    SwitchTraffic(IMAGE_NAME, NEW_COLOR, NAMESPACE)
 
-                    /* STAGING */
-                    SwitchTraffic(IMAGE_NAME, NEW_COLOR, Constants.STAGING_NAMESPACE)
-
-                    /* PRODUCTION */
-                    SwitchTraffic(IMAGE_NAME, NEW_COLOR, Constants.PROD_NAMESPACE)
                     echo "Traffic successfully switched to ${NEW_COLOR}"
                 }
                 else
@@ -479,11 +239,11 @@ node {
                 }
             }
 
-            stage('Undeploy old services')
+            stage('Undeploy old service')
             {
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
-                    echo "Removing old ${CURRENT_COLOR} deployment from dev, staging and production environments..."
+                    echo "Removing old ${CURRENT_COLOR} deployment..."
 
                     /*
                     * Apenas remove o deployment antigo se houver um
@@ -492,14 +252,7 @@ node {
                     */
                     if (CURRENT_COLOR != 'none')
                     {
-                        /* DEV */
-                        UndeployOldColor(IMAGE_NAME, CURRENT_COLOR, Constants.DEV_NAMESPACE)
-
-                        /* STAGING */
-                        UndeployOldColor(IMAGE_NAME, CURRENT_COLOR, Constants.STAGING_NAMESPACE)
-
-                        /* PRODUCTION */
-                        UndeployOldColor(IMAGE_NAME, CURRENT_COLOR, Constants.PROD_NAMESPACE)
+                        UndeployOldColor(IMAGE_NAME, CURRENT_COLOR, NAMESPACE)
                         echo "${CURRENT_COLOR} deployment removed successfully"
                     }
                     else
@@ -511,61 +264,24 @@ node {
                 {
                     echo "Undeployment strategy for ${params.RolloutStrategy} is not implemented yet."
                 }
-            }
+           }
         }
 
         // Success actions
         echo 'Pipeline completed successfully.'
-        if (isUnix())
-        {
+        if (isUnix()) {
             archiveArtifacts artifacts: "**/target/pit-reports/index.html,**/target/pacts/*.json", allowEmptyArchive: true
             junit skipPublishingChecks: true, testResults: '**/target/surefire-reports/*.xml'
-        }
-        else
-        {
+        } else {
             archiveArtifacts artifacts: "**\\target\\pit-reports\\index.html,**\\target\\pacts\\*.json", allowEmptyArchive: true
             junit skipPublishingChecks: true, testResults: '**\\target\\surefire-reports\\*.xml'
-         }
-     }
-    catch (Exception e) 
-    {
+        }
+
+    } catch (Exception e) {
         echo "ERROR FOUND! ${e.getMessage()}"
-
-        if (params.RolloutStrategy == 'Blue/Green')
-        {
-            if (CURRENT_NAMESPACE == 'dev' && NEW_COLOR != 'none')
-            {
-                echo "Initiating rollback to previous stable deployment in dev environment..."
-                RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, Constants.DEV_NAMESPACE)
-            }
-            else if (CURRENT_NAMESPACE == 'staging' && NEW_COLOR != 'none')
-            {
-                echo "Initiating rollback to previous stable deployment in dev and staging environment..."
-                RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, Constants.DEV_NAMESPACE)
-                RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, Constants.STAGING_NAMESPACE)
-            }
-            else if (CURRENT_NAMESPACE == 'prod' && NEW_COLOR != 'none')
-            {
-                echo "Initiating rollback to previous stable deployment in dev, staging and production environment..."
-                RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, Constants.DEV_NAMESPACE)
-                RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, Constants.STAGING_NAMESPACE)
-                RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, Constants.PROD_NAMESPACE)
-            }
-            else
-            {
-                echo "No deployment was made yet, so no rollback is necessary."
-            }
-        }
-        else
-        {
-            echo "Rollback strategy for ${params.RolloutStrategy} is not implemented yet."
-        }
-
         currentBuild.result = 'FAILURE'
         throw e
-    } 
-    finally 
-    {
+    } finally {
         echo 'Performing cleanup...'
         /* Cleanup workspace with patterns */
         cleanWs(

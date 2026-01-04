@@ -80,7 +80,7 @@ node {
             stage('Consumer Contract Tests (Pact)')
             {
                 // true significa que é um consumer
-                // ConsumerContractTests(true);
+                ConsumerContractTests(true);
             }
 
             stage('SonarQube Static Code Analysis')

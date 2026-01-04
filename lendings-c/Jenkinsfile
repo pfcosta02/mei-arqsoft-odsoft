@@ -169,10 +169,10 @@ node {
             stage('Test Instance') {
                     if (params.RolloutStrategy == 'Blue/Green') {
                         echo "Running smoke tests on ${NEW_COLOR} instance.."
-                        SmokeTestHttpEndpoint(IMAGE_NAME, NAMESPACE, PORT)
+                        SmokeTestWithSwaggerUI(IMAGE_NAME, NAMESPACE, PORT)
                     } else if (params.RolloutStrategy == 'Canary') {
                         echo "Running smoke tests on CANARY..."
-                        SmokeTestHttpEndpoint(IMAGE_NAME + "-canary", NAMESPACE, PORT)
+                        SmokeTestWithSwaggerUI(IMAGE_NAME + "-canary", NAMESPACE, PORT)
                     }
                     echo "Smoke tests PASSED."
             }

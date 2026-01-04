@@ -20,15 +20,7 @@ properties([
 ])
 
 node {
-    def getTriggerEmail() {
-        def cause = currentBuild.rawBuild.getCauses().find { it instanceof Cause.UserIdCause }
-        if (!cause) {
-            return '1221137@isep.ipp.pt'  // se foi trigger por SCM ou outro
-        }
-        def user = User.get(cause.userId, false, [:])
-        def mail = user?.getProperty(hudson.tasks.Mailer.UserProperty)?.getAddress()
-        return mail ?: '1221137@isep.ipp.pt'
-    }
+
 
     def MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     def PROJECT_VERSION = ''
@@ -187,7 +179,7 @@ stage('Manual Approval Required')
                         emailext(
                             subject: "APPROVAL REQUIRED [${IMAGE_NAME}:${PROJECT_VERSION}]",
                             mimeType: 'text/html',
-                            to: '1221137@isep.ipp.pt',
+                            to: approverEmail,
                             body: """
                                 <h3>Deployment approval required</h3>
                                 <ul>
@@ -350,4 +342,14 @@ stage('Manual Approval Required')
             notFailBuild: true
         )
     }
+
+     def getTriggerEmail() {
+            def cause = currentBuild.rawBuild.getCauses().find { it instanceof Cause.UserIdCause }
+            if (!cause) {
+                return '1221137@isep.ipp.pt'  // se foi trigger por SCM ou outro
+            }
+            def user = User.get(cause.userId, false, [:])
+            def mail = user?.getProperty(hudson.tasks.Mailer.UserProperty)?.getAddress()
+            return mail ?: '1221137@isep.ipp.pt'
+        }
 }

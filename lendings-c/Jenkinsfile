@@ -226,7 +226,7 @@ node {
 
                                 Approve at: ${BUILD_URL}input
                             """,
-                            to: 'test@localhost'
+                            to: '1221137@isep.ipp.pt'
                         )
 
                         timeout(time: 30, unit: 'MINUTES')
@@ -274,7 +274,7 @@ node {
 
                                 Approve at: ${BUILD_URL}input
                             """,
-                            to: 'test@localhost'
+                            to: '1221137@isep.ipp.pt'
                         )
 
                         timeout(time: 30, unit: 'MINUTES')

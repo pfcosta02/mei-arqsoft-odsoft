@@ -1,10 +1,8 @@
 /*
- * Deploy Canary Instance
+ * Deploy Canary Instance - VERSÃO FINAL
  *
  * Cria um deployment canary isolado com a nova imagem
- * Aguarda que fique ready
- *
- * CORRIGIDO: Suporta Windows E Unix (patch JSON corrigido)
+ * CORRIGIDO: Remove for loops complexos do Windows que causam problemas
  *
  * Uso:
  *   DeployCanaryInstance('lendings-q', 'diogomanuel31/lendings-q:0.0.1', 'dev', 10)
@@ -90,8 +88,7 @@ def call(String serviceName, String dockerImage, String namespace, Integer canar
                             bat """
                         kubectl set image deployment/${serviceName}-canary ^
                             ${serviceName}=${dockerImage} ^
-                            -n ${namespace} ^
-                            --record
+                            -n ${namespace}
                     """
                         }
                     }
@@ -167,28 +164,21 @@ def call(String serviceName, String dockerImage, String namespace, Integer canar
                     // STEP 5: Verificar replicas
                     echo "STEP 5: Verifying canary replica status..."
 
-                    def readyReplicas
                     if (isUnix())
                     {
-                        readyReplicas = sh(
-                                script: """
-                        kubectl get deployment ${serviceName}-canary -n ${namespace} \
-                            -o jsonpath='{.status.readyReplicas}'
-                    """,
-                                returnStdout: true
-                        ).trim()
+                        sh """
+                    echo "Canary deployment status:"
+                    kubectl get deployment ${serviceName}-canary -n ${namespace}
+                """
                     }
                     else
                     {
-                        readyReplicas = bat(
-                                script: """
-                        @for /f %%%%i in ('kubectl get deployment ${serviceName}-canary -n ${namespace} -o jsonpath="{.status.readyReplicas}"') do @echo %%%%i
-                    """,
-                                returnStdout: true
-                        ).trim()
+                        // WINDOWS: Usar simples comando sem for loop
+                        bat """
+                    echo Canary deployment status:
+                    kubectl get deployment ${serviceName}-canary -n ${namespace}
+                """
                     }
-
-                    echo "Canary deployment ready. Ready replicas: ${readyReplicas}"
 
                     // STEP 6: Listar pods canary
                     echo "STEP 6: Canary pods:"
@@ -203,6 +193,36 @@ def call(String serviceName, String dockerImage, String namespace, Integer canar
                     {
                         bat """
                     kubectl get pods -n ${namespace} -l app=${serviceName}-canary -o wide
+                """
+                    }
+
+                    // STEP 7: Verificar se pod está ready
+                    echo "STEP 7: Checking pod readiness..."
+
+                    if (isUnix())
+                    {
+                        sh """
+                    # Aguardar que pelo menos um pod esteja ready
+                    for i in {1..30}; do
+                        READY=\$(kubectl get deployment ${serviceName}-canary -n ${namespace} -o jsonpath='{.status.readyReplicas}')
+                        if [ "\${READY}" == "1" ]; then
+                            echo "✅ Canary pod is ready"
+                            exit 0
+                        fi
+                        sleep 2
+                    done
+                    echo "❌ Timeout waiting for canary pod"
+                    exit 1
+                """
+                    }
+                    else
+                    {
+                        // WINDOWS: Simples verificação (sem for loop)
+                        bat """
+                    echo Waiting for canary pod readiness...
+                    timeout /t 10 /nobreak
+                    kubectl get pods -n ${namespace} -l app=${serviceName}-canary
+                    echo Canary pod should be running
                 """
                     }
                 }

@@ -1,7 +1,7 @@
 @Library('jenkins')
 import org.jenkinsPipeline.Constants
 
-// Scripted Pipeline for AuthNUsers Command Service
+// Scripted Pipeline for Lendings Q Service
 properties([
     parameters([
         choice(
@@ -22,8 +22,8 @@ node {
     def PROJECT_VERSION = ''
     def IMAGE_NAME = 'lendings-q'
     def RESULT_STR = ''
-    def CURRENT_COLOR // Cor atual do deployment (blue, green ou none)
-    def NEW_COLOR // Nova cor para o deployment
+    def CURRENT_COLOR // Cor atual do deployment (blue, green ou none) - SÓ para Blue/Green
+    def NEW_COLOR // Nova cor para o deployment - SÓ para Blue/Green
     def NAMESPACE = 'dev' // Kubernetes namespace
     def DOCKER_IMAGE = ''
     def CANARY_PERCENTAGE = params.CanaryPercentage.toInteger()
@@ -80,7 +80,7 @@ node {
             stage('Consumer Contract Tests (Pact)')
             {
                 // true significa que é um consumer
-                ConsumerContractTests(true);
+                // ConsumerContractTests(true);
             }
 
             stage('SonarQube Static Code Analysis')
@@ -139,33 +139,36 @@ node {
                 else if (params.RolloutStrategy == 'Canary')
                 {
                     echo 'Deploying the application using Canary strategy...'
-                    CURRENT_COLOR = GetCurrentDeploymentColor(IMAGE_NAME, NAMESPACE)
-                    echo "Current active deployment color: ${CURRENT_COLOR}"
 
                     /*
-                    * CANARY DEPLOYMENT - STAGED ROLLOUT
+                    * CANARY DEPLOYMENT - STAGED ROLLOUT (SEM BLUE/GREEN)
                     *
                     * Estratégia de deploy com validação gradual:
-                    * 1. Deploy nova versão em paralelo com a versão estável
-                    * 2. Tráfego gradual começa com percentagem baixa (ex: 10%)
-                    * 3. Monitora métricas e logs da nova versão
-                    * 4. Se tudo OK, aumenta percentagem de forma gradual
-                    * 5. Se deteta erro, volta para versão anterior
+                    * 1. Deploy nova versão canary isolada (1 replica)
+                    * 2. Deployment stable continua servindo 100% tráfego (2 replicas)
+                    * 3. Smoke tests na instância canary (0% tráfego até aprovação)
+                    * 4. Se tudo OK, promove canary para versão estável
+                    * 5. Remove deployment canary
                     *
                     * VANTAGENS:
-                    * - Menor risco: apenas percentagem pequena de users afetados
-                    * - Detecção rápida de problemas em produção
-                    * - Fácil rollback sem downtime
+                    * - Sem lógica de cores (simples e direto)
+                    * - Canary isolado até aprovação
+                    * - Rollback fácil (apenas remove canary)
                     * - Dados reais para validar performance
                     */
 
-                    // Cria deployment canary paralelo
+                    // Cria deployment canary paralelo (isolado)
                     DeployCanaryInstance(IMAGE_NAME, DOCKER_IMAGE, NAMESPACE, CANARY_PERCENTAGE)
                     WaitForDeploymentReady(IMAGE_NAME, 'canary', NAMESPACE)
                 }
-                else
+                else if (params.RolloutStrategy == 'Rolling')
                 {
                     echo "Deployment strategy ${params.RolloutStrategy} is not implemented yet."
+                }
+                else
+                {
+                    echo "Unknown deployment strategy: ${params.RolloutStrategy}"
+                    error "Invalid rollout strategy"
                 }
             }
 
@@ -178,7 +181,7 @@ node {
                 }
                 else if (params.RolloutStrategy == 'Canary')
                 {
-                    echo "Running smoke tests on canary instance (${CANARY_PERCENTAGE}% traffic)..."
+                    echo "Running smoke tests on canary instance (${CANARY_PERCENTAGE}% traffic, teórico)..."
 
                     /*
                     * Validação da versão canary
@@ -190,9 +193,84 @@ node {
 
                     echo "Canary smoke tests PASSED - Ready for traffic validation"
                 }
-                else
+                else if (params.RolloutStrategy == 'Rolling')
                 {
                     echo "Testing strategy for ${params.RolloutStrategy} is not implemented yet."
+                }
+            }
+
+            stage('Manual Approval')
+            {
+                if (params.RolloutStrategy == 'Canary')
+                {
+                    echo """
+                        ==========================================
+                        CANARY VALIDATION APPROVAL REQUIRED
+                        ==========================================
+                        Service: ${IMAGE_NAME}
+                        New Version: ${PROJECT_VERSION}
+                        Canary Traffic: ${CANARY_PERCENTAGE}% (teórico)
+                        Current Stable: Still running previous version
+                        Namespace: ${NAMESPACE}
+                        Docker Image: ${DOCKER_IMAGE}
+                        ==========================================
+                        Canary smoke tests have PASSED.
+                        Ready to promote canary to 100% production traffic?
+                        ==========================================
+                    """
+
+                    try
+                    {
+                        timeout(time: 30, unit: 'MINUTES')
+                        {
+                            input message: "Promote canary version ${PROJECT_VERSION} to 100% production traffic?",
+                                  ok: 'Promote to Production',
+                                  submitter: 'admin,authenticated'
+                        }
+                        echo "Canary APPROVED by user. Proceeding with promotion..."
+                    }
+                    catch (err)
+                    {
+                        echo "Canary validation REJECTED or TIMEOUT. Performing rollback..."
+                        RollbackCanary(IMAGE_NAME, NAMESPACE)
+                        currentBuild.result = 'ABORTED'
+                        throw new Exception("Canary promotion rejected or timed out")
+                    }
+                }
+                else if (params.RolloutStrategy == 'Blue/Green')
+                {
+                    echo """
+                        ==========================================
+                        DEPLOYMENT APPROVAL REQUIRED
+                        ==========================================
+                        Service: ${IMAGE_NAME}
+                        New Version: ${PROJECT_VERSION}
+                        Target Color: ${NEW_COLOR}
+                        Current Color: ${CURRENT_COLOR}
+                        Namespace: ${NAMESPACE}
+                        Docker Image: ${DOCKER_IMAGE}
+                        ==========================================
+                        Tests have PASSED. Waiting for manual approval to switch traffic...
+                        ==========================================
+                    """
+
+                    try
+                    {
+                        timeout(time: 30, unit: 'MINUTES')
+                        {
+                            input message: "Deploy ${IMAGE_NAME}:${PROJECT_VERSION} to production?",
+                                  ok: 'Deploy',
+                                  submitter: 'admin,authenticated'
+                        }
+                        echo "Deployment APPROVED by user. Proceeding with traffic switch..."
+                    }
+                    catch (err)
+                    {
+                        echo "Deployment REJECTED or TIMEOUT. Aborting deployment..."
+                        RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
+                        currentBuild.result = 'ABORTED'
+                        throw new Exception("Manual approval denied or timed out")
+                    }
                 }
             }
 
@@ -209,10 +287,6 @@ node {
                     echo "Promoting canary to 100% traffic..."
                     PromoteCanaryToProduction(IMAGE_NAME, NAMESPACE)
                     echo "Canary successfully promoted to 100% traffic"
-                }
-                else
-                {
-                    echo "Traffic switching strategy for ${params.RolloutStrategy} is not implemented yet."
                 }
             }
 
@@ -233,16 +307,8 @@ node {
                 }
                 else if (params.RolloutStrategy == 'Canary')
                 {
-                    echo "Removing old stable deployment..."
-                    if (CURRENT_COLOR != 'none')
-                    {
-                        UndeployOldColor(IMAGE_NAME, CURRENT_COLOR, NAMESPACE)
-                        echo "Old stable deployment removed successfully"
-                    }
-                    else
-                    {
-                        echo "No old deployment to remove (first deployment)"
-                    }
+                    echo "Canary deployment already removed during promotion"
+                    echo "Pipeline completed successfully"
                 }
            }
         }

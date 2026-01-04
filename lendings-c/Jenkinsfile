@@ -35,6 +35,7 @@ node {
     def PROJECT_VERSION = ''
     def IMAGE_NAME = 'lendings-c'
     def RESULT_STR = ''
+    def PORT = 8881
     def CURRENT_COLOR // Cor atual do deployment (blue, green ou none)
     def NEW_COLOR // Nova cor para o deployment
     def NAMESPACE = 'dev' // Kubernetes namespace
@@ -163,6 +164,17 @@ node {
                     ValidateCanaryDeployment(IMAGE_NAME, NAMESPACE)
                     echo "Canary smoke tests PASSED - Ready for traffic validation"
                 }
+            }
+
+            stage('Test Instance') {
+                    if (params.RolloutStrategy == 'Blue/Green') {
+                        echo "Running smoke tests on ${NEW_COLOR} instance.."
+                        SmokeTestHttpEndpoint(IMAGE_NAME, NAMESPACE, PORT)
+                    } else if (params.RolloutStrategy == 'Canary') {
+                        echo "Running smoke tests on CANARY..."
+                        SmokeTestHttpEndpoint(IMAGE_NAME"-canary", NAMESPACE, PORT)
+                    }
+                    echo "Smoke tests PASSED."
             }
 
             stage('Manual Approval Required')
@@ -306,6 +318,28 @@ node {
                     echo "Traffic switching strategy for ${params.RolloutStrategy} is not implemented yet."
                 }
             }
+
+
+//             stage('Production Health Check') {
+//                 echo "Running HEALTH CHECKS in production..."
+//
+//                 // Exemplo com serviço estável
+//                 if (isUnix()) {
+//                     sh """
+//                         set -e
+//                         echo "Checking /actuator/health on prod..."
+//                         curl -f http://lendings-c-service.prod.svc.cluster.local:8882/actuator/health
+//                     """
+//                 } else {
+//                     bat """
+//                         echo Checking /actuator/health on prod...
+//                         curl -f http://lendings-c-service.prod.svc.cluster.local:8882/actuator/health
+//                     """
+//                 }
+//
+//                 echo "Production health checks PASSED."
+//             }
+
 
             stage('Undeploy old service')
             {

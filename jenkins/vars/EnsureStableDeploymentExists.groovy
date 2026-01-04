@@ -19,10 +19,14 @@ import org.jenkinsPipeline.Constants
  */
 def call(String serviceName, String dockerImage, String namespace)
 {
+
+    def stableDeployment = "${serviceName}-stable"         // lendings-q-stable
+    def stableService    = "${serviceName}-service-stable" // lendings-q-service-stable
+
     echo """==========================================
             ENSURING STABLE DEPLOYMENT
         ==========================================
-            Service: ${serviceName}
+            Service: ${stableDeployment}
             Image: ${dockerImage}
             Namespace: ${namespace}
         =========================================="""
@@ -37,52 +41,52 @@ def call(String serviceName, String dockerImage, String namespace)
                     def deploymentExists
                     if (isUnix()) {
                         def status = sh(
-                                script: "kubectl get deployment ${serviceName} -n ${namespace} >/dev/null 2>&1",
+                                script: "kubectl get deployment ${stableDeployment} -n ${namespace} >/dev/null 2>&1",
                                 returnStatus: true
                         )
                         deploymentExists = (status == 0)
                     } else {
                         def status = bat(
-                                script: "@kubectl get deployment ${serviceName} -n ${namespace} >nul 2>&1",
+                                script: "@kubectl get deployment ${stableDeployment} -n ${namespace} >nul 2>&1",
                                 returnStatus: true
                         )
                         deploymentExists = (status == 0)
                     }
 
                     if (deploymentExists) {
-                        echo "✅ Stable deployment ${serviceName} already exists"
+                        echo "✅ Stable deployment ${stableDeployment} already exists"
                         if (isUnix()) {
-                            sh "kubectl get deployment ${serviceName} -n ${namespace} -o wide"
+                            sh "kubectl get deployment ${stableDeployment} -n ${namespace} -o wide"
                         } else {
-                            bat "kubectl get deployment ${serviceName} -n ${namespace} -o wide"
+                            bat "kubectl get deployment ${stableDeployment} -n ${namespace} -o wide"
                         }
                     } else {
                         // STEP 2: Create stable deployment
-                        echo "STEP 2: Creating stable deployment ${serviceName}..."
+                        echo "STEP 2: Creating stable deployment ${stableDeployment}..."
 
                         // Create YAML content inline (sem depender de ficheiros na pasta infra)
                         def deploymentYaml = """apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ${serviceName}
+  name: ${stableDeployment}
   namespace: ${namespace}
   labels:
-    app: ${serviceName}
+    app: ${stableDeployment}
     version: stable
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: ${serviceName}
+      app: ${stableDeployment}
       version: stable
   template:
     metadata:
       labels:
-        app: ${serviceName}
+        app: ${stableDeployment}
         version: stable
     spec:
       containers:
-      - name: ${serviceName}
+      - name: ${stableDeployment}
         image: ${dockerImage}
         imagePullPolicy: IfNotPresent
         ports:
@@ -125,7 +129,7 @@ spec:
                             bat "kubectl apply -f stable-deployment.yaml -n ${namespace}"
                         }
 
-                        echo "✅ Stable deployment ${serviceName} created"
+                        echo "✅ Stable deployment ${stableDeployment} created"
                     }
 
                     // STEP 3: Ensure service exists and points to stable
@@ -137,7 +141,7 @@ spec:
                         if (isUnix())
                         {
                             sh(
-                                    script: "kubectl get service ${serviceName}-service -n ${namespace} 2>/dev/null",
+                                    script: "kubectl get service ${stableService} -n ${namespace} 2>/dev/null",
                                     returnStatus: true
                             )
                             serviceExists = true
@@ -145,7 +149,7 @@ spec:
                         else
                         {
                             bat(
-                                    script: "@kubectl get service ${serviceName}-service -n ${namespace} >nul 2>&1",
+                                    script: "@kubectl get service ${stableService} -n ${namespace} >nul 2>&1",
                                     returnStatus: true
                             )
                             serviceExists = true
@@ -158,15 +162,15 @@ spec:
 
                     if (!serviceExists)
                     {
-                        echo "Creating service ${serviceName}-service..."
+                        echo "Creating service ${stableService}..."
 
                         def serviceYaml = """apiVersion: v1
 kind: Service
 metadata:
-  name: ${serviceName}-service
+  name: ${stableService}
   namespace: ${namespace}
   labels:
-    app: ${serviceName}
+    app: ${stableDeployment}
 spec:
   type: ClusterIP
   ports:
@@ -175,7 +179,7 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: ${serviceName}
+    app: ${stableDeployment}
     version: stable
   sessionAffinity: None
 """
@@ -191,25 +195,25 @@ spec:
                             bat "kubectl apply -f stable-service.yaml -n ${namespace}"
                         }
 
-                        echo "✅ Service ${serviceName}-service created"
+                        echo "✅ Service ${stableService} created"
                     }
                     else
                     {
-                        echo "✅ Service ${serviceName}-service already exists"
+                        echo "✅ Service ${stableService} already exists"
 
                         // Verify service selector points to stable
                         def selector
                         if (isUnix())
                         {
                             selector = sh(
-                                    script: "kubectl get service ${serviceName}-service -n ${namespace} -o jsonpath='{.spec.selector.version}'",
+                                    script: "kubectl get service ${stableService} -n ${namespace} -o jsonpath='{.spec.selector.version}'",
                                     returnStdout: true
                             ).trim()
                         }
                         else
                         {
                             selector = bat(
-                                    script: "@kubectl get service ${serviceName}-service -n ${namespace} -o jsonpath=\"{.spec.selector.version}\"",
+                                    script: "@kubectl get service ${stableService} -n ${namespace} -o jsonpath=\"{.spec.selector.version}\"",
                                     returnStdout: true
                             ).trim()
                         }
@@ -226,15 +230,15 @@ spec:
                             if (isUnix())
                             {
                                 sh """
-                            kubectl patch service ${serviceName}-service -n ${namespace} \
-                                -p '{"spec":{"selector":{"app":"${serviceName}","version":"stable"}}}'
+                            kubectl patch service ${stableService} -n ${namespace} \
+                                -p '{"spec":{"selector":{"app":"${stableDeployment}","version":"stable"}}}'
                         """
                             }
                             else {
                                 bat """
-                                kubectl patch service ${serviceName}-service -n ${namespace} ^
+                                kubectl patch service ${stableService} -n ${namespace} ^
                                   --type=merge ^
-                                  -p "{\\"spec\\":{\\"selector\\":{\\"app\\":\\"${serviceName}\\",\\"version\\":\\"stable\\"}}}"
+                                  -p "{\\"spec\\":{\\"selector\\":{\\"app\\":\\"${stableDeployment}\\",\\"version\\":\\"stable\\"}}}"
                             """
                             }
 
@@ -249,14 +253,14 @@ spec:
                     {
                         sh """
                     kubectl wait --for=condition=available --timeout=300s \
-                        deployment/${serviceName} -n ${namespace} || true
+                        deployment/${stableDeployment} -n ${namespace} || true
                 """
                     }
                     else
                     {
                         bat """
                     kubectl wait --for=condition=available --timeout=300s ^
-                        deployment/${serviceName} -n ${namespace} || exit /b 0
+                        deployment/${stableDeployment} -n ${namespace} || exit /b 0
                 """
                     }
 
@@ -265,18 +269,18 @@ spec:
 
                     if (isUnix())
                     {
-                        sh "kubectl get deployment ${serviceName} -n ${namespace} -o wide"
+                        sh "kubectl get deployment ${stableDeployment} -n ${namespace} -o wide"
                     }
                     else
                     {
-                        bat "kubectl get deployment ${serviceName} -n ${namespace} -o wide"
+                        bat "kubectl get deployment ${stableDeployment} -n ${namespace} -o wide"
                     }
 
                     echo """==========================================
                     STABLE DEPLOYMENT READY
                 ==========================================
-                    Service: ${serviceName}
-                    Deployment: ${serviceName}
+                    Service: ${stableDeployment}
+                    Deployment: ${stableDeployment}
                     Replicas: 2 (stable)
                     Service Selector: stable
                 =========================================="""

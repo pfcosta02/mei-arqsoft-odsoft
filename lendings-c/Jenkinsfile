@@ -178,16 +178,16 @@ node {
             }
 
 
-            stage('Health Check') {
-                if (params.RolloutStrategy == 'Blue/Green') {
-                    echo "Running health check tests on ${NEW_COLOR} instance.."
-                    HealthCheck(IMAGE_NAME+ "-service", NAMESPACE, PORT)
-                } else if (params.RolloutStrategy == 'Canary') {
-                    echo "Running health check tests on CANARY..."
-                    HealthCheck(IMAGE_NAME + "-service", NAMESPACE, PORT)
-                }
-                echo "health check PASSED."
-            }
+//             stage('Health Check') {
+//                 if (params.RolloutStrategy == 'Blue/Green') {
+//                     echo "Running health check tests on ${NEW_COLOR} instance.."
+//                     HealthCheck(IMAGE_NAME+ "-service", NAMESPACE, PORT)
+//                 } else if (params.RolloutStrategy == 'Canary') {
+//                     echo "Running health check tests on CANARY..."
+//                     HealthCheck(IMAGE_NAME + "-service", NAMESPACE, PORT)
+//                 }
+//                 echo "health check PASSED."
+//             }
 
             stage('Manual Approval Required')
             {

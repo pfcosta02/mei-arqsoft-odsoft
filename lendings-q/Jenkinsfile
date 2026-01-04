@@ -157,6 +157,8 @@ node {
                     * - Dados reais para validar performance
                     */
 
+                    EnsureStableDeploymentExists(IMAGE_NAME, DOCKER_IMAGE, NAMESPACE)
+
                     // Cria deployment canary paralelo (isolado)
                     DeployCanaryInstance(IMAGE_NAME, DOCKER_IMAGE, NAMESPACE, CANARY_PERCENTAGE)
                     WaitForDeploymentReady(IMAGE_NAME, 'canary', NAMESPACE)

@@ -14,10 +14,10 @@ O objetivo principal deste design é garantir que o sistema responda rapidamente
 |------------------------|-----------------------------------------------------------------------------------------------------------------------|
 | **Estímulo**           | Utilizador executa operação de consulta (ex: listar readers, pesquisar livros) ou operação de escrita (criar author). |
 | **Fonte do Estímulo**  | Bibliotecário ou utilizador final através da API REST.                                                                |
-| **Ambiente**           | Sistema em produção com carga normal (100-500 req/s) e picos (até 1000 req/s).                                        |
-| **Artefacto**          | Query services (leitura), Command services (escrita), RabbitMQ.                                          |
+| **Ambiente**           | Sistema em produção com carga normal (50-100 req/s) e picos (até 500 req/s).                                          |
+| **Artefacto**          | Query services (leitura), Command services (escrita), RabbitMQ.                                                       |
 | **Resposta**           | Sistema responde com latência baixa e throughput elevado, mesmo durante picos de carga.                               |
-| **Medida da Resposta** | Latência p95 <200ms para queries, <500ms para commands, Throughput ≥500 req/s por serviço query.                      |
+| **Medida da Resposta** | Latência p95 <2000ms, com uma percentagem de falha rate<0.01.                                                         |
 
 ---
 
@@ -67,7 +67,6 @@ Aplicar padrão **CQRS** para otimizar leituras e escritas separadamente, combin
 - Permite otimizações específicas (índices, partitioning)
 
 **6. Connection Pooling**
-- HikariCP configurado com pool size adequado (10-20 conexões por pod)
 - Reduz overhead de criação de conexões
 - Timeout configurations para evitar conexões penduradas
 
@@ -95,34 +94,6 @@ Comunicação assíncrona desacopla performance do utilizador da performance de 
 - **Escolha**: RabbitMQ AMQP
 - **Alternativa**: Kafka (mais throughput), Redis Streams
 - **Razão**: RabbitMQ mais simples, suficiente para volume atual (<10k msg/s)
-
-[//]: # (### Métricas de Performance)
-
-[//]: # ()
-[//]: # (| Operação | Target | Current &#40;Baseline&#41; | Otimização |)
-
-[//]: # (|----------|--------|-------------------|------------|)
-
-[//]: # (| **GET /api/readers** &#40;lista&#41; | <100ms p95 | 250ms | Redis cache → <50ms |)
-
-[//]: # (| **GET /api/readers/{id}** | <50ms p95 | 80ms | Redis cache → <20ms |)
-
-[//]: # (| **POST /api/readers** | <500ms p95 | 800ms | Async + Outbox → <200ms |)
-
-[//]: # (| **Search queries** | <200ms p95 | 400ms | Índices + cache → <100ms |)
-
-[//]: # (### Riscos e Mitigações)
-
-[//]: # ()
-[//]: # (| ID     | Risco | Probabilidade | Impacto | Mitigação |)
-
-[//]: # (|--------|-------|---------------|---------|-----------|)
-
-[//]: # (| **R1** | Lag elevado na sincronização CQRS | Baixa | Médio | Monitorizar latência eventos, alertas se >500ms, scaling RabbitMQ |)
-
-[//]: # (| **R2** | Query model desincronizado | Baixa | Alto | Reconciliation job diário, monitorização de discrepâncias |)
-
-[//]: # (---)
 
 ## Questões Pendentes
 

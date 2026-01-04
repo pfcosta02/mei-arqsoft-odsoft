@@ -14,69 +14,69 @@ properties([
 node {
     def MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     def PROJECT_VERSION = ''
-    def IMAGE_NAME = 'authnusers-q'
+    def IMAGE_NAME = 'bookgenre-q'
     def RESULT_STR = ''
     def CURRENT_COLOR // Cor atual do deployment (blue, green ou none)
     def NEW_COLOR // Nova cor para o deployment
     def NAMESPACE = 'dev' // Kubernetes namespace
     def DOCKER_IMAGE = ''
-    
-    try 
+
+    try
     {
-        stage('Checkout') 
+        stage('Checkout')
         {
             echo 'Checking out source code...'
             checkout scm
-            
+
             // Clean untracked files and directories from Git workspace
             echo 'Cleaning untracked files from Git...'
-            if (isUnix()) 
+            if (isUnix())
             {
                 sh 'git clean -fdx'
-            } 
-            else 
+            }
+            else
             {
                 bat 'git clean -fdx'
             }
         }
-        
-        stage('Set Maven Path') 
+
+        stage('Set Maven Path')
         {
-            if (isUnix()) 
+            if (isUnix())
             {
                 env.PATH = "${MAVEN_DIR}/bin:${env.PATH}"
-            } 
-            else 
+            }
+            else
             {
                 env.PATH = "${MAVEN_DIR}\\bin;${env.PATH}"
             }
             echo "Maven added to PATH: ${env.PATH}"
         }
-        
-        dir(IMAGE_NAME) 
-        {   
-            stage('Clean + Build') 
+
+        dir(IMAGE_NAME)
+        {
+            stage('Clean + Build')
             {
                 CleanAndBuild();
             }
 
-            stage('Unit Tests') 
+            stage('Unit Tests')
             {
                 UnitTests();
             }
 
-            stage('Integration Tests') 
+            stage('Integration Tests')
             {
                 IntegrationTests();
             }
 
-            stage('Consumer Contract Tests (Pact)') 
+            stage('Consumer Contract Tests (Pact)')
             {
                 // false significa que é um producer
                 ConsumerContractTests(true);
             }
-            
-            stage('SonarQube Static Code Analysis') 
+
+            stage('SonarQube Static Code Analysis')
             {
 
                 def sonarServer = Constants.ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
@@ -91,31 +91,12 @@ node {
                 // }
             }
 
-            stage('SonarQube Quality Gate') 
-            {
-                // timeout(time: 5, unit: 'MINUTES') {
-                //     def qualityGateResult = waitForQualityGate(abortPipeline: true)
-                //     if (qualityGateResult.status == 'OK') {
-                //         echo 'Quality gate passed. Proceeding with the pipeline.'
-                //     } else {
-                //         error "Quality gate failed: ${qualityGateResult.status}"
-                //     }
-                // }
-            }
-            
-            // stage('JaCoCo') {
-            //     jacoco execPattern: '**/target/jacoco.exec',
-            //            classPattern: '**/target/classes',
-            //            sourcePattern: '**/src/main/java',
-            //            inclusionPattern: '**/*.class'
-            // }
-
-            stage('Package') 
+            stage('Package')
             {
                 PROJECT_VERSION = Package();
             }
 
-            stage('Build Docker Image') 
+            stage('Build Docker Image')
             {
                 // Resultado deve ser algo como 'forjemzer/lms-authnusers-command:1.0'
                 RESULT_STR = "${IMAGE_NAME}:${PROJECT_VERSION}"
@@ -123,7 +104,7 @@ node {
                 BuildDockerImage(RESULT_STR);
             }
 
-            stage('Push Docker Image') 
+            stage('Push Docker Image')
             {
                 PushDockerImage(RESULT_STR);
             }
@@ -295,7 +276,7 @@ node {
             archiveArtifacts artifacts: "**\\target\\pit-reports\\index.html,**\\target\\pacts\\*.json", allowEmptyArchive: true
             junit skipPublishingChecks: true, testResults: '**\\target\\surefire-reports\\*.xml'
         }
-        
+
     } catch (Exception e) {
         echo "ERROR FOUND! ${e.getMessage()}"
         currentBuild.result = 'FAILURE'

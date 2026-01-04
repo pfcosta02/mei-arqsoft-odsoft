@@ -122,7 +122,7 @@ def call(String serviceName, String namespace)
                     {
                         stableReplicas = sh(
                                 script: """
-                        kubectl get deployment ${serviceName} -n ${namespace} \
+                        kubectl get deployment ${stableDeployment} -n ${namespace} \
                             -o jsonpath='{.status.readyReplicas}'
                     """,
                                 returnStdout: true
@@ -133,7 +133,7 @@ def call(String serviceName, String namespace)
                         // WINDOWS: Sem for loop, usar jsonpath direto
                         stableReplicas = bat(
                                 script: """
-                        @kubectl get deployment ${serviceName} -n ${namespace} ^
+                        @kubectl get deployment ${stableDeployment} -n ${namespace} ^
                             -o jsonpath="{.status.readyReplicas}"
                     """,
                                 returnStdout: true

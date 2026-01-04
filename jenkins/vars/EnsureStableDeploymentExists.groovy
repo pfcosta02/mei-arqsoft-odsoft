@@ -34,46 +34,29 @@ def call(String serviceName, String dockerImage, String namespace)
                     // STEP 1: Check if stable deployment already exists
                     echo "STEP 1: Checking if stable deployment exists..."
 
-                    def deploymentExists = false
-                    try
-                    {
-                        if (isUnix())
-                        {
-                            sh(
-                                    script: "kubectl get deployment ${serviceName} -n ${namespace} 2>/dev/null",
-                                    returnStatus: true
-                            )
-                            deploymentExists = true
-                        }
-                        else
-                        {
-                            bat(
-                                    script: "@kubectl get deployment ${serviceName} -n ${namespace} >nul 2>&1",
-                                    returnStatus: true
-                            )
-                            deploymentExists = true
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        deploymentExists = false
+                    def deploymentExists
+                    if (isUnix()) {
+                        def status = sh(
+                                script: "kubectl get deployment ${serviceName} -n ${namespace} >/dev/null 2>&1",
+                                returnStatus: true
+                        )
+                        deploymentExists = (status == 0)
+                    } else {
+                        def status = bat(
+                                script: "@kubectl get deployment ${serviceName} -n ${namespace} >nul 2>&1",
+                                returnStatus: true
+                        )
+                        deploymentExists = (status == 0)
                     }
 
-                    if (deploymentExists)
-                    {
+                    if (deploymentExists) {
                         echo "✅ Stable deployment ${serviceName} already exists"
-
-                        if (isUnix())
-                        {
+                        if (isUnix()) {
                             sh "kubectl get deployment ${serviceName} -n ${namespace} -o wide"
-                        }
-                        else
-                        {
+                        } else {
                             bat "kubectl get deployment ${serviceName} -n ${namespace} -o wide"
                         }
-                    }
-                    else
-                    {
+                    } else {
                         // STEP 2: Create stable deployment
                         echo "STEP 2: Creating stable deployment ${serviceName}..."
 

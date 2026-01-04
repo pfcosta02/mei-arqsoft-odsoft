@@ -167,7 +167,7 @@ node {
 
             stage('Manual Approval Required')
             {
-                def approverEmail = '1221137@isep.ipp.pt'
+                def approverEmail = 'diogomanuelop@gmail.com'
 
 
                 if (params.RolloutStrategy == 'Blue/Green')

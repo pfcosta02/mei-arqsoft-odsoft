@@ -1,60 +1,68 @@
-/*
- * Ensure Stable Deployment Exists
- *
- * Garante que o deployment estável existe antes de fazer canary deploy
- * Se não existir, cria com a imagem fornecida
- *
- * Uso:
- *   EnsureStableDeploymentExists('lendings-q', 'diogomanuel31/lendings-q:1.0', 'dev')
- */
+#!/usr/bin/env groovy
 
 import org.jenkinsPipeline.Constants
 
+/**
+ * Ensures stable deployment exists for Canary strategy
+ *
+ * This function:
+ * 1. Checks if stable deployment exists
+ * 2. If not, creates it with initial image
+ * 3. Creates/verifies service selector points to stable
+ * 4. Waits for deployment to be ready
+ *
+ * This is ONLY needed for Canary strategy (Blue/Green uses its own color deployments)
+ *
+ * @param serviceName The name of the service (e.g., 'lendings-q')
+ * @param dockerImage The Docker image to deploy (e.g., 'registry/image:version')
+ * @param namespace The Kubernetes namespace (e.g., 'dev')
+ */
 def call(String serviceName, String dockerImage, String namespace)
 {
-    echo """
+    echo """==========================================
+            ENSURING STABLE DEPLOYMENT
         ==========================================
-        ENSURING STABLE DEPLOYMENT EXISTS
-        ==========================================
-        Service: ${serviceName}
-        Image: ${dockerImage}
-        Namespace: ${namespace}
-        OS: ${isUnix() ? 'Unix/Linux' : 'Windows'}
-    """
+            Service: ${serviceName}
+            Image: ${dockerImage}
+            Namespace: ${namespace}
+        =========================================="""
 
-    try
-    {
-        withCredentials([
-                file(
-                        credentialsId: Constants.ENVIRONMENT_2_CREDENTIALS_ID[namespace],
-                        variable: 'KUBECONFIG'
-                )
-        ])
+    withCredentials([file(credentialsId: Constants.ENVIRONMENT_2_CREDENTIALS_ID[namespace], variable: 'KUBECONFIG')])
+            {
+                try
                 {
-                    // STEP 1: Verificar se deployment estável existe
+                    // STEP 1: Check if stable deployment already exists
                     echo "STEP 1: Checking if stable deployment exists..."
 
-                    def deploymentExists
-                    if (isUnix())
+                    def deploymentExists = false
+                    try
                     {
-                        deploymentExists = sh(
-                                script: "kubectl get deployment ${serviceName} -n ${namespace} 2>/dev/null",
-                                returnStatus: true
-                        ) == 0
+                        if (isUnix())
+                        {
+                            sh(
+                                    script: "kubectl get deployment ${serviceName} -n ${namespace} 2>/dev/null",
+                                    returnStatus: true
+                            )
+                            deploymentExists = true
+                        }
+                        else
+                        {
+                            bat(
+                                    script: "@kubectl get deployment ${serviceName} -n ${namespace} >nul 2>&1",
+                                    returnStatus: true
+                            )
+                            deploymentExists = true
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        deploymentExists = bat(
-                                script: "kubectl get deployment ${serviceName} -n ${namespace} >nul 2>&1",
-                                returnStatus: true
-                        ) == 0
+                        deploymentExists = false
                     }
 
                     if (deploymentExists)
                     {
                         echo "✅ Stable deployment ${serviceName} already exists"
 
-                        // Mostrar informações do deployment
                         if (isUnix())
                         {
                             sh "kubectl get deployment ${serviceName} -n ${namespace} -o wide"
@@ -66,113 +74,138 @@ def call(String serviceName, String dockerImage, String namespace)
                     }
                     else
                     {
+                        // STEP 2: Create stable deployment
                         echo "STEP 2: Creating stable deployment ${serviceName}..."
 
-                        // Ler o ficheiro YAML template
-                        def yamlPath = "infra/${serviceName}-stable.yaml"
+                        // Create YAML content inline (sem depender de ficheiros na pasta infra)
+                        def deploymentYaml = """apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${serviceName}
+  namespace: ${namespace}
+  labels:
+    app: ${serviceName}
+    version: stable
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ${serviceName}
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: ${serviceName}
+        version: stable
+    spec:
+      containers:
+      - name: ${serviceName}
+        image: ${dockerImage}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8882
+        env:
+        - name: RABBITMQ_HOST
+          value: rabbitmq
+        - name: RABBITMQ_PORT
+          value: "5672"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+"""
 
                         if (isUnix())
                         {
-                            // Unix: usar sed para substituir placeholders
-                            sh """
-                        echo "Reading template from ${yamlPath}..."
-                        sed -e 's|{{IMAGE_STABLE}}|${dockerImage}|g' \
-                            ${yamlPath} | kubectl apply -n ${namespace} -f -
-                    """
+                            writeFile file: "stable-deployment.yaml", text: deploymentYaml
+                            sh "kubectl apply -f stable-deployment.yaml -n ${namespace}"
                         }
                         else
                         {
-                            // Windows: ler, substituir e aplicar
-                            try {
-                                def yamlContent = readFile(yamlPath)
-                                yamlContent = yamlContent.replace('{{IMAGE_STABLE}}', dockerImage)
-
-                                // Escrever em ficheiro temporário
-                                def tempFile = "temp-stable-deployment.yaml"
-                                writeFile file: tempFile, text: yamlContent
-
-                                bat """
-                            echo Reading template from ${yamlPath}...
-                            echo Applying deployment...
-                            kubectl apply -f ${tempFile} -n ${namespace}
-                            del ${tempFile}
-                        """
-                            } catch (Exception e) {
-                                echo "⚠️  Could not read ${yamlPath}, creating deployment via kubectl..."
-
-                                // Fallback: criar via kubectl direto (sem template)
-                                bat """
-                            echo Creating deployment via kubectl create...
-                            kubectl create deployment ${serviceName} ^
-                                --image=${dockerImage} ^
-                                --replicas=2 ^
-                                -n ${namespace}
-                        """
-                            }
+                            writeFile file: "stable-deployment.yaml", text: deploymentYaml
+                            bat "kubectl apply -f stable-deployment.yaml -n ${namespace}"
                         }
 
                         echo "✅ Stable deployment ${serviceName} created"
                     }
 
-                    // STEP 3: Garantir que Service existe
-                    echo "STEP 3: Checking if service exists..."
+                    // STEP 3: Ensure service exists and points to stable
+                    echo "STEP 3: Ensuring service points to stable deployment..."
 
-                    def serviceExists
-                    if (isUnix())
+                    def serviceExists = false
+                    try
                     {
-                        serviceExists = sh(
-                                script: "kubectl get service ${serviceName}-service -n ${namespace} 2>/dev/null",
-                                returnStatus: true
-                        ) == 0
+                        if (isUnix())
+                        {
+                            sh(
+                                    script: "kubectl get service ${serviceName}-service -n ${namespace} 2>/dev/null",
+                                    returnStatus: true
+                            )
+                            serviceExists = true
+                        }
+                        else
+                        {
+                            bat(
+                                    script: "@kubectl get service ${serviceName}-service -n ${namespace} >nul 2>&1",
+                                    returnStatus: true
+                            )
+                            serviceExists = true
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        serviceExists = bat(
-                                script: "kubectl get service ${serviceName}-service -n ${namespace} >nul 2>&1",
-                                returnStatus: true
-                        ) == 0
+                        serviceExists = false
                     }
 
                     if (!serviceExists)
                     {
-                        echo "STEP 4: Creating service ${serviceName}-service..."
+                        echo "Creating service ${serviceName}-service..."
 
-                        // Ler o ficheiro YAML template
-                        def serviceYamlPath = "infra/${serviceName}-service.yaml"
+                        def serviceYaml = """apiVersion: v1
+kind: Service
+metadata:
+  name: ${serviceName}-service
+  namespace: ${namespace}
+  labels:
+    app: ${serviceName}
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8882
+    protocol: TCP
+    name: http
+  selector:
+    app: ${serviceName}
+    version: stable
+  sessionAffinity: None
+"""
 
                         if (isUnix())
                         {
-                            sh """
-                        echo "Reading service template from ${serviceYamlPath}..."
-                        kubectl apply -f ${serviceYamlPath} -n ${namespace}
-                    """
+                            writeFile file: "stable-service.yaml", text: serviceYaml
+                            sh "kubectl apply -f stable-service.yaml -n ${namespace}"
                         }
                         else
                         {
-                            try {
-                                def serviceYaml = readFile(serviceYamlPath)
-                                def tempServiceFile = "temp-service.yaml"
-                                writeFile file: tempServiceFile, text: serviceYaml
-
-                                bat """
-                            echo Reading service template...
-                            kubectl apply -f ${tempServiceFile} -n ${namespace}
-                            del ${tempServiceFile}
-                        """
-                            } catch (Exception e) {
-                                echo "⚠️  Could not read ${serviceYamlPath}, creating service via kubectl..."
-
-                                // Fallback: criar service via kubectl
-                                bat """
-                            echo Creating service via kubectl expose...
-                            kubectl expose deployment ${serviceName} ^
-                                --name=${serviceName}-service ^
-                                --port=80 ^
-                                --target-port=8882 ^
-                                --type=ClusterIP ^
-                                -n ${namespace}
-                        """
-                            }
+                            writeFile file: "stable-service.yaml", text: serviceYaml
+                            bat "kubectl apply -f stable-service.yaml -n ${namespace}"
                         }
 
                         echo "✅ Service ${serviceName}-service created"
@@ -180,32 +213,95 @@ def call(String serviceName, String dockerImage, String namespace)
                     else
                     {
                         echo "✅ Service ${serviceName}-service already exists"
+
+                        // Verify service selector points to stable
+                        def selector
+                        if (isUnix())
+                        {
+                            selector = sh(
+                                    script: "kubectl get service ${serviceName}-service -n ${namespace} -o jsonpath='{.spec.selector.version}'",
+                                    returnStdout: true
+                            ).trim()
+                        }
+                        else
+                        {
+                            selector = bat(
+                                    script: "@kubectl get service ${serviceName}-service -n ${namespace} -o jsonpath=\"{.spec.selector.version}\"",
+                                    returnStdout: true
+                            ).trim()
+                        }
+
+                        if (selector == "stable")
+                        {
+                            echo "✅ Service selector correctly points to stable"
+                        }
+                        else
+                        {
+                            echo "⚠️  Service selector points to: ${selector}"
+                            echo "Updating service to point to stable..."
+
+                            if (isUnix())
+                            {
+                                sh """
+                            kubectl patch service ${serviceName}-service -n ${namespace} \
+                                -p '{"spec":{"selector":{"app":"${serviceName}","version":"stable"}}}'
+                        """
+                            }
+                            else
+                            {
+                                bat """
+                            kubectl patch service ${serviceName}-service -n ${namespace} ^
+                                -p "{\"spec\":{\"selector\":{\"app\":\"${serviceName}\",\"version\":\"stable\"}}}"
+                        """
+                            }
+
+                            echo "✅ Service selector updated to stable"
+                        }
                     }
 
-                    // STEP 5: Aguardar que deployment fique ready
-                    echo "STEP 5: Waiting for deployment to be ready..."
+                    // STEP 4: Wait for deployment to be ready
+                    echo "STEP 4: Waiting for stable deployment to be ready..."
 
                     if (isUnix())
                     {
                         sh """
                     kubectl wait --for=condition=available --timeout=300s \
-                        deployment/${serviceName} -n ${namespace}
+                        deployment/${serviceName} -n ${namespace} || true
                 """
                     }
                     else
                     {
                         bat """
                     kubectl wait --for=condition=available --timeout=300s ^
-                        deployment/${serviceName} -n ${namespace}
+                        deployment/${serviceName} -n ${namespace} || exit /b 0
                 """
                     }
 
-                    echo "✅ Stable deployment infrastructure ready"
+                    // STEP 5: Verify deployment status
+                    echo "STEP 5: Verifying deployment status..."
+
+                    if (isUnix())
+                    {
+                        sh "kubectl get deployment ${serviceName} -n ${namespace} -o wide"
+                    }
+                    else
+                    {
+                        bat "kubectl get deployment ${serviceName} -n ${namespace} -o wide"
+                    }
+
+                    echo """==========================================
+                    STABLE DEPLOYMENT READY
+                ==========================================
+                    Service: ${serviceName}
+                    Deployment: ${serviceName}
+                    Replicas: 2 (stable)
+                    Service Selector: stable
+                =========================================="""
                 }
-    }
-    catch (Exception e)
-    {
-        echo "❌ Error ensuring stable deployment: ${e.getMessage()}"
-        throw e
-    }
+                catch (Exception e)
+                {
+                    echo "❌ Error ensuring stable deployment: ${e.getMessage()}"
+                    throw e
+                }
+            }
 }

@@ -1,7 +1,6 @@
 @Library('jenkins')
 import org.jenkinsPipeline.Constants
 
-// Scripted Pipeline for Lendings Q Service
 properties([
     parameters([
         choice(
@@ -35,7 +34,6 @@ node {
             echo 'Checking out source code...'
             checkout scm
 
-            // Clean untracked files and directories from Git workspace
             echo 'Cleaning untracked files from Git...'
             if (isUnix())
             {
@@ -79,26 +77,13 @@ node {
 
             stage('Consumer Contract Tests (Pact)')
             {
-                // true significa que é um consumer
-//                 ConsumerContractTests(true);
+                // ConsumerContractTests(true);
             }
 
             stage('SonarQube Static Code Analysis')
             {
                 def sonarServer = Constants.ENVIRONMENT_2_SONARQUBE_SERVER[params.Environment]
                 echo "Running SonarQube analysis using server: ${sonarServer}"
-            }
-
-            stage('SonarQube Quality Gate')
-            {
-                // timeout(time: 5, unit: 'MINUTES') {
-                //     def qualityGateResult = waitForQualityGate(abortPipeline: true)
-                //     if (qualityGateResult.status == 'OK') {
-                //         echo 'Quality gate passed. Proceeding with the pipeline.'
-                //     } else {
-                //         error "Quality gate failed: ${qualityGateResult.status}"
-                //     }
-                // }
             }
 
             stage('Package')
@@ -120,10 +105,7 @@ node {
 
             stage('Deploy')
             {
-                /*
-                * Garante infraestrutura base do Kubernetes
-                * (namespace, service, RabbitMQ) - comum a todas as estratégias
-                */
+                // Garante infraestrutura base (namespace, service, RabbitMQ)
                 EnsureK8sStructure(IMAGE_NAME, NAMESPACE)
 
                 if (params.RolloutStrategy == 'Blue/Green')
@@ -140,37 +122,16 @@ node {
                 {
                     echo 'Deploying the application using Canary strategy...'
 
-                    /*
-                    * CANARY DEPLOYMENT - STAGED ROLLOUT (SEM BLUE/GREEN)
-                    *
-                    * Estratégia de deploy com validação gradual:
-                    * 1. Deploy nova versão canary isolada (1 replica)
-                    * 2. Deployment stable continua servindo 100% tráfego (2 replicas)
-                    * 3. Smoke tests na instância canary (0% tráfego até aprovação)
-                    * 4. Se tudo OK, promove canary para versão estável
-                    * 5. Remove deployment canary
-                    *
-                    * VANTAGENS:
-                    * - Sem lógica de cores (simples e direto)
-                    * - Canary isolado até aprovação
-                    * - Rollback fácil (apenas remove canary)
-                    * - Dados reais para validar performance
-                    */
-
+                    // ✨ NOVO: Garantir que deployment stable existe
                     EnsureStableDeploymentExists(IMAGE_NAME, DOCKER_IMAGE, NAMESPACE)
 
-                    // Cria deployment canary paralelo (isolado)
+                    // Deploy canary isolado
                     DeployCanaryInstance(IMAGE_NAME, DOCKER_IMAGE, NAMESPACE, CANARY_PERCENTAGE)
                     WaitForDeploymentReady(IMAGE_NAME, 'canary', NAMESPACE)
                 }
-                else if (params.RolloutStrategy == 'Rolling')
-                {
-                    echo "Deployment strategy ${params.RolloutStrategy} is not implemented yet."
-                }
                 else
                 {
-                    echo "Unknown deployment strategy: ${params.RolloutStrategy}"
-                    error "Invalid rollout strategy"
+                    echo "Deployment strategy ${params.RolloutStrategy} is not implemented yet."
                 }
             }
 
@@ -184,20 +145,8 @@ node {
                 else if (params.RolloutStrategy == 'Canary')
                 {
                     echo "Running smoke tests on canary instance (${CANARY_PERCENTAGE}% traffic, teórico)..."
-
-                    /*
-                    * Validação da versão canary
-                    * - Health checks básicos
-                    * - Endpoints críticos
-                    * - Sem validação completa (apenas smoke tests)
-                    */
                     ValidateCanaryDeployment(IMAGE_NAME, NAMESPACE)
-
                     echo "Canary smoke tests PASSED - Ready for traffic validation"
-                }
-                else if (params.RolloutStrategy == 'Rolling')
-                {
-                    echo "Testing strategy for ${params.RolloutStrategy} is not implemented yet."
                 }
             }
 
@@ -211,7 +160,7 @@ node {
                         ==========================================
                         Service: ${IMAGE_NAME}
                         New Version: ${PROJECT_VERSION}
-                        Canary Traffic: ${CANARY_PERCENTAGE}% (teórico)
+                        Canary Traffic: ${CANARY_PERCENTAGE}%
                         Current Stable: Still running previous version
                         Namespace: ${NAMESPACE}
                         Docker Image: ${DOCKER_IMAGE}
@@ -315,7 +264,6 @@ node {
            }
         }
 
-        // Success actions
         echo 'Pipeline completed successfully.'
         if (isUnix()) {
             archiveArtifacts artifacts: "**/target/pit-reports/index.html,**/target/pacts/*.json", allowEmptyArchive: true

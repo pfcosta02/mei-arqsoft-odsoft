@@ -4,7 +4,7 @@
  * Cria um deployment canary isolado com a nova imagem
  * Aguarda que fique ready
  *
- * CORRIGIDO: Suporta Windows E Unix
+ * CORRIGIDO: Suporta Windows E Unix (patch JSON corrigido)
  *
  * Uso:
  *   DeployCanaryInstance('lendings-q', 'diogomanuel31/lendings-q:0.0.1', 'dev', 10)
@@ -106,10 +106,6 @@ def call(String serviceName, String dockerImage, String namespace, Integer canar
                             --image=${dockerImage} \
                             --replicas=1 \
                             -n ${namespace}
-                        
-                        # Adicionar labels para identificação
-                        kubectl patch deployment ${serviceName}-canary -n ${namespace} \
-                            -p '{"spec":{"template":{"metadata":{"labels":{"version":"canary"}}}}}'
                     """
                         }
                         else
@@ -119,18 +115,37 @@ def call(String serviceName, String dockerImage, String namespace, Integer canar
                             --image=${dockerImage} ^
                             --replicas=1 ^
                             -n ${namespace}
-                        
-                        REM Adicionar labels para identificação
-                        kubectl patch deployment ${serviceName}-canary -n ${namespace} ^
-                            -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"version\":\"canary\"}}}}}"
                     """
                         }
                     }
 
                     echo "Canary deployment created/updated successfully"
 
-                    // STEP 3: Aguardar que o canary fique ready
-                    echo "STEP 3: Waiting for canary deployment to be ready (max 5 minutes)..."
+                    // STEP 3: Adicionar labels via patch (CORRIGIDO PARA WINDOWS)
+                    echo "STEP 3: Adding canary labels..."
+
+                    if (isUnix())
+                    {
+                        sh """
+                    kubectl patch deployment ${serviceName}-canary -n ${namespace} \
+                        -p '{"spec":{"template":{"metadata":{"labels":{"version":"canary"}}}}}'
+                """
+                    }
+                    else
+                    {
+                        // WINDOWS: Usar arquivo temporário em vez de passar JSON na linha de comando
+                        def patchJson = '''{"spec":{"template":{"metadata":{"labels":{"version":"canary"}}}}}'''
+                        writeFile file: "patch-canary.json", text: patchJson
+
+                        bat """
+                    kubectl patch deployment ${serviceName}-canary -n ${namespace} --patch-file patch-canary.json
+                """
+                    }
+
+                    echo "Labels added successfully"
+
+                    // STEP 4: Aguardar que o canary fique ready
+                    echo "STEP 4: Waiting for canary deployment to be ready (max 5 minutes)..."
 
                     if (isUnix())
                     {
@@ -149,8 +164,8 @@ def call(String serviceName, String dockerImage, String namespace, Integer canar
                 """
                     }
 
-                    // STEP 4: Verificar replicas
-                    echo "STEP 4: Verifying canary replica status..."
+                    // STEP 5: Verificar replicas
+                    echo "STEP 5: Verifying canary replica status..."
 
                     def readyReplicas
                     if (isUnix())
@@ -175,8 +190,8 @@ def call(String serviceName, String dockerImage, String namespace, Integer canar
 
                     echo "Canary deployment ready. Ready replicas: ${readyReplicas}"
 
-                    // STEP 5: Listar pods canary
-                    echo "STEP 5: Canary pods:"
+                    // STEP 6: Listar pods canary
+                    echo "STEP 6: Canary pods:"
 
                     if (isUnix())
                     {

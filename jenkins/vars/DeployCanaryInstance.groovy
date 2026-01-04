@@ -1,5 +1,5 @@
 import org.jenkinsPipeline.Constants
-import org.jenkinsPipeline.KubernetesHelper
+//import org.jenkinsPipeline.KubernetesHelper
 
 def call(String serviceName, String dockerImage, String namespace, Integer canaryPercentage)
 {

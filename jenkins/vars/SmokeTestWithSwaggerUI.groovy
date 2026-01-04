@@ -28,7 +28,7 @@ def call(String serviceName, String namespace, int port) {
                     
                 )
 
-                curl -f -s -o NUL "http://${serviceName}-service-stable.${namespace}.svc.cluster.local:${port}/swagger-ui/index.html"
+                curl -f -s -o NUL "http://localhost:${port}/swagger-ui/index.html"
 
                 if %ERRORLEVEL% NEQ 0 (
                     echo Smoke test FAILED for service-stable

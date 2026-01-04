@@ -109,11 +109,11 @@ def call(String serviceName, String namespace)
                         if (isUnix())
                         {
                             sh """
-                        timeout 30 kubectl port-forward pods/${canaryPod} 8080:8080 -n ${namespace} &
+                        timeout 30 kubectl port-forward pods/${canaryPod} 8882:8882 -n ${namespace} &
                         PF_PID=\$!
                         sleep 3
                         
-                        curl -f http://localhost:8080/actuator/health || echo "Health endpoint not available"
+                        curl -f http://localhost:8882/actuator/health || echo "Health endpoint not available"
                         
                         kill \$PF_PID 2>/dev/null || true
                         wait \$PF_PID 2>/dev/null || true

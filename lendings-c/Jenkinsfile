@@ -167,14 +167,17 @@ node {
             }
 
             stage('Test Instance') {
-                    if (params.RolloutStrategy == 'Blue/Green') {
-                        echo "Running smoke tests on ${NEW_COLOR} instance.."
-                        SmokeTestWithSwaggerUI(IMAGE_NAME, NAMESPACE, PORT)
-                    } else if (params.RolloutStrategy == 'Canary') {
-                        echo "Running smoke tests on CANARY..."
-                        SmokeTestWithSwaggerUI(IMAGE_NAME + "-canary", NAMESPACE, PORT)
-                    }
-                    echo "Smoke tests PASSED."
+//                     if (params.RolloutStrategy == 'Blue/Green') {
+//                         echo "Running smoke tests on ${NEW_COLOR} instance.."
+//                         SmokeTestWithSwaggerUI(IMAGE_NAME, NAMESPACE, PORT)
+//                     } else if (params.RolloutStrategy == 'Canary') {
+//                         echo "Running smoke tests on CANARY..."
+//                         SmokeTestWithSwaggerUI(IMAGE_NAME, NAMESPACE, PORT)
+//                     }
+//                     echo "Smoke tests PASSED."
+
+                    RunHealthChecks(IMAGE_NAME, NEW_COLOR, NAMESPACE)
+
             }
 
             stage('Manual Approval Required')

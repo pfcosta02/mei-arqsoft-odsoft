@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authors-q-{{COLOR}}
+  namespace: dev
+  labels:
+    app: authors-q
+    color: {{COLOR}}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: authors-q
+      color: {{COLOR}}
+  template:
+    metadata:
+      labels:
+        app: authors-q
+        color: {{COLOR}}
+        version: {{COLOR}}
+    spec:
+      containers:
+      - name: authors-q
+        image: {{IMAGE}}
+        ports:
+        - containerPort: 8086
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi

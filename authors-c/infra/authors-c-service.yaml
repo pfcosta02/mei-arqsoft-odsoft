@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: authors-c-service
+  namespace: dev
+  labels:
+    app: authors-c
+spec:
+  type: LoadBalancer
+  selector:
+    app: authors-c
+    color: blue  # Inicialmente aponta para blue. Será alterado via kubectl patch durante o deployment
+  ports:
+    - protocol: TCP
+      port: 8085
+      targetPort: 8085
+  sessionAffinity: ClientIP  # Mantém sessões durante o switch
+

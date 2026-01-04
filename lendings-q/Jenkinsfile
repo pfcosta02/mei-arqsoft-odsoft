@@ -150,80 +150,28 @@ node {
                 }
             }
 
-//             stage('Manual Approval')
-//             {
-//                 if (params.RolloutStrategy == 'Canary')
-//                 {
-//                     echo """
-//                         ==========================================
-//                         CANARY VALIDATION APPROVAL REQUIRED
-//                         ==========================================
-//                         Service: ${IMAGE_NAME}
-//                         New Version: ${PROJECT_VERSION}
-//                         Canary Traffic: ${CANARY_PERCENTAGE}%
-//                         Current Stable: Still running previous version
-//                         Namespace: ${NAMESPACE}
-//                         Docker Image: ${DOCKER_IMAGE}
-//                         ==========================================
-//                         Canary smoke tests have PASSED.
-//                         Ready to promote canary to 100% production traffic?
-//                         ==========================================
-//                     """
-//
-//                     try
-//                     {
-//                         timeout(time: 30, unit: 'MINUTES')
-//                         {
-//                             input message: "Promote canary version ${PROJECT_VERSION} to 100% production traffic?",
-//                                   ok: 'Promote to Production',
-//                                   submitter: 'admin,authenticated'
-//                         }
-//                         echo "Canary APPROVED by user. Proceeding with promotion..."
-//                     }
-//                     catch (err)
-//                     {
-//                         echo "Canary validation REJECTED or TIMEOUT. Performing rollback..."
-//                         RollbackCanary(IMAGE_NAME, NAMESPACE)
-//                         currentBuild.result = 'ABORTED'
-//                         throw new Exception("Canary promotion rejected or timed out")
-//                     }
-//                 }
-//                 else if (params.RolloutStrategy == 'Blue/Green')
-//                 {
-//                     echo """
-//                         ==========================================
-//                         DEPLOYMENT APPROVAL REQUIRED
-//                         ==========================================
-//                         Service: ${IMAGE_NAME}
-//                         New Version: ${PROJECT_VERSION}
-//                         Target Color: ${NEW_COLOR}
-//                         Current Color: ${CURRENT_COLOR}
-//                         Namespace: ${NAMESPACE}
-//                         Docker Image: ${DOCKER_IMAGE}
-//                         ==========================================
-//                         Tests have PASSED. Waiting for manual approval to switch traffic...
-//                         ==========================================
-//                     """
-//
-//                     try
-//                     {
-//                         timeout(time: 30, unit: 'MINUTES')
-//                         {
-//                             input message: "Deploy ${IMAGE_NAME}:${PROJECT_VERSION} to production?",
-//                                   ok: 'Deploy',
-//                                   submitter: 'admin,authenticated'
-//                         }
-//                         echo "Deployment APPROVED by user. Proceeding with traffic switch..."
-//                     }
-//                     catch (err)
-//                     {
-//                         echo "Deployment REJECTED or TIMEOUT. Aborting deployment..."
-//                         RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
-//                         currentBuild.result = 'ABORTED'
-//                         throw new Exception("Manual approval denied or timed out")
-//                     }
-//                 }
-//             }
+            stage('Smoke Tests') {
+                    if (params.RolloutStrategy == 'Blue/Green') {
+                        echo "Running smoke tests on ${NEW_COLOR} instance.."
+                        SmokeTestWithSwaggerUI(IMAGE_NAME+ "-service", NAMESPACE, PORT)
+                    } else if (params.RolloutStrategy == 'Canary') {
+                        echo "Running smoke tests on CANARY..."
+                        SmokeTestWithSwaggerUI(IMAGE_NAME + "-service", NAMESPACE, PORT)
+                    }
+                    echo "Smoke tests PASSED."
+            }
+
+
+            stage('Health Check') {
+                if (params.RolloutStrategy == 'Blue/Green') {
+                    echo "Running health check tests on ${NEW_COLOR} instance.."
+                    HealthCheck(IMAGE_NAME+ "-service", NAMESPACE, PORT)
+                } else if (params.RolloutStrategy == 'Canary') {
+                    echo "Running health check tests on CANARY..."
+                    HealthCheck(IMAGE_NAME + "-service", NAMESPACE, PORT)
+                }
+                echo "health check PASSED."
+            }
 
             stage('Switch Traffic to New Instance')
             {

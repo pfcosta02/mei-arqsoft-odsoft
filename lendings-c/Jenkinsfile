@@ -166,7 +166,7 @@ node {
                 }
             }
 
-            stage('Test Instance') {
+            stage('Smoke Tests') {
                     if (params.RolloutStrategy == 'Blue/Green') {
                         echo "Running smoke tests on ${NEW_COLOR} instance.."
                         SmokeTestWithSwaggerUI(IMAGE_NAME+ "-service", NAMESPACE, PORT)
@@ -175,6 +175,18 @@ node {
                         SmokeTestWithSwaggerUI(IMAGE_NAME + "-service", NAMESPACE, PORT)
                     }
                     echo "Smoke tests PASSED."
+            }
+
+
+            stage('Health Check') {
+                if (params.RolloutStrategy == 'Blue/Green') {
+                    echo "Running health check tests on ${NEW_COLOR} instance.."
+                    HealthCheck(IMAGE_NAME+ "-service", NAMESPACE, PORT)
+                } else if (params.RolloutStrategy == 'Canary') {
+                    echo "Running health check tests on CANARY..."
+                    HealthCheck(IMAGE_NAME + "-service", NAMESPACE, PORT)
+                }
+                echo "health check PASSED."
             }
 
             stage('Manual Approval Required')

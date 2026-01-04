@@ -68,29 +68,29 @@ services:
 
   # -------- lendings_c --------
   lendings_c:
-    image: lendings_c:latest
+    image: lendings-c:latest
     build:
-      context: ./lendings_c
+      context: ./lendings-c
     deploy:
       replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8881:8080"
+      - "8881:8881"
     networks:
       - lms_network
 
   # -------- lendings_q --------
   lendings_q:
-    image: lendings_q:latest
+    image: lendings-q:latest
     build:
-      context: ./lendings_q
+      context: ./lendings-q
     deploy:
       replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8882:8080"
+      - "8882:8882"
     networks:
       - lms_network
 

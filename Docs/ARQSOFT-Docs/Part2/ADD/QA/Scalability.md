@@ -149,6 +149,6 @@ Database per Service é crítico: em arquiteturas partilhadas, BD torna-se bottl
 
 Este Quality Attribute é implementado nos seguintes Use Cases:
 - [US1 - Criar Book + Author + Genre](../US1.md): CQRS permite escala assimétrica, messaging absorve picos
-- [US2 - Criar Reader + User](../UC/US2.md): CQRS permite escala assimétrica, messaging absorve picos
+- [US2 - Criar Reader + User](../US2.md): CQRS permite escala assimétrica, messaging absorve picos
 - [US3 - Deixar comentário e avaliação ao retornar um Book ](../US3.md): CQRS permite escala assimétrica, messaging absorve picos
 - Todos os microserviços são stateless e suportam HPA

@@ -47,21 +47,21 @@ Comunicação entre serviços predominantemente **assíncrona via eventos** (Rab
 
 **1. Bounded Contexts como System APIs**
 Cada bounded context expõe API REST bem definida:
-- **Identity System API**: `/api/users` (lms-authnusers-command/query)
-- **Readers System API**: `/api/readers` (lms-readers-command/query)
-- **Catalog System API** (futuro): `/api/books`, `/api/authors`, `/api/genres`
-- **Lendings System API** (futuro): `/api/lendings`
+- **Identity System API**: `/api/users` (authnusers-c/q)
+- **Readers System API**: `/api/readers` (readers-c/q)
+- **Catalog System API**: `/api/books`, `/api/authors`, `/api/genres` (BookGenre_C/Q, Authors_C/Q)
+- **Lendings System API**: `/api/lendings` (lendings-c/q)
 
 **2. CQRS - Separação Command/Query**
 - **Command APIs**: POST, PUT, DELETE (operações de escrita)
   - Retornam `202 Accepted` para processamento assíncrono
   - Publicam eventos via RabbitMQ
 - **Query APIs**: GET (operações de leitura)
-  - Otimizadas com cache Redis
-  - Maior número de réplicas (5 vs 3)
+  - Maior número de réplicas (2-3 vs 1-2)
 
 **3. Event-Driven Integration (Process API implícito)**
 Em vez de Process API centralizado, **coreografia via eventos**:
+- US1: BookGenre Command → `BookTempCreatedEvent` → Authors Command → `AuthorTempCreatedEvent` → BookGenre Command (fromTemptoBook) → `BookFinalizedEvent` → Authors Command (fromTemptoAuthor)
 - US2: Readers Command → `ReaderTempCreatedEvent` → Users Command → `UserTempCreatedEvent` → Readers Command (persistTemporary)
 - Cada serviço orquestra sua parte do fluxo de negócio
 - Desacoplamento temporal entre bounded contexts
@@ -109,7 +109,7 @@ Separação System API (CRUD) vs Process API (workflows) permite que:
 - **Razão**: REST familiar para clientes, eventos desacoplam bounded contexts
 
 **D2. Coreografia de Eventos (sem Process API dedicado)**
-- **Escolha**: US2 usa eventos temporários (ReaderTemp → User → persistTemporary)
+- **Escolha**: Utilização de eventos temporários
 - **Alternativa**: Process API orquestrador centralizado
 - **Razão**: Simplicidade para workflows de 2-3 passos, evita overhead de serviço adicional
 
@@ -148,6 +148,8 @@ Separação System API (CRUD) vs Process API (workflows) permite que:
 ## Referências
 
 Este Quality Attribute é implementado nos seguintes Use Cases:
-- [US2 - Criar Reader + User](../UC/US2.md): Process logic via eventos, System APIs REST
+- [US1 - Criar Book + Author + Genre](../US1.md): Process logic via eventos, System APIs REST
+- [US2 - Criar Reader + User](../US2.md): Process logic via eventos, System APIs REST
+- [US3 - Deixar comentário e avaliação ao retornar um Book ](../US3.md): Process logic via eventos, System APIs REST
 - Todos os microserviços expõem REST APIs seguindo princípios SOA
 - Comunicação assíncrona via eventos implementa Process API de forma distribuída

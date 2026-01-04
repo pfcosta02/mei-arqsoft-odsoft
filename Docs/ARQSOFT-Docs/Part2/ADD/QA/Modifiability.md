@@ -12,12 +12,12 @@ O objetivo principal deste design é garantir que o sistema seja fácil de modif
 
 | **Elemento**          | **Descrição**                                                                                                                         |
 |------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| **Estímulo**           | Necessidade de adicionar nova funcionalidade, alterar regra de negócio ou trocar tecnologia (ex: mudar de PostgreSQL para MongoDB).  |
-| **Fonte do Estímulo**  | Equipa de desenvolvimento, Product Owner, evolução de requisitos de negócio.                                                        |
-| **Ambiente**           | Desenvolvimento e manutenção contínua, múltiplas equipas a trabalhar em paralelo.                                                    |
-| **Artefacto**          | Código fonte, bounded contexts, interfaces entre serviços, configurações.                                                            |
-| **Resposta**           | Alteração implementada sem impactar outros bounded contexts, com testes e deploy independente.                                       |
-| **Medida da Resposta** | <2 dias para adicionar nova entidade, <1 dia para alterar regra de negócio, zero downtime em deploys.                               |
+| **Estímulo**           | Necessidade de adicionar nova funcionalidade, alterar regra de negócio ou trocar tecnologia (ex: mudar de SQL para MongoDB).          |
+| **Fonte do Estímulo**  | Equipa de desenvolvimento, Product Owner, evolução de requisitos de negócio.                                                          |
+| **Ambiente**           | Desenvolvimento e manutenção contínua, múltiplas equipas a trabalhar em paralelo.                                                     |
+| **Artefacto**          | Código fonte, bounded contexts, interfaces entre serviços, configurações.                                                             |
+| **Resposta**           | Alteração implementada sem impactar outros bounded contexts, com testes e deploy independente.                                        |
+| **Medida da Resposta** | <2 dias para adicionar nova entidade, <1 dia para alterar regra de negócio, zero downtime em deploys.                                 |
 
 ---
 
@@ -46,8 +46,8 @@ Aplicar **Domain-Driven Design (DDD)** com **Bounded Contexts** isolados, combin
 **1. Separação de Concerns (Bounded Contexts)**
 - **Identity Context** (lms-authnusers): Gestão de Users, autenticação OAuth2/JWT
 - **Readers Context** (lms-readers): Gestão de Readers (entidade de negócio)
-- **Catalog Context**: Gestão de Books, Authors, Genres (futuro)
-- **Lendings Context**: Gestão de empréstimos (futuro)
+- **Catalog Context** (lms-BookGenre, lms-Authors): Gestão de Books, Authors, Genres
+- **Lendings Context** (lms-Lendings): Gestão de empréstimos
 
 Cada contexto pode evoluir independentemente.
 
@@ -178,5 +178,7 @@ Bounded Contexts isolados permitem que equipas trabalhem em paralelo sem merge c
 ## Referências
 
 Este Quality Attribute é implementado nos seguintes Use Cases:
-- [US2 - Criar Reader + User](../UC/US2.md): Bounded contexts isolados, Onion Architecture
+- [US1 - Criar Book + Author + Genre](../US1.md): Bounded contexts isolados, Onion Architecture
+- [US2 - Criar Reader + User](../US2.md): Bounded contexts isolados, Onion Architecture
+- [US3 - Deixar comentário e avaliação ao retornar um Book ](../US3.md): Bounded contexts isolados, Onion Architecture
 - Todos os microserviços seguem Onion Architecture para facilitar modificações

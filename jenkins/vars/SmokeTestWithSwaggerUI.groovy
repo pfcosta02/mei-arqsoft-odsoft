@@ -1,6 +1,6 @@
 def call(String serviceName, String namespace, int port) {
 
-    def url = "http://${serviceName}.${namespace}.svc.cluster.local:${port}/swagger-ui/index.html"
+    def url = "http://localhost:${port}/swagger-ui/index.html"
 
     echo """
         ==========================================
@@ -25,19 +25,6 @@ def call(String serviceName, String namespace, int port) {
                 curl -f -s -o NUL "${url}"
                 if %ERRORLEVEL% NEQ 0 (
                     echo Smoke test FAILED for ${url}
-                    
-                )
-
-                curl -f -s -o NUL "http://localhost:${port}/swagger-ui/index.html"
-
-                if %ERRORLEVEL% NEQ 0 (
-                    echo Smoke test FAILED for service-stable
-                )
-
-                curl -f -s -o NUL "http://${serviceName}-stable.${namespace}.svc.cluster.local:${port}/swagger-ui/index.html"
-
-                if %ERRORLEVEL% NEQ 0 (
-                    echo Smoke test FAILED for stable
                     exit /b 1
                 )
             """

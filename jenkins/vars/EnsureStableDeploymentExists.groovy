@@ -66,48 +66,23 @@ def call(String serviceName, String dockerImage, String namespace)
 
                         // Create YAML content inline (sem depender de ficheiros na pasta infra)
 
-                        def deploymentTemplatePath = "infra/${stableDeployment}.yaml"
-                        def deploymentRenderedPath = "infra/${stableDeployment}.rendered.yaml"
-
-
-
+                        def deploymentFile = "infra/${stableDeployment}.yaml"
                         def serviceFile    = "infra/${stableService}.yaml"
-                        def serviceFileRender    = "infra/${stableService}.rendered.yaml"
 
 
                         if (isUnix())
                         {
 //                            writeFile file: "stable-deployment.yaml", text: deploymentYaml
-
-                            sh """
-                              export IMAGE_STABLE="${image}"
-                              envsubst < ${deploymentTemplatePath} > ${deploymentRenderedPath}
-                              kubectl apply -f ${deploymentRenderedPath} -n ${namespace}
-                            """
-
-                            sh """
-                              export IMAGE_STABLE="${image}"
-                              envsubst < ${serviceFile} > ${serviceFileRender}
-                              kubectl apply -f ${serviceFileRender} -n ${namespace}
-                            """
+                            sh "kubectl apply -f ${deploymentFile} -n ${namespace}"
+                            sh "kubectl apply -f ${serviceFile}    -n ${namespace}"
 
                         }
                         else
                         {
 //                            writeFile file: "stable-deployment.yaml", text: deploymentYaml
 
-                            def tpl = readFile(file: deploymentTemplatePath)
-                            tpl = tpl.replace("\${IMAGE_STABLE}", dockerImage)
-                            writeFile file: deploymentRenderedPath, text: tpl
-
-                            bat "kubectl apply -f ${deploymentRenderedPath} -n ${namespace}"
-
-                            def tpl2 = readFile(file: serviceFile)
-                            tpl = tpl.replace("\${IMAGE_STABLE}", dockerImage)
-                            writeFile file: serviceFileRender, text: tpl
-
-                            bat "kubectl apply -f ${serviceFileRender} -n ${namespace}"
-
+                            bat "kubectl apply -f ${deploymentFile} -n ${namespace}"
+                            bat "kubectl apply -f ${serviceFile}    -n ${namespace}"
 
                         }
 

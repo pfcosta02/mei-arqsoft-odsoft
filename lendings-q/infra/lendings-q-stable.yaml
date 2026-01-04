@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: lendings-q
-          image: {{IMAGE_STABLE}}
+          image: ${IMAGE_STABLE}
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

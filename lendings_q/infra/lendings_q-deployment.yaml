@@ -1,0 +1,34 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lendings_q-{{COLOR}}
+  namespace: dev
+  labels:
+    app: lendings_q
+    color: {{COLOR}}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lendings_q
+      color: {{COLOR}}
+  template:
+    metadata:
+      labels:
+        app: lendings_q
+        color: {{COLOR}}
+        version: {{COLOR}}
+    spec:
+      containers:
+      - name: lendings_q
+        image: {{IMAGE}}
+        ports:
+        - containerPort: 8088
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lendings_q-service
+  namespace: dev
+  labels:
+    app: lendings_q
+spec:
+  type: LoadBalancer
+  selector:
+    app: lendings_q
+    color: blue  # Inicialmente aponta para blue. Será alterado via kubectl patch durante o deployment
+  ports:
+    - protocol: TCP
+      port: 8088
+      targetPort: 8088
+  sessionAffinity: ClientIP  # Mantém sessões durante o switch

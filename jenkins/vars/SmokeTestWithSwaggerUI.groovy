@@ -1,6 +1,6 @@
 def call(String serviceName, String namespace, int port) {
 
-    def url = "http://${serviceName}-service.${namespace}.svc.cluster.local:${port}/swagger-ui/index.html"
+    def url = "http://${serviceName}.${namespace}.svc.cluster.local:${port}/swagger-ui/index.html"
 
     echo """
         ==========================================

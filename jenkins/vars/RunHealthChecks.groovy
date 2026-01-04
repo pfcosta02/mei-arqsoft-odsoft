@@ -1,3 +1,4 @@
+import org.jenkinsPipeline.Constants
 /**
  * Runs health checks on a specific deployment color
  *

@@ -167,6 +167,7 @@ node {
 
             stage('Manual Approval Required')
             {
+                def approverEmail = '1221137@isep.ipp.pt'
 
 
                 if (params.RolloutStrategy == 'Blue/Green')
@@ -239,7 +240,6 @@ node {
 
                     try
                     {
-                    def approverEmail = getTriggerEmail()
                     echo "Sending email to: ${approverEmail}"
 
                         emailext(

@@ -62,27 +62,40 @@ def call(String serviceName, String dockerImage, String namespace)
                         }
                     } else {
                         // STEP 2: Create stable deployment
+
+
+
+
+
+
+
+
                         echo "STEP 2: Creating stable deployment ${stableDeployment}..."
 
                         // Create YAML content inline (sem depender de ficheiros na pasta infra)
 
                         def deploymentFile = "infra/${stableDeployment}.yaml"
-                        def serviceFile    = "infra/${stableService}.yaml"
+                        def deploymentFileRender = "infra/${stableDeployment}.rendered.yaml"
 
 
                         if (isUnix())
                         {
 //                            writeFile file: "stable-deployment.yaml", text: deploymentYaml
+
+
                             sh "kubectl apply -f ${deploymentFile} -n ${namespace}"
-                            sh "kubectl apply -f ${serviceFile}    -n ${namespace}"
 
                         }
                         else
                         {
 //                            writeFile file: "stable-deployment.yaml", text: deploymentYaml
 
-                            bat "kubectl apply -f ${deploymentFile} -n ${namespace}"
-                            bat "kubectl apply -f ${serviceFile}    -n ${namespace}"
+                            def tpl = readFile(file: deploymentFile)
+                            tpl = tpl.replace("\${IMAGE_STABLE}", dockerImage)
+                            writeFile file: deploymentFileRender, text: tpl
+
+                            bat "kubectl apply -f ${deploymentFileRender} -n ${namespace}"
+
 
                         }
 
@@ -112,35 +125,18 @@ def call(String serviceName, String dockerImage, String namespace)
                     {
                         echo "Creating service ${stableService}..."
 
-                        def serviceYaml = """apiVersion: v1
-kind: Service
-metadata:
-  name: ${stableService}
-  namespace: ${namespace}
-  labels:
-    app: ${serviceName}
-spec:
-  type: ClusterIP
-  ports:
-  - port: 80
-    targetPort: 8882
-    protocol: TCP
-    name: http
-  selector:
-    app: ${serviceName}
-    version: stable
-  sessionAffinity: None
-"""
+                        def serviceYaml    = "infra/${stableService}.yaml"
+
 
                         if (isUnix())
                         {
-                            writeFile file: "stable-service.yaml", text: serviceYaml
-                            sh "kubectl apply -f stable-service.yaml -n ${namespace}"
+//                            writeFile file: "stable-service.yaml", text: serviceYaml
+                            sh "kubectl apply -f ${serviceYaml} -n ${namespace}"
                         }
                         else
                         {
-                            writeFile file: "stable-service.yaml", text: serviceYaml
-                            bat "kubectl apply -f stable-service.yaml -n ${namespace}"
+//                            writeFile file: "stable-service.yaml", text: serviceYaml
+                            bat "kubectl apply -f ${serviceYaml} -n ${namespace}"
                         }
 
                         echo "✅ Service ${stableService} created"

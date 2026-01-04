@@ -3,16 +3,16 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: lendings_q-scaler-blue
+  name: lendings-q-scaler-blue
   namespace: dev
   labels:
-    app: lendings_q
+    app: lendings-q
     color: blue
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: lendings_q-blue
+    name: lendings-q-blue
   minReplicas: 1
   maxReplicas: 5
   metrics:
@@ -27,16 +27,16 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: lendings_q-scaler-green
+  name: lendings-q-scaler-green
   namespace: dev
   labels:
-    app: lendings_q
+    app: lendings-q
     color: green
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: lendings_q-green
+    name: lendings-q-green
   minReplicas: 1
   maxReplicas: 5
   metrics:

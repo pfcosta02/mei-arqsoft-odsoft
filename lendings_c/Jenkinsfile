@@ -1,4 +1,4 @@
-@Library('Constants')
+@Library('jenkins')
 import org.jenkinsPipeline.Constants
 
 // Scripted Pipeline for AuthNUsers Command Service

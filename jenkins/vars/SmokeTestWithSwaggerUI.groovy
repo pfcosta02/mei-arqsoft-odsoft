@@ -1,6 +1,7 @@
 def call(String serviceName, String namespace, int port) {
 
-    def url = "http://localhost:${port}/swagger-ui/index.html"
+    // serviceName aqui deve ser o NOME EXATO do Service, por ex. "lendings-c-service"
+    def url = "http://${serviceName}.${namespace}.svc.cluster.local:${port}/swagger-ui/index.html"
 
     echo """
         ==========================================

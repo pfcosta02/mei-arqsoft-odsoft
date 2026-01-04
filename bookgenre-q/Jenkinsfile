@@ -73,7 +73,7 @@ node {
             stage('Consumer Contract Tests (Pact)')
             {
                 // false significa que é um producer
-                ConsumerContractTests(false);
+                ConsumerContractTests(true);
             }
 
             stage('SonarQube Static Code Analysis')

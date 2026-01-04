@@ -88,13 +88,19 @@ def call(String serviceName, String namespace)
                         """
                     }
 
-                    else
-                    {
+                    else {
                         bat """
-                    echo Checking for error patterns in logs...
-                    kubectl logs pod/${canaryPod} -n ${namespace} 2>nul | findstr /I "error exception fatal" || echo No errors found
-                """
+                            echo Checking for error patterns in logs...
+                            kubectl logs pod/${canaryPod} -n ${namespace} 2>nul | findstr /I "error exception fatal" >nul
+                            if %ERRORLEVEL% EQU 0 (
+                                echo Potential errors found in logs
+                            ) else (
+                                echo No errors found
+                                exit /b 0
+                            )
+                        """
                     }
+
 
                     // STEP 4: Tentar health check
                     echo "STEP 4: Attempting health check on canary pod..."
@@ -103,11 +109,11 @@ def call(String serviceName, String namespace)
                         if (isUnix())
                         {
                             sh """
-                        timeout 30 kubectl port-forward pods/${canaryPod} 8080:8080 -n ${namespace} &
+                        timeout 30 kubectl port-forward pods/${canaryPod} 8882:8882 -n ${namespace} &
                         PF_PID=\$!
                         sleep 3
                         
-                        curl -f http://localhost:8080/actuator/health || echo "Health endpoint not available"
+                        curl -f http://localhost:8882/actuator/health || echo "Health endpoint not available"
                         
                         kill \$PF_PID 2>/dev/null || true
                         wait \$PF_PID 2>/dev/null || true

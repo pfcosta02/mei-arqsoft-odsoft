@@ -1,7 +1,18 @@
 @Library('jenkins')
 import org.jenkinsPipeline.Constants
+import hudson.model.Cause
+import hudson.model.User
 
-// Scripted Pipeline for AuthNUsers Command Service
+def getTriggerEmail() {
+                    def cause = currentBuild.rawBuild.getCauses().find { it instanceof Cause.UserIdCause }
+                    if (!cause) {
+                        return '1221137@isep.ipp.pt'  // se foi trigger por SCM ou outro
+                    }
+                    def user = User.get(cause.userId, false, [:])
+                    def mail = user?.getProperty(hudson.tasks.Mailer.UserProperty)?.getAddress()
+                    return mail ?: '1221137@isep.ipp.pt'
+                }
+
 properties([
     parameters([
         choice(
@@ -18,10 +29,13 @@ properties([
 ])
 
 node {
+
+
     def MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     def PROJECT_VERSION = ''
     def IMAGE_NAME = 'lendings-c'
     def RESULT_STR = ''
+    def PORT = 8881
     def CURRENT_COLOR // Cor atual do deployment (blue, green ou none)
     def NEW_COLOR // Nova cor para o deployment
     def NAMESPACE = 'dev' // Kubernetes namespace
@@ -35,7 +49,6 @@ node {
             echo 'Checking out source code...'
             checkout scm
 
-            // Clean untracked files and directories from Git workspace
             echo 'Cleaning untracked files from Git...'
             if (isUnix())
             {
@@ -89,18 +102,6 @@ node {
                 echo "Running SonarQube analysis using server: ${sonarServer}"
             }
 
-            stage('SonarQube Quality Gate')
-            {
-                // timeout(time: 5, unit: 'MINUTES') {
-                //     def qualityGateResult = waitForQualityGate(abortPipeline: true)
-                //     if (qualityGateResult.status == 'OK') {
-                //         echo 'Quality gate passed. Proceeding with the pipeline.'
-                //     } else {
-                //         error "Quality gate failed: ${qualityGateResult.status}"
-                //     }
-                // }
-            }
-
             stage('Package')
             {
                 PROJECT_VERSION = Package();
@@ -120,10 +121,7 @@ node {
 
             stage('Deploy')
             {
-                /*
-                * Garante infraestrutura base do Kubernetes
-                * (namespace, service, RabbitMQ) - comum a todas as estratégias
-                */
+                // Garante infraestrutura base (namespace, service, RabbitMQ)
                 EnsureK8sStructure(IMAGE_NAME, NAMESPACE)
 
                 if (params.RolloutStrategy == 'Blue/Green')
@@ -139,27 +137,11 @@ node {
                 else if (params.RolloutStrategy == 'Canary')
                 {
                     echo 'Deploying the application using Canary strategy...'
-                    CURRENT_COLOR = GetCurrentDeploymentColor(IMAGE_NAME, NAMESPACE)
-                    echo "Current active deployment color: ${CURRENT_COLOR}"
 
-                    /*
-                    * CANARY DEPLOYMENT - STAGED ROLLOUT
-                    *
-                    * Estratégia de deploy com validação gradual:
-                    * 1. Deploy nova versão em paralelo com a versão estável
-                    * 2. Tráfego gradual começa com percentagem baixa (ex: 10%)
-                    * 3. Monitora métricas e logs da nova versão
-                    * 4. Se tudo OK, aumenta percentagem de forma gradual
-                    * 5. Se deteta erro, volta para versão anterior
-                    *
-                    * VANTAGENS:
-                    * - Menor risco: apenas percentagem pequena de users afetados
-                    * - Detecção rápida de problemas em produção
-                    * - Fácil rollback sem downtime
-                    * - Dados reais para validar performance
-                    */
+                    // ✨ NOVO: Garantir que deployment stable existe
+                    EnsureStableDeploymentExists(IMAGE_NAME, DOCKER_IMAGE, NAMESPACE)
 
-                    // Cria deployment canary paralelo
+                    // Deploy canary isolado
                     DeployCanaryInstance(IMAGE_NAME, DOCKER_IMAGE, NAMESPACE, CANARY_PERCENTAGE)
                     WaitForDeploymentReady(IMAGE_NAME, 'canary', NAMESPACE)
                 }
@@ -178,26 +160,31 @@ node {
                 }
                 else if (params.RolloutStrategy == 'Canary')
                 {
-                    echo "Running smoke tests on canary instance (${CANARY_PERCENTAGE}% traffic)..."
-
-                    /*
-                    * Validação da versão canary
-                    * - Health checks básicos
-                    * - Endpoints críticos
-                    * - Sem validação completa (apenas smoke tests)
-                    */
+                    echo "Running smoke tests on canary instance (${CANARY_PERCENTAGE}% traffic, teórico)..."
                     ValidateCanaryDeployment(IMAGE_NAME, NAMESPACE)
-
                     echo "Canary smoke tests PASSED - Ready for traffic validation"
                 }
-                else
-                {
-                    echo "Testing strategy for ${params.RolloutStrategy} is not implemented yet."
-                }
+            }
+
+            stage('Test Instance') {
+//                     if (params.RolloutStrategy == 'Blue/Green') {
+//                         echo "Running smoke tests on ${NEW_COLOR} instance.."
+//                         SmokeTestWithSwaggerUI(IMAGE_NAME, NAMESPACE, PORT)
+//                     } else if (params.RolloutStrategy == 'Canary') {
+//                         echo "Running smoke tests on CANARY..."
+//                         SmokeTestWithSwaggerUI(IMAGE_NAME, NAMESPACE, PORT)
+//                     }
+//                     echo "Smoke tests PASSED."
+
+                    RunHealthChecks(IMAGE_NAME, NEW_COLOR, NAMESPACE)
+
             }
 
             stage('Manual Approval Required')
             {
+                def approverEmail = 'diogomanuelop@gmail.com'
+
+
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
                     echo """ ==========================================
@@ -217,17 +204,21 @@ node {
                     try
                     {
                         emailext(
-                            subject: "Deployment Approval Required: ${IMAGE_NAME}:${PROJECT_VERSION}",
+                            subject: "APPROVAL REQUIRED [${IMAGE_NAME}:${PROJECT_VERSION}]",
+                            mimeType: 'text/html',
+                            to: approverEmail,
                             body: """
-                                Deployment waiting for approval:
-                                - Service: ${IMAGE_NAME}
-                                - Version: ${PROJECT_VERSION}
-                                - Target: ${NEW_COLOR}
-
-                                Approve at: ${BUILD_URL}input
-                            """,
-                            to: '1221137@isep.ipp.pt'
+                                <h3>Deployment approval required</h3>
+                                <ul>
+                                  <li>Service: <b>${IMAGE_NAME}</b></li>
+                                  <li>Version: <b>${PROJECT_VERSION}</b></li>
+                                  <li>Strategy: <b>${params.RolloutStrategy}</b></li>
+                                </ul>
+                                <p>Click the link below to approve or abort this deployment:</p>
+                                <p><a href="${BUILD_URL}input">Open Jenkins approval gate</a></p>
+                            """
                         )
+
 
                         timeout(time: 30, unit: 'MINUTES')
                         {
@@ -264,18 +255,30 @@ node {
 
                     try
                     {
-                        emailext(
-                            subject: "Canary Validation Approval: ${IMAGE_NAME}:${PROJECT_VERSION}",
-                            body: """
-                                Canary deployment validation:
-                                - Service: ${IMAGE_NAME}
-                                - Version: ${PROJECT_VERSION}
-                                - Canary Traffic: ${CANARY_PERCENTAGE}%
+                    echo "Sending email to: ${approverEmail}"
 
-                                Approve at: ${BUILD_URL}input
-                            """,
-                            to: '1221137@isep.ipp.pt'
+                        emailext(
+                            subject: "APPROVAL REQUIRED [${IMAGE_NAME}:${PROJECT_VERSION}]",
+                            mimeType: 'text/html',
+                            to: approverEmail,
+                            body: """
+                                <h3>Deployment approval required</h3>
+                                <ul>
+                                  <li>Service: <b>${IMAGE_NAME}</b></li>
+                                  <li>Version: <b>${PROJECT_VERSION}</b></li>
+                                  <li>Strategy: <b>${params.RolloutStrategy}</b></li>
+                                </ul>
+                                <p>Click the link below to approve or abort this deployment:</p>
+                                <p><a href="${BUILD_URL}input">Open Jenkins approval gate</a></p>
+                            """
                         )
+
+//                         slackSend(
+//                             channel: '#deployments',
+//                             color: '#ffa500',
+//                             message: "Approval required for ${IMAGE_NAME}:${PROJECT_VERSION} (${params.RolloutStrategy}) – ${BUILD_URL}input",
+//                             tokenCredentialId: 'slack-token'
+//                         )
 
                         timeout(time: 30, unit: 'MINUTES')
                         {
@@ -319,6 +322,28 @@ node {
                 }
             }
 
+
+//             stage('Production Health Check') {
+//                 echo "Running HEALTH CHECKS in production..."
+//
+//                 // Exemplo com serviço estável
+//                 if (isUnix()) {
+//                     sh """
+//                         set -e
+//                         echo "Checking /actuator/health on prod..."
+//                         curl -f http://lendings-c-service.prod.svc.cluster.local:8882/actuator/health
+//                     """
+//                 } else {
+//                     bat """
+//                         echo Checking /actuator/health on prod...
+//                         curl -f http://lendings-c-service.prod.svc.cluster.local:8882/actuator/health
+//                     """
+//                 }
+//
+//                 echo "Production health checks PASSED."
+//             }
+
+
             stage('Undeploy old service')
             {
                 if (params.RolloutStrategy == 'Blue/Green')
@@ -336,21 +361,12 @@ node {
                 }
                 else if (params.RolloutStrategy == 'Canary')
                 {
-                    echo "Removing old stable deployment..."
-                    if (CURRENT_COLOR != 'none')
-                    {
-                        UndeployOldColor(IMAGE_NAME, CURRENT_COLOR, NAMESPACE)
-                        echo "Old stable deployment removed successfully"
-                    }
-                    else
-                    {
-                        echo "No old deployment to remove (first deployment)"
-                    }
+                    echo "Canary deployment already removed during promotion"
+                    echo "Pipeline completed successfully"
                 }
            }
         }
 
-        // Success actions
         echo 'Pipeline completed successfully.'
         if (isUnix()) {
             archiveArtifacts artifacts: "**/target/pit-reports/index.html,**/target/pacts/*.json", allowEmptyArchive: true

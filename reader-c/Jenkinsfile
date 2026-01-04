@@ -225,6 +225,7 @@ node {
                     * Inclui: health checks, readiness checks, smoke tests
                     */
                     //ValidateDeploymentWithRollback(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
+                    RunHealthChecks(IMAGE_NAME, NEW_COLOR, NAMESPACE)
 
                     echo "All tests passed on ${NEW_COLOR} instance - SAFE TO SWITCH"
                 }
@@ -236,26 +237,12 @@ node {
 
             stage('Manual Approval Required')
             {
+                def approverEmail = 'diogomanuelop@gmail.com'
+
+
                 if (params.RolloutStrategy == 'Blue/Green')
                 {
-                    /*
-                    * Aprovação manual antes do deployment em produção
-                    *
-                    * NOTIFICAÇÃO:
-                    * - O Jenkins exibe notificação no UI
-                    * - Console log mostra mensagem clara
-                    * - Para Jenkins com email configurado, pode usar emailext plugin
-                    *
-                    * APROVAÇÃO:
-                    * - Pipeline PAUSA até alguém aprovar ou rejeitar
-                    * - Timeout de 30 minutos (customizável)
-                    * - Se timeout expirar, deployment é abortado
-                    *
-                    * CONTROLE:
-                    * - Apenas utilizadores com permissões podem aprovar
-                    * - Submitter pode ser especificado (ex: 'admin,lead-dev')
-                    */
-                    echo""" ==========================================
+                    echo """ ==========================================
                             DEPLOYMENT APPROVAL REQUIRED
                             ==========================================
                             Service: ${IMAGE_NAME}
@@ -271,45 +258,35 @@ node {
 
                     try
                     {
-                        // Envia email de notificação
                         emailext(
-                            subject: "Deployment Approval Required: ${IMAGE_NAME}:${PROJECT_VERSION}",
+                            subject: "APPROVAL REQUIRED [${IMAGE_NAME}:${PROJECT_VERSION}]",
+                            mimeType: 'text/html',
+                            to: approverEmail,
                             body: """
-                                Deployment waiting for approval:
-                                - Service: ${IMAGE_NAME}
-                                - Version: ${PROJECT_VERSION}
-                                - Target: ${NEW_COLOR}
-
-                                Approve at: ${BUILD_URL}input
-                            """,
-                            to: 'test@localhost'
+                                <h3>Deployment approval required</h3>
+                                <ul>
+                                  <li>Service: <b>${IMAGE_NAME}</b></li>
+                                  <li>Version: <b>${PROJECT_VERSION}</b></li>
+                                  <li>Strategy: <b>${params.RolloutStrategy}</b></li>
+                                </ul>
+                                <p>Click the link below to approve or abort this deployment:</p>
+                                <p><a href="${BUILD_URL}input">Open Jenkins approval gate</a></p>
+                            """
                         )
+
 
                         timeout(time: 30, unit: 'MINUTES')
                         {
                             input message: "Deploy ${IMAGE_NAME}:${PROJECT_VERSION} to production?",
                                   ok: 'Deploy',
-                                  submitter: 'admin,authenticated' // Customize with your Jenkins user roles
+                                  submitter: 'admin,authenticated'
                         }
                         echo "Deployment APPROVED by user. Proceeding with traffic switch..."
                     }
                     catch (err)
                     {
                         echo "Deployment REJECTED or TIMEOUT. Aborting deployment..."
-                        echo "Cleaning up ${NEW_COLOR} deployment that was never switched to production..."
-
-                        /*
-                        * CLEANUP quando aprovação é rejeitada/timeout
-                        *
-                        * COMPORTAMENTO:
-                        * - Remove deployment da nova cor que foi criado mas nunca recebeu tráfego
-                        * - Tráfego continua na cor antiga (CURRENT_COLOR)
-                        * - Sistema fica no estado anterior ao deployment
-                        *
-                        * VANTAGEM: Não deixa lixo (deployments órfãos) no cluster
-                        */
                         RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
-
                         currentBuild.result = 'ABORTED'
                         throw new Exception("Manual approval denied or timed out")
                     }

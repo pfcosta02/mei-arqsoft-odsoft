@@ -33,15 +33,18 @@ export function setup() {
 // Main test function
 export default function (data) {
 
-    const headers = {
-        headers: {
-            Authorization: `Bearer ${data.token}`,
-        },
+    const payload = {
+        name: "test name",
+        bio: "test bio",
     };
 
-    // Get: Fetching author
-    let getAuthor = http.get('http://localhost:8080/api/authors?name=Ant', headers);
-    check(getAuthor, { 'retrieved author': (r) => r.status >= 200 && r.status < 300 });
+    const headers = {
+        'Authorization': `Bearer ${data.token}`
+    };
+
+    // Post: Creating author
+    let postAuthor = http.post('http://localhost:8080/api/authors', payload, { headers });
+    check(postAuthor, { 'created authors': (r) => r.status >= 200 && r.status < 300 });
 
     sleep(1);
 }

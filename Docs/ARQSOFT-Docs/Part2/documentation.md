@@ -174,3 +174,38 @@ A adoção de uma arquitetura de microserviços oferece diversas vantagens em co
 
 ## Performance
 
+De forma a entender a diferença da performance entre a aplicação base e a aplicação em microserviços foram realizados testes através da ferramenta K6. Foram feitos load tests para entender como as aplicações se comportavam sob carga.
+
+Para estes testes, foi considerado o cenário em que existe um ramp up inicial gradual durante 10 segundos até os 50 users, depois aguenta essa carga durante 120 segundos, e por fim volta de forma gradual aos 0 users durante 10 segundos.
+
+Os resultados foram os seguintes.
+
+### Get author by name
+
+#### Aplicação Monolítica
+![getAuthorByName_LoadTest_monolitico.png](assets/getAuthorByName_LoadTest_monolitico.png)
+
+#### Aplicação Distribuída
+![getAuthorByName_LoadTest.png](assets/getAuthorByName_LoadTest.png)
+
+Com base nos resultados obtidos, verifica-se que a aplicação monolítica apresenta tempos de resposta inferiores em todas as métricas analisadas (média, mediana e percentis p90 e p95), quando comparada com a aplicação distribuída. 
+
+Em particular, o valor de p95 da aplicação distribuída é aproximadamente o dobro do observado na aplicação monolítica, refletindo o overhead introduzido pela execução em ambiente distribuído e pelo balanceamento de carga entre múltiplas réplicas (docker swarm).
+
+### Create Author
+
+#### Aplicação Monolítica
+![createAuthor_LoadTest_monolitico.png](assets/createAuthor_LoadTest_monolitico.png)
+
+#### Aplicação Distribuída
+![createAuthor_LoadTest.png](assets/createAuthor_LoadTest.png)
+
+Com base nos resultados obtidos, verifica-se que, para os pedidos POST, a aplicação monolítica apresenta tempos de resposta significativamente inferiores em todas as métricas analisadas (média, mediana e percentis p90 e p95), quando comparada com a aplicação distribuída.
+
+Em particular, o valor de p95 da aplicação distribuída é substancialmente superior ao da aplicação monolítica (94.59 ms face a 6.98 ms), refletindo o overhead introduzido pela execução em ambiente distribuído, nomeadamente pelos mecanismos de isolamento dos containers, pelo balanceamento de carga e pela gestão de múltiplas instâncias da aplicação.
+
+### Conlusão
+
+Em termos globais, a aplicação monolítica apresenta melhor desempenho em ambos os tipos de pedidos. Os resultados inferiores da aplicação distribuída devem-se principalmente ao overhead introduzido pelo Docker Swarm, nomeadamente pelos mecanismos de encaminhamento e balanceamento de carga do routing mesh, que penalizam a latência em cenários de carga moderada, onde as vantagens da escalabilidade horizontal ainda não são evidentes.
+
+Adicionalmente, importa referir que os testes foram executados num portátil com recursos limitados, o que potencia efeitos de contenção ao nível da CPU, memória e rede, penalizando de forma mais acentuada a aplicação distribuída, devido ao maior overhead associado à virtualização e ao isolamento dos containers.

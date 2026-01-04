@@ -4,15 +4,15 @@ services:
 
   # -------- BookGenre_C --------
   bookgenre_c:
-    image: bookgenre_c:latest
+    image: bookgenre-c:latest
     build:
-      context: ./BookGenre_C
+      context: ./bookgenre-c
     deploy:
       replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8083:8080"  # Porta externa do serviço
+      - "8083:8083"  # Porta externa do serviço
     networks:
       - lms_network
     volumes:
@@ -20,15 +20,15 @@ services:
 
   # -------- BookGenre_Q --------
   bookgenre_q:
-    image: bookgenre_q:latest
+    image: bookgenre-q:latest
     build:
-      context: ./BookGenre_Q
+      context: ./bookgenre-q
     deploy:
       replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8084:8080"
+      - "8084:8084"
     networks:
       - lms_network
     volumes:
@@ -36,15 +36,15 @@ services:
 
   # -------- Authors_C --------
   authors_c:
-    image: authors_c:latest
+    image: authors-c:latest
     build:
-      context: ./Authors_C
+      context: ./authors-c
     deploy:
       replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8085:8080"
+      - "8085:8085"
     networks:
       - lms_network
     volumes:
@@ -52,15 +52,15 @@ services:
 
   # -------- Authors_Q --------
   authors_q:
-    image: authors_q:latest
+    image: authors-q:latest
     build:
-      context: ./Authors_Q
+      context: ./authors-q
     deploy:
       replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8086:8080"
+      - "8086:8086"
     networks:
       - lms_network
     volumes:
@@ -96,15 +96,15 @@ services:
 
   # -------- Readers_C --------
   reader_c:
-    image: reader_c:latest
+    image: reader-c:latest
     build:
-      context: ./Reader_C
+      context: ./reader-c
     deploy:
       replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8087:8080"  # Porta externa do serviço
+      - "8087:8087"  # Porta externa do serviço
     networks:
       - lms_network
     volumes:
@@ -112,15 +112,15 @@ services:
 
   # -------- Reader_Q --------
   reader_q:
-    image: reader_q:latest
+    image: reader-q:latest
     build:
-      context: ./Reader_Q
+      context: ./reader-q
     deploy:
       replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8088:8080"
+      - "8088:8088"
     networks:
       - lms_network
     volumes:
@@ -128,36 +128,36 @@ services:
 
   # -------- AuthNUsers_C --------
   authnusers_c:
-    image: authnusers_c:latest
+    image: authnusers-c:latest
     build:
-      context: ./AuthnUsers_C
+      context: ./authnusers-c
     deploy:
       replicas: 2
     environment:
       - SPRING_PROFILES_ACTIVE=bootstrap,jpa
     ports:
-      - "8089:8080"  # Porta externa do serviço
+      - "8089:8089"  # Porta externa do serviço
     networks:
       - lms_network
     volumes:
       - uploaded_files_authnusers_c:/tmp
 
-  # -------- Postgres --------
-  postgres:
-    image: postgres:16
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=postgres
-    deploy:
-      replicas: 1
-    ports:
-      - "5432:5432"
-    networks:
-      - lms_network
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+#  # -------- Postgres --------
+#  postgres:
+#    image: postgres:16
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=password
+#      - POSTGRES_DB=postgres
+#    deploy:
+#      replicas: 1
+#    ports:
+#      - "5432:5432"
+#    networks:
+#      - lms_network
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   # -------- RabbitMQ --------
   rabbitmq:

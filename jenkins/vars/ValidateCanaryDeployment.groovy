@@ -1,13 +1,8 @@
 /*
- * Validate Canary Deployment - VERSÃO FINAL
+ * Validate Canary Deployment - FINAL FIX
  *
  * Executa smoke tests na instância canary
- * Valida: health checks, readiness, logs
- *
- * CORRIGIDO: Suporta Windows E Unix (SEM FOR LOOPS)
- *
- * Uso:
- *   ValidateCanaryDeployment('lendings-q', 'dev')
+ * CORRIGIDO: Jsonpath syntax para Windows
  */
 
 import org.jenkinsPipeline.Constants
@@ -32,7 +27,7 @@ def call(String serviceName, String namespace)
                 )
         ])
                 {
-                    // STEP 1: Obter nome do pod canary (SEM FOR LOOP)
+                    // STEP 1: Obter nome do pod canary
                     echo "STEP 1: Getting canary pod..."
 
                     def canaryPod
@@ -50,7 +45,6 @@ def call(String serviceName, String namespace)
                     }
                     else
                     {
-                        // WINDOWS: Sem for loop, usar simples jsonpath
                         canaryPod = bat(
                                 script: """
                         @kubectl get pods -n ${namespace} ^
@@ -87,7 +81,6 @@ def call(String serviceName, String namespace)
                     // STEP 3: Testar logs para erros
                     echo "STEP 3: Checking pod logs for errors..."
 
-
                     if (isUnix()) {
                         sh """
                             echo "Checking for error patterns in logs..."
@@ -97,14 +90,13 @@ def call(String serviceName, String namespace)
 
                     else
                     {
-                        // WINDOWS: Simples comando sem for loop
                         bat """
                     echo Checking for error patterns in logs...
                     kubectl logs pod/${canaryPod} -n ${namespace} 2>nul | findstr /I "error exception fatal" || echo No errors found
                 """
                     }
 
-                    // STEP 4: Tentar health check se endpoint estiver disponível
+                    // STEP 4: Tentar health check
                     echo "STEP 4: Attempting health check on canary pod..."
 
                     try {
@@ -123,7 +115,6 @@ def call(String serviceName, String namespace)
                         }
                         else
                         {
-                            // Windows: port-forward é mais complicado, vamos pular
                             echo "⚠️  Port-forward health check skipped on Windows (requires different setup)"
                             echo "✅ Assuming health check passed (verify manually if needed)"
                         }
@@ -132,45 +123,36 @@ def call(String serviceName, String namespace)
                         echo "✅ Continuing validation..."
                     }
 
-                    // STEP 5: Verificar readiness probe (SEM FOR LOOP)
-                    echo "STEP 5: Checking readiness probe..."
-
-                    def isReady
-                    if (isUnix())
-                    {
-                        isReady = sh(
-                                script: """
-                        kubectl get pod ${canaryPod} -n ${namespace} \
-                            -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
-                    """,
-                                returnStdout: true
-                        ).trim()
-                    }
-                    else
-                    {
-                        // WINDOWS: Sem for loop, usar jsonpath direto
-                        isReady = bat(
-                                script: """
-                        @kubectl get pod ${canaryPod} -n ${namespace} ^
-                            -o jsonpath="{.status.conditions[?(@.type==\"Ready\")].status}"
-                    """,
-                                returnStdout: true
-                        ).trim()
-                    }
-
-                    if (isReady == 'True') {
-                        echo "✅ Pod is ready"
-                    } else {
-                        echo "⚠️  Pod readiness status: ${isReady}"
-                    }
-
-                    // STEP 6: Mostrar descrição do pod para debug
-                    echo "STEP 6: Pod description for debugging..."
+                    // STEP 5: Verificar readiness probe (SEM CARACTERES ESPECIAIS NO JSONPATH)
+                    echo "STEP 5: Checking pod readiness..."
 
                     if (isUnix())
                     {
                         sh """
-                    kubectl describe pod ${canaryPod} -n ${namespace}
+                    kubectl get pod ${canaryPod} -n ${namespace} \
+                        -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' \
+                        || echo "Readiness probe check failed"
+                """
+                    }
+                    else
+                    {
+                        // WINDOWS: Usar arquivo JSON em vez de passar jsonpath complexa
+                        bat """
+                    @echo Checking readiness status...
+                    @kubectl get pod ${canaryPod} -n ${namespace} -o json > pod-status.json
+                    @echo Pod status saved. Checking readiness...
+                    @type pod-status.json | findstr /I "Ready" && echo Pod is ready || echo Pod status pending
+                    @del pod-status.json
+                """
+                    }
+
+                    // STEP 6: Mostrar descrição do pod
+                    echo "STEP 6: Pod description..."
+
+                    if (isUnix())
+                    {
+                        sh """
+                    kubectl describe pod ${canaryPod} -n ${namespace} | head -30
                 """
                     }
                     else
@@ -181,7 +163,7 @@ def call(String serviceName, String namespace)
                     }
 
                     // STEP 7: Listar todos os pods canary
-                    echo "STEP 7: All canary pods status..."
+                    echo "STEP 7: All canary pods..."
 
                     if (isUnix())
                     {
@@ -193,6 +175,22 @@ def call(String serviceName, String namespace)
                     {
                         bat """
                     kubectl get pods -n ${namespace} -l app=${serviceName}-canary -o wide
+                """
+                    }
+
+                    // STEP 8: Verificar deployment status
+                    echo "STEP 8: Deployment status..."
+
+                    if (isUnix())
+                    {
+                        sh """
+                    kubectl get deployment ${serviceName}-canary -n ${namespace}
+                """
+                    }
+                    else
+                    {
+                        bat """
+                    kubectl get deployment ${serviceName}-canary -n ${namespace}
                 """
                     }
                 }

@@ -19,7 +19,7 @@ properties([
 node {
     def MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     def PROJECT_VERSION = ''
-    def IMAGE_NAME = 'lendings-c'
+    def IMAGE_NAME = 'lendings-q'
     def RESULT_STR = ''
     def CURRENT_COLOR // Cor atual do deployment (blue, green ou none)
     def NEW_COLOR // Nova cor para o deployment
@@ -192,109 +192,6 @@ node {
                 else
                 {
                     echo "Testing strategy for ${params.RolloutStrategy} is not implemented yet."
-                }
-            }
-
-            stage('Manual Approval Required')
-            {
-                if (params.RolloutStrategy == 'Blue/Green')
-                {
-                    echo """ ==========================================
-                            DEPLOYMENT APPROVAL REQUIRED
-                            ==========================================
-                            Service: ${IMAGE_NAME}
-                            New Version: ${PROJECT_VERSION}
-                            Target Color: ${NEW_COLOR}
-                            Current Color: ${CURRENT_COLOR}
-                            Namespace: ${NAMESPACE}
-                            Docker Image: ${DOCKER_IMAGE}
-                            ==========================================
-                            Tests have PASSED. Waiting for manual approval to switch traffic...
-                            ==========================================
-                        """
-
-                    try
-                    {
-                        emailext(
-                            subject: "Deployment Approval Required: ${IMAGE_NAME}:${PROJECT_VERSION}",
-                            body: """
-                                Deployment waiting for approval:
-                                - Service: ${IMAGE_NAME}
-                                - Version: ${PROJECT_VERSION}
-                                - Target: ${NEW_COLOR}
-
-                                Approve at: ${BUILD_URL}input
-                            """,
-                            to: 'test@localhost'
-                        )
-
-                        timeout(time: 30, unit: 'MINUTES')
-                        {
-                            input message: "Deploy ${IMAGE_NAME}:${PROJECT_VERSION} to production?",
-                                  ok: 'Deploy',
-                                  submitter: 'admin,authenticated'
-                        }
-                        echo "Deployment APPROVED by user. Proceeding with traffic switch..."
-                    }
-                    catch (err)
-                    {
-                        echo "Deployment REJECTED or TIMEOUT. Aborting deployment..."
-                        RollbackBlueGreen(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
-                        currentBuild.result = 'ABORTED'
-                        throw new Exception("Manual approval denied or timed out")
-                    }
-                }
-                else if (params.RolloutStrategy == 'Canary')
-                {
-                    echo """ ==========================================
-                            CANARY VALIDATION APPROVAL REQUIRED
-                            ==========================================
-                            Service: ${IMAGE_NAME}
-                            New Version: ${PROJECT_VERSION}
-                            Canary Traffic: ${CANARY_PERCENTAGE}%
-                            Current Stable Version: Still running ${CURRENT_COLOR}
-                            Namespace: ${NAMESPACE}
-                            Docker Image: ${DOCKER_IMAGE}
-                            ==========================================
-                            Canary smoke tests have PASSED.
-                            Ready to increase traffic to 100% or Rollback...
-                            ==========================================
-                        """
-
-                    try
-                    {
-                        emailext(
-                            subject: "Canary Validation Approval: ${IMAGE_NAME}:${PROJECT_VERSION}",
-                            body: """
-                                Canary deployment validation:
-                                - Service: ${IMAGE_NAME}
-                                - Version: ${PROJECT_VERSION}
-                                - Canary Traffic: ${CANARY_PERCENTAGE}%
-
-                                Approve at: ${BUILD_URL}input
-                            """,
-                            to: 'test@localhost'
-                        )
-
-                        timeout(time: 30, unit: 'MINUTES')
-                        {
-                            input message: "Canary validation PASSED. Promote ${IMAGE_NAME}:${PROJECT_VERSION} to 100% traffic?",
-                                  ok: 'Promote to Production',
-                                  submitter: 'admin,authenticated'
-                        }
-                        echo "Canary APPROVED for promotion. Proceeding with 100% traffic..."
-                    }
-                    catch (err)
-                    {
-                        echo "Canary validation REJECTED or TIMEOUT. Performing rollback..."
-                        RollbackCanary(IMAGE_NAME, NAMESPACE)
-                        currentBuild.result = 'ABORTED'
-                        throw new Exception("Canary validation denied or timed out")
-                    }
-                }
-                else
-                {
-                    echo "Manual approval for ${params.RolloutStrategy} is not implemented yet."
                 }
             }
 

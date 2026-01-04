@@ -1,12 +1,18 @@
+
 apiVersion: v1
 kind: Service
 metadata:
   name: lendings-q-service-stable
   namespace: dev
+  labels:
+    app: lendings-q
 spec:
+  type: ClusterIP
   selector:
     app: lendings-q
     version: stable
   ports:
-  - port: 8882
-    targetPort: 8882
+    - name: http
+      port: 8882
+      targetPort: 8882
+      protocol: TCP

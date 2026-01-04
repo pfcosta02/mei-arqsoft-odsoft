@@ -77,7 +77,7 @@ node {
 
             stage('Consumer Contract Tests (Pact)')
             {
-                // ConsumerContractTests(true);
+                ConsumerContractTests(true);
             }
 
             stage('SonarQube Static Code Analysis')

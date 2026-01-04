@@ -230,12 +230,12 @@ spec:
                                 -p '{"spec":{"selector":{"app":"${serviceName}","version":"stable"}}}'
                         """
                             }
-                            else
-                            {
+                            else {
                                 bat """
-                            kubectl patch service ${serviceName}-service -n ${namespace} ^
-                                -p "{\"spec\":{\"selector\":{\"app\":\"${serviceName}\",\"version\":\"stable\"}}}"
-                        """
+                                kubectl patch service ${serviceName}-service -n ${namespace} ^
+                                  --type=merge ^
+                                  -p "{\\"spec\\":{\\"selector\\":{\\"app\\":\\"${serviceName}\\",\\"version\\":\\"stable\\"}}}"
+                            """
                             }
 
                             echo "✅ Service selector updated to stable"

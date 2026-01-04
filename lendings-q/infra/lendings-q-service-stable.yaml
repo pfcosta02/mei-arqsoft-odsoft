@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lendings-q-service-stable
+  namespace: dev
+spec:
+  selector:
+    app: lendings-q
+    version: stable
+  ports:
+  - port: 8882
+    targetPort: 8882

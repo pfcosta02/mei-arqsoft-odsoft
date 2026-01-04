@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lendings-q
+  namespace: dev
+spec:
+  rules:
+    - host: lendings.dev.company.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lendings-q-stable
+                port:
+                  number: 8882

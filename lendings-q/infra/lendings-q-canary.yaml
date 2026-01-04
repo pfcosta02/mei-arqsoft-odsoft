@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lendings-q-canary
+  namespace: dev
+  labels:
+    app: lendings-q
+    version: canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lendings-q
+      version: canary
+  template:
+    metadata:
+      labels:
+        app: lendings-q
+        version: canary
+    spec:
+      containers:
+        - name: lendings-q
+          image: {{IMAGE_CANARY}}
+          ports:
+            - containerPort: 8882

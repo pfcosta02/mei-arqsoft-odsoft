@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lendings-q-stable
+  namespace: dev
+  labels:
+    app: lendings-q
+    version: stable
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lendings-q
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: lendings-q
+        version: stable
+    spec:
+      containers:
+        - name: lendings-q
+          image: {{IMAGE_STABLE}}
+          ports:
+            - containerPort: 8882

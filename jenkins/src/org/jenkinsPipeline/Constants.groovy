@@ -8,6 +8,7 @@ class Constants
 
 
     static final String DOCKER_REGISTRY = "pfcosisep"
+    static final String DOCKER_REGISTRY_D = "diogomanuel31"
 
     public static final LinkedHashMap<String, String> ENVIRONMENT_2_SONARQUBE_SERVER = [
                     'docker': 'sonarqube_docker',

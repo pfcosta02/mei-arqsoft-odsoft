@@ -136,5 +136,5 @@ Comunicação assíncrona desacopla performance do utilizador da performance de 
 
 Este Quality Attribute é implementado nos seguintes Use Cases:
 - [US1 - Criar Book + Author + Genre](../US1.md): CQRS, Async messaging, Outbox Pattern
-- [US2 - Criar Reader + User](../UC/US2.md): CQRS, Async messaging, Outbox Pattern
+- [US2 - Criar Reader + User](../US2.md): CQRS, Async messaging, Outbox Pattern
 - [US3 - Deixar comentário e avaliação ao retornar um Book ](../US3.md): CQRS, Async messaging, Outbox Pattern

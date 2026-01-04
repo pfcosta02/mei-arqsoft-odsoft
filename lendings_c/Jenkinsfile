@@ -109,13 +109,13 @@ node {
             stage('Build Docker Image')
             {
                 RESULT_STR = "${IMAGE_NAME}:${PROJECT_VERSION}"
-                DOCKER_IMAGE = "${Constants.DOCKER_REGISTRY}/${RESULT_STR}"
+                DOCKER_IMAGE = "${Constants.DOCKER_REGISTRY_D}/${RESULT_STR}"
                 BuildDockerImage(RESULT_STR);
             }
 
             stage('Push Docker Image')
             {
-                PushDockerImage(RESULT_STR);
+                PushDockerImageD(RESULT_STR);
             }
 
             stage('Deploy')

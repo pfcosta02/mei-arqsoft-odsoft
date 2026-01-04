@@ -1,110 +1,76 @@
 import org.jenkinsPipeline.Constants
-//import org.jenkinsPipeline.KubernetesHelper
 
-def call(String serviceName, String dockerImage, String namespace, Integer canaryPercentage)
-{
-    /*
-     * Deploy Canary Instance
-     *
-     * Cria um deployment canary paralelo com 1 replica
-     * Totalmente isolado da versão estável
-     *
-     * Parâmetros:
-     * - serviceName: Nome do serviço (ex: 'lendings-c')
-     * - dockerImage: Imagem completa (ex: 'registry.io/lendings-c:1.2.3')
-     * - namespace: Namespace K8s (ex: 'dev')
-     * - canaryPercentage: % tráfego inicial (ex: 10)
-     */
+def call(String serviceName, String dockerImage, String namespace, Integer canaryPercentage) {
 
     echo """
         ==========================================
-        DEPLOYING CANARY INSTANCE
+        CANARY DEPLOYMENT - CREATE / UPDATE
         ==========================================
         Service: ${serviceName}
-        Image: ${dockerImage}
-        Initial Traffic: ${canaryPercentage}%
-        Namespace: ${namespace}
+        Image:   ${dockerImage}
+        Traffic: ${canaryPercentage}% (teórico)
+        Ns:      ${namespace}
         ==========================================
     """
 
-    try
-    {
-        withCredentials([
-                file(
-                        credentialsId: Constants.ENVIRONMENT_2_CREDENTIALS_ID[namespace],
-                        variable: 'KUBECONFIG'
-                )
-        ])
-                {
-                    // STEP 1: Verificar se deployment canary já existe
-                    def canaryExists = sh(
-                            script: "kubectl get deployment ${serviceName}-canary -n ${namespace} 2>/dev/null",
-                            returnStatus: true
-                    ) == 0
+    withCredentials([file(
+            credentialsId: Constants.ENVIRONMENT_2_CREDENTIALS_ID[namespace],
+            variable: 'KUBECONFIG'
+    )]) {
 
-                    if (canaryExists)
-                    {
-                        echo "Canary deployment already exists. Updating image..."
+        // 1) Criar ou atualizar deployment canary
+        def canaryExists = sh(
+                script: "kubectl get deployment ${serviceName}-canary -n ${namespace} 2>/dev/null",
+                returnStatus: true
+        ) == 0
 
-                        // Apenas atualizar image
-                        sh """
-                    kubectl set image deployment/${serviceName}-canary \
-                        ${serviceName}=${dockerImage} \
-                        -n ${namespace} \
-                        --record
-                """
-                    }
-                    else
-                    {
-                        echo "Canary deployment does not exist. Creating..."
-
-                        // Criar novo deployment canary
-                        sh """
-                    kubectl create deployment ${serviceName}-canary \
-                        --image=${dockerImage} \
-                        --replicas=1 \
-                        -n ${namespace}
-                    
-                    # Adicionar labels para identificação
-                    kubectl patch deployment ${serviceName}-canary -n ${namespace} \
-                        -p '{"spec":{"template":{"metadata":{"labels":{"version":"canary"}}}}}'
-                """
-                    }
-
-                    echo "Canary deployment created/updated successfully"
-
-                    // STEP 2: Aguardar que o canary fique ready
-                    echo "Waiting for canary deployment to be ready (max 5 minutes)..."
-
-                    sh """
-                kubectl rollout status deployment/${serviceName}-canary \
+        if (canaryExists) {
+            echo "Canary deployment already exists. Updating image..."
+            sh """
+                kubectl set image deployment/${serviceName}-canary \
+                    ${serviceName}=${dockerImage} \
                     -n ${namespace} \
-                    --timeout=5m
+                    --record
             """
+        } else {
+            echo "Canary deployment does not exist. Creating..."
+            sh """
+                kubectl create deployment ${serviceName}-canary \
+                    --image=${dockerImage} \
+                    --replicas=1 \
+                    -n ${namespace}
 
-                    // STEP 3: Verificar replicas
-                    def readyReplicas = sh(
-                            script: """
-                    kubectl get deployment ${serviceName}-canary -n ${namespace} \
-                        -o jsonpath='{.status.readyReplicas}'
-                """,
-                            returnStdout: true
-                    ).trim()
-
-                    echo "Canary deployment ready. Ready replicas: ${readyReplicas}"
-
-                    // STEP 4: Listar pods canary
-                    sh """
-                echo "Canary pods:"
-                kubectl get pods -n ${namespace} -l app=${serviceName}-canary -o wide
+                kubectl label deployment ${serviceName}-canary \
+                    app=${serviceName}-canary version=canary \
+                    -n ${namespace} --overwrite
             """
-                }
+        }
 
-        echo "✅ Canary deployment completed successfully"
-    }
-    catch (Exception e)
-    {
-        echo "❌ Error deploying canary instance: ${e.getMessage()}"
-        throw e
+        // 2) Service canary para testes
+        def svcStatus = sh(
+                script: "kubectl get service ${serviceName}-canary-service -n ${namespace} 2>/dev/null",
+                returnStatus: true
+        )
+        if (svcStatus != 0) {
+            echo "Creating canary service ${serviceName}-canary-service..."
+            sh """
+                kubectl expose deployment ${serviceName}-canary \
+                    --name=${serviceName}-canary-service \
+                    --port=8882 --target-port=8882 \
+                    -n ${namespace} --type=ClusterIP
+            """
+        }
+
+        // 3) Esperar rollout
+        sh """
+            kubectl rollout status deployment/${serviceName}-canary \
+                -n ${namespace} --timeout=5m
+        """
+
+        echo "Canary deployment is ready."
+        sh """
+            echo "Canary pods:"
+            kubectl get pods -n ${namespace} -l app=${serviceName}-canary -o wide
+        """
     }
 }

@@ -35,7 +35,7 @@ Como bibliotecário, quero criar um Leitor e o respetivo Utilizador no mesmo ped
 #### US3 - Diogo Pereira (1221137)
 Como leitor, quando retorno um livro, quero deixar um comentário de texto sobre o livro e avaliá-lo, de forma atómica e consistente.
 
-**Documentação detalhada**: [US3.md](ADD/US3.md) - TODO
+**Documentação detalhada**: [US3.md](ADD/US3.md)
 
 ### Requisitos Não Funcionais
 

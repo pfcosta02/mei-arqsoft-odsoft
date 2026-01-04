@@ -66,7 +66,7 @@ Arquitetura de **microserviços stateless** com:
 [//]: # (- **Users DB**: Menor carga, instância menor)
 
 **4. CQRS - Escalabilidade Assimétrica**
-- **Query side**: Mais réplicas (5 pods), read replicas de BD, cache Redis
+- **Query side**: Mais réplicas (5 pods), read replicas de BD
 - **Command side**: Menos réplicas (3 pods), master database apenas
 - Otimização de recursos baseada em workload real
 

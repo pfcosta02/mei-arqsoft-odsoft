@@ -49,7 +49,7 @@ Comunicação entre serviços predominantemente **assíncrona via eventos** (Rab
 Cada bounded context expõe API REST bem definida:
 - **Identity System API**: `/api/users` (authnusers-c/q)
 - **Readers System API**: `/api/readers` (readers-c/q)
-- **Catalog System API**: `/api/books`, `/api/authors`, `/api/genres` (BookGenre_C/Q, Authors_C/Q)
+- **Catalog System API**: `/api/books`, `/api/authors`, `/api/genres` (bookgenre-c/q, authors-c/q)
 - **Lendings System API**: `/api/lendings` (lendings-c/q)
 
 **2. CQRS - Separação Command/Query**
@@ -63,7 +63,7 @@ Cada bounded context expõe API REST bem definida:
 Em vez de Process API centralizado, **coreografia via eventos**:
 - US1: BookGenre Command → `BookTempCreatedEvent` → Authors Command → `AuthorTempCreatedEvent` → BookGenre Command (fromTemptoBook) → `BookFinalizedEvent` → Authors Command (fromTemptoAuthor)
 - US2: Readers Command → `ReaderTempCreatedEvent` → Users Command → `UserTempCreatedEvent` → Readers Command (persistTemporary)
-- Cada serviço orquestra sua parte do fluxo de negócio
+- Cada serviço orquestra a sua parte do fluxo de negócio
 - Desacoplamento temporal entre bounded contexts
 
 **4. API Contracts e Versionamento**

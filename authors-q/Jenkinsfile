@@ -205,6 +205,7 @@ node {
                     *
                     * Inclui: health checks, readiness checks, smoke tests
                     */
+                    RunHealthChecks(IMAGE_NAME, CURRENT_COLOR, NAMESPACE)
                     //ValidateDeploymentWithRollback(IMAGE_NAME, NEW_COLOR, CURRENT_COLOR, NAMESPACE)
 
                     echo "All tests passed on ${NEW_COLOR} instance - SAFE TO SWITCH"

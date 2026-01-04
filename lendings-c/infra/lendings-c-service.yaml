@@ -15,4 +15,3 @@ spec:
       port: 8881
       targetPort: 8881
   sessionAffinity: ClientIP  # Mantém sessões durante o switch
-

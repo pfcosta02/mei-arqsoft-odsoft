@@ -88,13 +88,19 @@ def call(String serviceName, String namespace)
                         """
                     }
 
-                    else
-                    {
+                    else {
                         bat """
-                    echo Checking for error patterns in logs...
-                    kubectl logs pod/${canaryPod} -n ${namespace} 2>nul | findstr /I "error exception fatal" || echo No errors found
-                """
+                            echo Checking for error patterns in logs...
+                            kubectl logs pod/${canaryPod} -n ${namespace} 2>nul | findstr /I "error exception fatal" >nul
+                            if %ERRORLEVEL% EQU 0 (
+                                echo Potential errors found in logs
+                            ) else (
+                                echo No errors found
+                                exit /b 0
+                            )
+                        """
                     }
+
 
                     // STEP 4: Tentar health check
                     echo "STEP 4: Attempting health check on canary pod..."

@@ -15,6 +15,8 @@ import org.jenkinsPipeline.Constants
 
 def call(String serviceName, String namespace)
 {
+
+    def stableDeployment = "${serviceName}-stable"
     echo """
         ==========================================
         PROMOTING CANARY TO PRODUCTION
@@ -73,7 +75,7 @@ def call(String serviceName, String namespace)
                     if (isUnix())
                     {
                         sh """
-                    kubectl set image deployment/${serviceName} \
+                    kubectl set image deployment/${stableDeployment} \
                         ${serviceName}=${canaryImage} \
                         -n ${namespace} \
                         --record
@@ -82,7 +84,7 @@ def call(String serviceName, String namespace)
                     else
                     {
                         bat """
-                    kubectl set image deployment/${serviceName} ^
+                    kubectl set image deployment/${stableDeployment} ^
                         ${serviceName}=${canaryImage} ^
                         -n ${namespace}
                 """
@@ -96,7 +98,7 @@ def call(String serviceName, String namespace)
                     if (isUnix())
                     {
                         sh """
-                    kubectl rollout status deployment/${serviceName} \
+                    kubectl rollout status deployment/${stableDeployment} \
                         -n ${namespace} \
                         --timeout=5m
                 """
@@ -104,7 +106,7 @@ def call(String serviceName, String namespace)
                     else
                     {
                         bat """
-                    kubectl rollout status deployment/${serviceName} ^
+                    kubectl rollout status deployment/${stableDeployment} ^
                         -n ${namespace} ^
                         --timeout=5m
                 """
@@ -120,7 +122,7 @@ def call(String serviceName, String namespace)
                     {
                         stableReplicas = sh(
                                 script: """
-                        kubectl get deployment ${serviceName} -n ${namespace} \
+                        kubectl get deployment ${stableDeployment} -n ${namespace} \
                             -o jsonpath='{.status.readyReplicas}'
                     """,
                                 returnStdout: true
@@ -131,7 +133,7 @@ def call(String serviceName, String namespace)
                         // WINDOWS: Sem for loop, usar jsonpath direto
                         stableReplicas = bat(
                                 script: """
-                        @kubectl get deployment ${serviceName} -n ${namespace} ^
+                        @kubectl get deployment ${stableDeployment} -n ${namespace} ^
                             -o jsonpath="{.status.readyReplicas}"
                     """,
                                 returnStdout: true
@@ -167,14 +169,14 @@ def call(String serviceName, String namespace)
                     {
                         sh """
                     echo "Recent revisions:"
-                    kubectl rollout history deployment/${serviceName} -n ${namespace} | head -5
+                    kubectl rollout history deployment/${stableDeployment} -n ${namespace} | head -5
                 """
                     }
                     else
                     {
                         bat """
                     echo Recent revisions:
-                    kubectl rollout history deployment/${serviceName} -n ${namespace}
+                    kubectl rollout history deployment/${stableDeployment} -n ${namespace}
                 """
                     }
 

@@ -1,30 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lendings-q-canary
+  name: lendings-c-canary
   namespace: dev
   labels:
-    app: lendings-q
+    app: lendings-c
     version: canary
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: lendings-q
+      app: lendings-c
       version: canary
   template:
     metadata:
       labels:
-        app: lendings-q
+        app: lendings-c
         version: canary
     spec:
       containers:
-        - name: lendings-q
+        - name: lendings-c
           image: {{IMAGE_CANARY}}
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
-              containerPort: 8882
+              containerPort: 8881
           env:
             - name: RABBITMQ_HOST
               value: rabbitmq

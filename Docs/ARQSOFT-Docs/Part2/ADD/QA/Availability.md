@@ -48,7 +48,7 @@ Adotar uma arquitetura de **microserviços distribuídos** com:
 **1. Isolamento de Processos**
 - Cada microserviço executa em container Docker isolado
 - Falha de um serviço não afeta outros bounded contexts
-- Namespaces Kubernetes separados (lms-dev, lms-db)
+- Namespaces Kubernetes separados (dev, staging, prod)
 
 **2. Redundância Ativa**
 - **Command services**: 1-2 réplicas cada

@@ -10,14 +10,14 @@ O objetivo principal deste design é garantir que o sistema escale automaticamen
 
 ## Quality Attribute Scenario
 
-| **Elemento**          | **Descrição**                                                                                                                         |
-|------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| **Estímulo**           | Aumento de carga no sistema (número de utilizadores, requests/segundo, volume de dados).                                            |
-| **Fonte do Estímulo**  | Crescimento orgânico (mais bibliotecas usam sistema), picos sazonais (início de semestre letivo).                                   |
-| **Ambiente**           | Sistema em produção, carga pode variar de 100 req/s (normal) até 2000 req/s (pico).                                                 |
-| **Artefacto**          | Microserviços, Kubernetes cluster, RabbitMQ, bases de dados H2.                                                                        |
-| **Resposta**           | Sistema escala automaticamente adicionando recursos, mantendo performance e disponibilidade.                                         |
-| **Medida da Resposta** | Auto-scale de 0 a 10 pods em <2 minutos, suportar 10x carga base sem degradação, custo proporcional à carga.                        |
+| **Elemento**          | **Descrição**                                                                                                |
+|------------------------|--------------------------------------------------------------------------------------------------------------|
+| **Estímulo**           | Aumento de carga no sistema (número de utilizadores, requests/segundo, volume de dados).                     |
+| **Fonte do Estímulo**  | Crescimento orgânico (mais bibliotecas usam sistema), picos sazonais (início de semestre letivo).            |
+| **Ambiente**           | Sistema em produção, carga pode variar de 100 req/s (normal) até 500 req/s (pico).                           |
+| **Artefacto**          | Microserviços, Kubernetes cluster, RabbitMQ, bases de dados H2.                                              |
+| **Resposta**           | Sistema escala automaticamente adicionando recursos, mantendo performance e disponibilidade.                 |
+| **Medida da Resposta** | Auto-scale de 0 a 10 pods em <2 minutos, suportar 10x carga base sem degradação, custo proporcional à carga. |
 
 ---
 
@@ -61,10 +61,6 @@ Arquitetura de **microserviços stateless** com:
 - Elimina bottleneck de shared database
 - Permite escalar BD independentemente (vertical ou horizontal)
 
-[//]: # (- **Readers DB**: Read replicas para queries pesadas)
-
-[//]: # (- **Users DB**: Menor carga, instância menor)
-
 **4. CQRS - Escalabilidade Assimétrica**
 - **Query side**: Mais réplicas (5 pods), read replicas de BD
 - **Command side**: Menos réplicas (3 pods), master database apenas
@@ -103,7 +99,7 @@ Database per Service é crítico: em arquiteturas partilhadas, BD torna-se bottl
 - **Razão**: HPA integrado no K8s, simples de configurar, adequado para workload atual
 
 **D2. Database Read Replicas para Query Services**
-- **Escolha**: PostgreSQL com 1 master + 2 read replicas
+- **Escolha**: H2 com 2 read replicas
 - **Alternativa**: Database clustering (Patroni), NoSQL database
 - **Razão**: Simplicidade, suporta read scaling sem complexidade de clusters
 
@@ -111,18 +107,6 @@ Database per Service é crítico: em arquiteturas partilhadas, BD torna-se bottl
 - **Escolha**: Queue separada por bounded context e tipo de evento
 - **Alternativa**: Single queue, Kafka partitions
 - **Razão**: Isolamento, permite scaling independente de consumers
-
-### Plano de Escalabilidade
-
-| Componente | Estado Atual | Carga 2x | Carga 5x | Carga 10x |
-|------------|--------------|----------|----------|-----------|
-| **Query Services** | 5 pods | 10 pods | 20 pods | 40 pods + Redis cluster |
-| **Command Services** | 3 pods | 5 pods | 10 pods | 15 pods |
-| **RabbitMQ** | 3 nós | 3 nós | 5 nós | 7 nós + partitioning |
-| **H2 Database** | Em memória | File-based | Sharding | Migração para PostgreSQL/MySQL |
-| **Redis** | 1 instance | 3 nós cluster | 5 nós cluster | 7 nós + sharding |
-
-**Legenda**: M=Master, R=Read Replica
 
 ### Riscos e Mitigações
 

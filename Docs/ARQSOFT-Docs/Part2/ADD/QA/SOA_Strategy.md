@@ -28,7 +28,7 @@ Garantir que a arquitetura segue princípios SOA modernos, permitindo que difere
 
 ### Resumo da Solução
 Implementar **API-led connectivity** através de três camadas lógicas:
-- **System API Layer**: Microserviços de domínio (lms-readers-*, lms-authnusers-*) expõem APIs REST para operações CRUD
+- **System API Layer**: Microserviços de domínio (readers-*, authnusers-*, bookgenre-*, authors-*, lendings-* ) expõem APIs REST para operações CRUD
 - **Process API Layer** (implícito): Orquestração de múltiplos System APIs via eventos (ex: US2 coordena Readers + Users)
 - **Experience API Layer** (futuro): Agregação de dados para clientes específicos (web, mobile)
 
@@ -63,11 +63,12 @@ Cada bounded context expõe API REST bem definida:
 Em vez de Process API centralizado, **coreografia via eventos**:
 - US1: BookGenre Command → `BookTempCreatedEvent` → Authors Command → `AuthorTempCreatedEvent` → BookGenre Command (fromTemptoBook) → `BookFinalizedEvent` → Authors Command (fromTemptoAuthor)
 - US2: Readers Command → `ReaderTempCreatedEvent` → Users Command → `UserTempCreatedEvent` → Readers Command (persistTemporary)
+- US3: Lendings Command → `LendingCreatedEvent`
 - Cada serviço orquestra a sua parte do fluxo de negócio
 - Desacoplamento temporal entre bounded contexts
 
 **4. API Contracts e Versionamento**
-- **DTOs bem definidos**: CreateReaderRequest, ReaderResponse, UserResponse
+- **DTOs bem definidos**: CreateReaderRequest, CreateBookAuthorGenreRequest, ReaderResponse, UserResponse
 - **Versionamento URI** (futuro): `/v1/api/readers`, `/v2/api/readers`
 - **Backward compatibility**: Novos campos opcionais, deprecated fields mantidos por 2 releases
 - **Contratos de eventos**: EventSchema com versionamento (ex: `ReaderCreatedEvent_v1`)
@@ -79,10 +80,6 @@ Em vez de Process API centralizado, **coreografia via eventos**:
   - Rate limiting
   - Autenticação centralizada (OAuth2/JWT)
   - Routing dinâmico
-
-**6. Service Registry e Discovery**
-- **Kubernetes Service Discovery**: DNS interno resolve `lms-readers-query.lms-dev.svc.cluster.local`
-- **Sem Eureka/Consul**: Kubernetes nativo suficiente
 
 ### Motivação
 API-led connectivity promove **reutilização** e **composição**. Em vez de cada cliente implementar lógica (ex: "criar reader precisa criar user"), essa orquestração está encapsulada nos serviços via eventos.

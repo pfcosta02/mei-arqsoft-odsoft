@@ -74,7 +74,7 @@ infrastructure/ (implementações JPA, RabbitMQ publishers)
 **3. Database per Service**
 - Cada bounded context tem seu próprio schema
 - Alterações de schema não impactam outros serviços
-- Permite escolher tecnologia de persistência adequada (PostgreSQL, MongoDB, etc.)
+- Permite escolher tecnologia de persistência adequada (PostgreSQL, MongoDB, etc.) (--TBD--)
 
 **4. API Contracts (Event Schemas)**
 - Eventos RabbitMQ com schema versionado (JSON Schema ou Avro)
@@ -88,7 +88,7 @@ infrastructure/ (implementações JPA, RabbitMQ publishers)
 - Permite trocar implementações sem recompilação
 
 **6. Use Interfaces (Dependency Inversion)**
-Exemplo em `lms-readers-command`:
+Exemplo em `readers-c`:
 ```java
 // Camada services
 public interface ReaderRepository {
@@ -135,7 +135,7 @@ Bounded Contexts isolados permitem que equipas trabalhem em paralelo sem merge c
 - **Razão**: Desacoplamento temporal, versionamento mais fácil (novos consumers não quebram producers)
 
 **D3. Database per Service**
-- **Escolha**: PostgreSQL separado por bounded context
+- **Escolha**: H2 separado por bounded context
 - **Alternativa**: Schema separation (shared database), NoSQL per service
 - **Razão**: Isolamento completo, permite escolher tecnologia adequada por contexto
 

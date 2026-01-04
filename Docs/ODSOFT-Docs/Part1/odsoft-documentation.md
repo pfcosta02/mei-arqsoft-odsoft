@@ -145,7 +145,7 @@ Como se pode ver, a atual cobertura de testes não é ideal, ficando-se pelos 47
 
 O primeiro teste de mutação foi feito ao projeto base, e o resultado obtido foi o seguinte:
 
-![BaseProjectMutationTestsResult.png](../ODSOFT-Docs/assets/BaseProjectMutationTestsResult.png)
+![BaseProjectMutationTestsResult.png](assets/BaseProjectMutationTestsResult.png)
 
 Os resultados indicam que apenas 22% das mutações geradas foram mortas, o que significa que alguns defeitos podem não ser cobertos pelos testes existentes.
 
@@ -155,7 +155,7 @@ Além disso, 33% de cobertura de linhas de código nas classes mutadas mostra qu
 
 O segundo teste de mutação foi feito já ao projeto em desenvolvimento, e o resultado obtido foi o seguinte:
 
-![ARQSOFTProjectMutationTestsResults_1.png](../ODSOFT-Docs/assets/ProjectMutationTestsResults_1.png)
+![ARQSOFTProjectMutationTestsResults_1.png](assets/ProjectMutationTestsResults_1.png)
 
 Os resultados do segundo teste mostram melhorias relativamente aos resultados do projeto base.
 

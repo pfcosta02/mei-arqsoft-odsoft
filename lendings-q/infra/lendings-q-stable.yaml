@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lendings-q-stable
+  name: lendings-q
   namespace: dev
   labels:
     app: lendings-q

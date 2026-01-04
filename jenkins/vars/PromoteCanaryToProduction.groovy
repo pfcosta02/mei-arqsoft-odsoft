@@ -1,11 +1,11 @@
 /*
- * Promote Canary to Production
+ * Promote Canary to Production - VERSÃO FINAL
  *
  * Aumenta o tráfego da instância canary para 100%
  * Promove a nova versão como estável
  * Remove o deployment anterior
  *
- * CORRIGIDO: Suporta Windows E Unix
+ * CORRIGIDO: Suporta Windows E Unix (SEM FOR LOOPS)
  *
  * Uso:
  *   PromoteCanaryToProduction('lendings-q', 'dev')
@@ -34,7 +34,7 @@ def call(String serviceName, String namespace)
                 )
         ])
                 {
-                    // STEP 1: Obter imagem canary
+                    // STEP 1: Obter imagem canary (SEM FOR LOOP)
                     echo "STEP 1: Getting canary image..."
 
                     def canaryImage
@@ -50,9 +50,11 @@ def call(String serviceName, String namespace)
                     }
                     else
                     {
+                        // WINDOWS: Sem for loop, usar jsonpath direto
                         canaryImage = bat(
                                 script: """
-                        @for /f %%%%i in ('kubectl get deployment ${serviceName}-canary -n ${namespace} -o jsonpath="{.spec.template.spec.containers[0].image}"') do @echo %%%%i
+                        @kubectl get deployment ${serviceName}-canary -n ${namespace} ^
+                            -o jsonpath="{.spec.template.spec.containers[0].image}"
                     """,
                                 returnStdout: true
                         ).trim()
@@ -82,8 +84,7 @@ def call(String serviceName, String namespace)
                         bat """
                     kubectl set image deployment/${serviceName} ^
                         ${serviceName}=${canaryImage} ^
-                        -n ${namespace} ^
-                        --record
+                        -n ${namespace}
                 """
                     }
 
@@ -111,7 +112,7 @@ def call(String serviceName, String namespace)
 
                     echo "✅ Stable deployment rolled out successfully"
 
-                    // STEP 4: Verificar replicas estáveis
+                    // STEP 4: Verificar replicas estáveis (SEM FOR LOOP)
                     echo "STEP 4: Verifying stable deployment..."
 
                     def stableReplicas
@@ -127,9 +128,11 @@ def call(String serviceName, String namespace)
                     }
                     else
                     {
+                        // WINDOWS: Sem for loop, usar jsonpath direto
                         stableReplicas = bat(
                                 script: """
-                        @for /f %%%%i in ('kubectl get deployment ${serviceName} -n ${namespace} -o jsonpath="{.status.readyReplicas}"') do @echo %%%%i
+                        @kubectl get deployment ${serviceName} -n ${namespace} ^
+                            -o jsonpath="{.status.readyReplicas}"
                     """,
                                 returnStdout: true
                         ).trim()

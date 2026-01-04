@@ -1,10 +1,10 @@
 /*
- * Validate Canary Deployment
+ * Validate Canary Deployment - VERSÃO FINAL
  *
  * Executa smoke tests na instância canary
  * Valida: health checks, readiness, logs
  *
- * CORRIGIDO: Suporta Windows E Unix
+ * CORRIGIDO: Suporta Windows E Unix (SEM FOR LOOPS)
  *
  * Uso:
  *   ValidateCanaryDeployment('lendings-q', 'dev')
@@ -32,7 +32,7 @@ def call(String serviceName, String namespace)
                 )
         ])
                 {
-                    // STEP 1: Obter nome do pod canary
+                    // STEP 1: Obter nome do pod canary (SEM FOR LOOP)
                     echo "STEP 1: Getting canary pod..."
 
                     def canaryPod
@@ -50,9 +50,12 @@ def call(String serviceName, String namespace)
                     }
                     else
                     {
+                        // WINDOWS: Sem for loop, usar simples jsonpath
                         canaryPod = bat(
                                 script: """
-                        @for /f %%%%i in ('kubectl get pods -n ${namespace} -l app=${serviceName}-canary -o jsonpath="{.items[0].metadata.name}" --sort-by=.metadata.creationTimestamp') do @echo %%%%i
+                        @kubectl get pods -n ${namespace} ^
+                            -l app=${serviceName}-canary ^
+                            -o jsonpath="{.items[0].metadata.name}"
                     """,
                                 returnStdout: true
                         ).trim()
@@ -84,50 +87,21 @@ def call(String serviceName, String namespace)
                     // STEP 3: Testar logs para erros
                     echo "STEP 3: Checking pod logs for errors..."
 
-                    def hasErrors
-                    if (isUnix())
-                    {
-                        hasErrors = sh(
-                                script: """
-                        LINES=\$(kubectl logs pod/${canaryPod} -n ${namespace} 2>/dev/null | grep -i "error\\|exception\\|fatal" | wc -l)
-                        echo \$LINES
-                    """,
-                                returnStdout: true
-                        ).trim().toInteger()
-                    }
-                    else
-                    {
-                        // No Windows, contar linhas com erro é mais complexo
-                        // Vamos apenas fazer grep simples
-                        sh(
-                                script: """
-                        kubectl logs pod/${canaryPod} -n ${namespace} 2>nul | findstr /I "error exception fatal" >nul
-                        if errorlevel 0 (
-                            echo "Errors found in logs"
-                        ) else (
-                            echo "No errors found"
-                        )
-                    """
-                        )
-                        hasErrors = 0 // Simplificado para Windows
+
+                    if (isUnix()) {
+                        sh """
+                            echo "Checking for error patterns in logs..."
+                            kubectl logs pod/${canaryPod} -n ${namespace} 2>/dev/null | grep -Ei 'error|exception|fatal' | head -5 || echo "No errors found"
+                        """
                     }
 
-                    if (hasErrors > 0)
-                    {
-                        echo "⚠️  Warning: Found ${hasErrors} error lines in logs"
-
-                        if (isUnix())
-                        {
-                            sh "kubectl logs pod/${canaryPod} -n ${namespace} | tail -20"
-                        }
-                        else
-                        {
-                            bat "kubectl logs pod/${canaryPod} -n ${namespace} | findstr /N . | tail -20"
-                        }
-                    }
                     else
                     {
-                        echo "✅ No significant errors found in logs"
+                        // WINDOWS: Simples comando sem for loop
+                        bat """
+                    echo Checking for error patterns in logs...
+                    kubectl logs pod/${canaryPod} -n ${namespace} 2>nul | findstr /I "error exception fatal" || echo No errors found
+                """
                     }
 
                     // STEP 4: Tentar health check se endpoint estiver disponível
@@ -158,7 +132,7 @@ def call(String serviceName, String namespace)
                         echo "✅ Continuing validation..."
                     }
 
-                    // STEP 5: Verificar readiness probe
+                    // STEP 5: Verificar readiness probe (SEM FOR LOOP)
                     echo "STEP 5: Checking readiness probe..."
 
                     def isReady
@@ -167,16 +141,18 @@ def call(String serviceName, String namespace)
                         isReady = sh(
                                 script: """
                         kubectl get pod ${canaryPod} -n ${namespace} \
-                            -o jsonpath='{.status.conditions[?(@.type==\"Ready\")].status}'
+                            -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
                     """,
                                 returnStdout: true
                         ).trim()
                     }
                     else
                     {
+                        // WINDOWS: Sem for loop, usar jsonpath direto
                         isReady = bat(
                                 script: """
-                        @for /f %%%%i in ('kubectl get pod ${canaryPod} -n ${namespace} -o jsonpath="{.status.conditions[?(@.type==\\\"Ready\\\")].status}"') do @echo %%%%i
+                        @kubectl get pod ${canaryPod} -n ${namespace} ^
+                            -o jsonpath="{.status.conditions[?(@.type==\"Ready\")].status}"
                     """,
                                 returnStdout: true
                         ).trim()
@@ -201,6 +177,22 @@ def call(String serviceName, String namespace)
                     {
                         bat """
                     kubectl describe pod ${canaryPod} -n ${namespace}
+                """
+                    }
+
+                    // STEP 7: Listar todos os pods canary
+                    echo "STEP 7: All canary pods status..."
+
+                    if (isUnix())
+                    {
+                        sh """
+                    kubectl get pods -n ${namespace} -l app=${serviceName}-canary -o wide
+                """
+                    }
+                    else
+                    {
+                        bat """
+                    kubectl get pods -n ${namespace} -l app=${serviceName}-canary -o wide
                 """
                     }
                 }

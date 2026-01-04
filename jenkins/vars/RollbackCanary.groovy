@@ -1,10 +1,10 @@
 /*
- * Rollback Canary Deployment
+ * Rollback Canary Deployment - VERSÃO FINAL
  *
  * Reverte o tráfego completamente para a versão estável anterior
  * Remove a versão canary que falhou nos testes
  *
- * CORRIGIDO: Suporta Windows E Unix
+ * CORRIGIDO: Suporta Windows E Unix (SEM FOR LOOPS)
  *
  * Uso:
  *   RollbackCanary('lendings-q', 'dev')
@@ -18,7 +18,7 @@ def call(String serviceName, String namespace)
         ╔════════════════════════════════════════╗
         ║     CANARY ROLLBACK TRIGGERED          ║
         ╚════════════════════════════════════════╝
-        
+
         ==========================================
         CANARY DEPLOYMENT - ROLLBACK
         ==========================================
@@ -57,7 +57,7 @@ def call(String serviceName, String namespace)
                     {
                         bat """
                     echo Verifying service configuration...
-                    kubectl get service ${serviceName}-service -n ${namespace} -o yaml | findstr /N .
+                    kubectl get service ${serviceName}-service -n ${namespace} -o yaml
                 """
                     }
 
@@ -124,7 +124,7 @@ def call(String serviceName, String namespace)
                     {
                         bat """
                     echo Remaining stable deployments:
-                    kubectl get deployments -n ${namespace} ^| findstr ${serviceName}
+                    kubectl get deployments -n ${namespace}
                 """
                     }
                 }
@@ -177,7 +177,6 @@ def call(String serviceName, String namespace)
                 Rollback Time: < 5 seconds
             ==========================================
         """
-
     }
     catch (Exception e)
     {

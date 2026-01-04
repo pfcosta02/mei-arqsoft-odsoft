@@ -1,5 +1,8 @@
 @Library('jenkins')
 import org.jenkinsPipeline.Constants
+import hudson.model.Cause
+import hudson.model.User
+
 
 properties([
     parameters([
@@ -17,6 +20,16 @@ properties([
 ])
 
 node {
+    def getTriggerEmail() {
+        def cause = currentBuild.rawBuild.getCauses().find { it instanceof Cause.UserIdCause }
+        if (!cause) {
+            return '1221137@isep.ipp.pt'  // se foi trigger por SCM ou outro
+        }
+        def user = User.get(cause.userId, false, [:])
+        def mail = user?.getProperty(hudson.tasks.Mailer.UserProperty)?.getAddress()
+        return mail ?: '1221137@isep.ipp.pt'
+    }
+
     def MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     def PROJECT_VERSION = ''
     def IMAGE_NAME = 'lendings-c'
@@ -172,17 +185,21 @@ stage('Manual Approval Required')
                     try
                     {
                         emailext(
-                            subject: "Deployment Approval Required: ${IMAGE_NAME}:${PROJECT_VERSION}",
+                            subject: "APPROVAL REQUIRED [${IMAGE_NAME}:${PROJECT_VERSION}]",
+                            mimeType: 'text/html',
+                            to: '1221137@isep.ipp.pt',
                             body: """
-                                Deployment waiting for approval:
-                                - Service: ${IMAGE_NAME}
-                                - Version: ${PROJECT_VERSION}
-                                - Target: ${NEW_COLOR}
-
-                                Approve at: ${BUILD_URL}input
-                            """,
-                            to: '1221137@isep.ipp.pt'
+                                <h3>Deployment approval required</h3>
+                                <ul>
+                                  <li>Service: <b>${IMAGE_NAME}</b></li>
+                                  <li>Version: <b>${PROJECT_VERSION}</b></li>
+                                  <li>Strategy: <b>${params.RolloutStrategy}</b></li>
+                                </ul>
+                                <p>Click the link below to approve or abort this deployment:</p>
+                                <p><a href="${BUILD_URL}input">Open Jenkins approval gate</a></p>
+                            """
                         )
+
 
                         timeout(time: 30, unit: 'MINUTES')
                         {
@@ -219,18 +236,31 @@ stage('Manual Approval Required')
 
                     try
                     {
-                        emailext(
-                            subject: "Canary Validation Approval: ${IMAGE_NAME}:${PROJECT_VERSION}",
-                            body: """
-                                Canary deployment validation:
-                                - Service: ${IMAGE_NAME}
-                                - Version: ${PROJECT_VERSION}
-                                - Canary Traffic: ${CANARY_PERCENTAGE}%
+                    def approverEmail = getTriggerEmail()
+                    echo "Sending email to: ${approverEmail}"
 
-                                Approve at: ${BUILD_URL}input
-                            """,
-                            to: '1221137@isep.ipp.pt'
+                        emailext(
+                            subject: "APPROVAL REQUIRED [${IMAGE_NAME}:${PROJECT_VERSION}]",
+                            mimeType: 'text/html',
+                            to: approverEmail,
+                            body: """
+                                <h3>Deployment approval required</h3>
+                                <ul>
+                                  <li>Service: <b>${IMAGE_NAME}</b></li>
+                                  <li>Version: <b>${PROJECT_VERSION}</b></li>
+                                  <li>Strategy: <b>${params.RolloutStrategy}</b></li>
+                                </ul>
+                                <p>Click the link below to approve or abort this deployment:</p>
+                                <p><a href="${BUILD_URL}input">Open Jenkins approval gate</a></p>
+                            """
                         )
+
+//                         slackSend(
+//                             channel: '#deployments',
+//                             color: '#ffa500',
+//                             message: "Approval required for ${IMAGE_NAME}:${PROJECT_VERSION} (${params.RolloutStrategy}) – ${BUILD_URL}input",
+//                             tokenCredentialId: 'slack-token'
+//                         )
 
                         timeout(time: 30, unit: 'MINUTES')
                         {

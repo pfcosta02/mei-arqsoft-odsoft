@@ -13,9 +13,7 @@ def call(String serviceName, String color, String namespace)
         Namespace: ${namespace}
         ======================================================="""
 
-    def credentialId = Constants.ENVIRONMENT_2_CREDENTIALS_ID[namespace]
-
-    withCredentials([file(credentialsId: credentialId, variable: 'KUBECONFIG')])
+    withCredentials([file(credentialsId: Constants.ENVIRONMENT_2_CREDENTIALS_ID[namespace], variable: 'KUBECONFIG')])
             {
                 try
                 {

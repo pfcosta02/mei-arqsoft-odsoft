@@ -3,6 +3,15 @@ import org.jenkinsPipeline.Constants
 import hudson.model.Cause
 import hudson.model.User
 
+def getTriggerEmail() {
+                    def cause = currentBuild.rawBuild.getCauses().find { it instanceof Cause.UserIdCause }
+                    if (!cause) {
+                        return '1221137@isep.ipp.pt'  // se foi trigger por SCM ou outro
+                    }
+                    def user = User.get(cause.userId, false, [:])
+                    def mail = user?.getProperty(hudson.tasks.Mailer.UserProperty)?.getAddress()
+                    return mail ?: '1221137@isep.ipp.pt'
+                }
 
 properties([
     parameters([
@@ -158,15 +167,7 @@ node {
 
             stage('Manual Approval Required')
             {
-                def getTriggerEmail() {
-                    def cause = currentBuild.rawBuild.getCauses().find { it instanceof Cause.UserIdCause }
-                    if (!cause) {
-                        return '1221137@isep.ipp.pt'  // se foi trigger por SCM ou outro
-                    }
-                    def user = User.get(cause.userId, false, [:])
-                    def mail = user?.getProperty(hudson.tasks.Mailer.UserProperty)?.getAddress()
-                    return mail ?: '1221137@isep.ipp.pt'
-                }
+
 
                 if (params.RolloutStrategy == 'Blue/Green')
                 {

@@ -1,3 +1,4 @@
+@Library('jenkins')
 import org.jenkinsPipeline.Constants
 
 // Scripted Pipeline for AuthNUsers Command Service
@@ -19,7 +20,7 @@ properties([
 node {
     def MAVEN_DIR = tool(name: 'Maven 3.9.11', type: 'maven')
     def PROJECT_VERSION = ''
-    def IMAGE_NAME = 'lendings-c'
+    def IMAGE_NAME = 'lendings_c'
     def RESULT_STR = ''
     def CURRENT_COLOR // Cor atual do deployment (blue, green ou none)
     def NEW_COLOR // Nova cor para o deployment

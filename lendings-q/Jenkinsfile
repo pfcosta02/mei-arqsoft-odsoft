@@ -1,4 +1,4 @@
-@Library('jenkins')
+//@Library('jenkins')
 import org.jenkinsPipeline.Constants
 
 properties([

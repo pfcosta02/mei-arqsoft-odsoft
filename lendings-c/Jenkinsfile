@@ -1,4 +1,4 @@
-@Library('jenkins')
+//@Library('jenkins')
 import org.jenkinsPipeline.Constants
 import hudson.model.Cause
 import hudson.model.User

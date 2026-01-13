@@ -101,7 +101,7 @@ node {
 
             stage('Push Docker Image')
             {
-                PushDockerImageD(RESULT_STR);
+                PushDockerImage(RESULT_STR);
             }
 
             stage('Deploy')
